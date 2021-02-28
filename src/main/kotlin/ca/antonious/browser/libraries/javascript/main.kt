@@ -11,7 +11,7 @@ import ca.antonious.browser.libraries.javascript.parser.JavascriptParser
 fun main() {
     val rawProgram = """
         function test2(var) {
-            if (var) {
+            if (var < 5) {
                 return 1
             }
             return 2
@@ -21,9 +21,17 @@ fun main() {
             return 5*test2(number)          
         }
         
-        let input = input()
-        test(input)
+        function whileTest(max) {
+            let counter = 0
+            while (counter < max) {
+                consoleLog(counter)
+                let counter = counter + 1 
+            }
+            
+            return test2(counter)
+        }
 
+        whileTest(input())
     """.trimIndent()
 
     val program = JavascriptNode.Program(body = JavascriptParser().parse(rawProgram))

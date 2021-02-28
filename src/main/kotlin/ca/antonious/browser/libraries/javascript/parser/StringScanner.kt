@@ -14,6 +14,10 @@ class StringScanner(private val string: String) {
         cursor += 1
     }
 
+    fun moveBack() {
+        cursor -= 1
+    }
+
     fun currentChar(): Char? {
         if (string.isEmpty()) {
             return null

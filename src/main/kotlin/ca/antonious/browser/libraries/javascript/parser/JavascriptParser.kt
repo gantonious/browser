@@ -4,6 +4,7 @@ import ca.antonious.browser.libraries.javascript.ast.BooleanOperator
 import ca.antonious.browser.libraries.javascript.ast.JavascriptExpression
 import ca.antonious.browser.libraries.javascript.ast.JavascriptNode
 import ca.antonious.browser.libraries.javascript.ast.JavascriptValue
+import kotlin.math.exp
 
 class JavascriptParser {
     fun parse(rawJavascript: String): List<JavascriptNode> {
@@ -12,13 +13,13 @@ class JavascriptParser {
 
         while (!scanner.isAtEnd) {
             scanner.moveAfterWhitespace()
-            val nextWord = scanner.scanUntil { it.isWhitespace() }
+            val nextWord = scanner.scanWhile { it.isLetter() }
 
             if (nextWord == "function") {
                 val name = scanner.scanUntil(char ='(')
                 val params = scanner.scanUntil(char = ')')
                 scanner.scanUntil('{')
-                val block = scanner.scanUntil('}')
+                val block = scanner.scanUntil('}', balancedAgainst = '{')
                 body += JavascriptNode.Function(name = name, body = parse(block), parameterNames = params.split(",").filter { it.isNotEmpty() }.map { it.trim() })
             } else if (nextWord == "return") {
                 val rawReturnExpression = scanner.scanUntil { it == ';' || it == '\n' }
@@ -27,7 +28,7 @@ class JavascriptParser {
                 scanner.scanUntil(char = '(')
                 val expression = scanner.scanUntil(char = ')')
                 scanner.scanUntil('{')
-                val ifBody = scanner.scanUntil('}')
+                val ifBody = scanner.scanUntil('}', balancedAgainst = '{')
 
                 body += JavascriptNode.IfStatement(
                     expression = ExpressionParser(expression).parse(),
@@ -50,8 +51,19 @@ class JavascriptParser {
                     name = variableName,
                     expression = ExpressionParser(variableExpression).parse()
                 )
-            } else if (nextWord.isNotEmpty()) {
+            } else if (nextWord == "while") {
+                scanner.moveAfterWhitespace()
+                scanner.scanUntil('(')
+                val condition = scanner.scanUntil(char = ')')
+                scanner.scanUntil('{')
+                val whileBody = scanner.scanUntil('}', balancedAgainst = '{')
 
+                body += JavascriptNode.WhileLoop(
+                    condition = ExpressionParser(condition).parse(),
+                    body = parse(whileBody)
+                )
+            } else if (nextWord.isNotEmpty()) {
+                scanner.moveBack()
                 body += ExpressionParser(nextWord + scanner.scanUntil { it == ';' || it == '\n' }).parse()
             }
         }
@@ -64,7 +76,26 @@ class ExpressionParser(expression: String) {
     private val scanner = StringScanner(expression)
 
     fun parse(): JavascriptExpression {
-       return parseAdditionExpression()
+       return parseComparisionExpression()
+    }
+
+    private fun parseComparisionExpression(): JavascriptExpression {
+        val lhs = parseAdditionExpression()
+
+        scanner.moveAfterWhitespace()
+        val nextChar = scanner.nextChar()
+
+        if (nextChar == '<') {
+            scanner.moveForward()
+            scanner.moveAfterWhitespace()
+            return JavascriptExpression.BooleanOperation(
+                operator = BooleanOperator.LessThan,
+                lhs = lhs,
+                rhs = parseMultiplicationExpression()
+            )
+        }
+
+        return lhs
     }
 
     private fun parseAdditionExpression(): JavascriptExpression {

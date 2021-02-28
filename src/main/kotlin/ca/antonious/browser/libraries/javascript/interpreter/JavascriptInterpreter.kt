@@ -67,6 +67,12 @@ class JavascriptInterpreter {
                 currentScope.setProperty(node.name, interpret(node.expression))
                 return JavascriptValue.Undefined
             }
+            is JavascriptNode.WhileLoop -> {
+                while (interpret(node.condition).isTruthy) {
+                    interpretChildren(node.body)
+                }
+                return JavascriptValue.Undefined
+            }
             is JavascriptExpression.BooleanOperation -> {
                 val lhsValue = interpret(node.lhs)
                 val rhsValue = interpret(node.rhs)
@@ -88,6 +94,9 @@ class JavascriptInterpreter {
                     }
                     is BooleanOperator.Multiply -> {
                         JavascriptValue.Double(lhsValue.value * rhsValue.value)
+                    }
+                    is BooleanOperator.LessThan -> {
+                        JavascriptValue.Boolean(lhsValue.value < rhsValue.value)
                     }
                 }
             }
@@ -116,9 +125,9 @@ class JavascriptInterpreter {
     private fun enterFunction(function: JavascriptNode.Function, passedParameters: List<JavascriptExpression>) {
         currentScope = JavascriptObject(currentScope).apply {
             function.parameterNames.forEachIndexed { index, parameterName ->
-                setProperty(parameterName, passedParameters.getOrElse(index) {
+                setProperty(parameterName, interpret(passedParameters.getOrElse(index) {
                     JavascriptExpression.Literal(value = JavascriptValue.Undefined)
-                })
+                }))
             }
         }
     }

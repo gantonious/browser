@@ -6,6 +6,7 @@ sealed class JavascriptNode {
     data class Function(val name: String, val parameterNames: List<String>, val body: List<JavascriptNode>) : JavascriptNode()
     data class IfStatement(val expression: JavascriptExpression, val body: List<JavascriptNode>) : JavascriptNode()
     data class LetAssignment(val name: String, val expression: JavascriptExpression) : JavascriptNode()
+    data class WhileLoop(val condition: JavascriptExpression, val body: List<JavascriptNode>) : JavascriptNode()
 }
 
 sealed class JavascriptExpression : JavascriptNode() {
@@ -19,6 +20,7 @@ sealed class BooleanOperator {
     object Add : BooleanOperator()
     object Subtract : BooleanOperator()
     object Multiply : BooleanOperator()
+    object LessThan : BooleanOperator()
 }
 
 sealed class JavascriptValue {
