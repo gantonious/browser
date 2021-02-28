@@ -13,6 +13,7 @@ sealed class JavascriptNode {
 
 sealed class JavascriptExpression : JavascriptNode() {
     data class FunctionCall(val name: String, val parameters: List<JavascriptExpression>) : JavascriptExpression()
+    data class DotAccess(val propertyName: String, val expression: JavascriptExpression) : JavascriptExpression()
     data class Reference(val name: String) : JavascriptExpression()
     data class Literal(val value: JavascriptValue) : JavascriptExpression()
     data class BooleanOperation(val operator: BooleanOperator, val lhs: JavascriptExpression, val rhs: JavascriptExpression): JavascriptExpression()

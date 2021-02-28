@@ -115,6 +115,18 @@ class JavascriptInterpreter {
                     else -> JavascriptValue.Undefined
                 }
             }
+            is JavascriptExpression.DotAccess -> {
+                val value = when (val value = interpret(node.expression)) {
+                    is JavascriptValue.Object -> value.value
+                    else -> error("Cannot access property '${node.propertyName}' on ${value} since it's not an object.")
+                }
+
+                return when (val property = value.getProperty(node.propertyName)) {
+                    is JavascriptValue -> property
+                    is JavascriptNode -> interpret(property)
+                    else -> JavascriptValue.Undefined
+                }
+            }
             is JavascriptExpression.Literal -> {
                 return node.value
             }

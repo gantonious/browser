@@ -144,8 +144,26 @@ class ExpressionParser(expression: String) {
         return lhs
     }
 
-    private fun parseFunctionCall(): JavascriptExpression {
+    private fun parseDotAccess(): JavascriptExpression {
         val lhs = parseSimpleExpression()
+
+        if (lhs is JavascriptExpression.Reference) {
+            if (scanner.nextChar() != '.') {
+                return lhs
+            }
+
+            scanner.moveForward()
+
+            val propertyName = scanner.scanWhile { it.isLetterOrDigit() }
+
+            return JavascriptExpression.DotAccess(propertyName = propertyName, expression = lhs)
+        }
+
+        return lhs
+    }
+
+    private fun parseFunctionCall(): JavascriptExpression {
+        val lhs = parseDotAccess()
 
         if (lhs is JavascriptExpression.Reference) {
             val parameters = mutableListOf<JavascriptExpression>()
