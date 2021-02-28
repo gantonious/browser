@@ -100,7 +100,7 @@ class StringScanner(private val string: String) {
             }
         }
 
-        if (cursor < string.length && moveAfter) {
+        if (moveAfter) {
             cursor += 1
             return string.substring(startIndex, cursor - 1)
         } else {

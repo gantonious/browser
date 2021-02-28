@@ -1,5 +1,7 @@
 package ca.antonious.browser.libraries.javascript.ast
 
+import ca.antonious.browser.libraries.javascript.interpreter.JavascriptObject
+
 sealed class JavascriptNode {
     data class Program(val body: List<JavascriptNode>) : JavascriptNode()
     data class Return(val expression: JavascriptExpression) : JavascriptNode()
@@ -44,5 +46,9 @@ sealed class JavascriptValue {
 
     data class String(val value: kotlin.String) : JavascriptValue() {
         override val isTruthy = value.isNotEmpty()
+    }
+
+    data class Object(val value: JavascriptObject) : JavascriptValue() {
+        override val isTruthy = true
     }
 }

@@ -170,6 +170,12 @@ class ExpressionParser(expression: String) {
     }
 
     private fun parseSimpleExpression(): JavascriptExpression {
+        if (scanner.nextChar() == '"') {
+            scanner.moveForward()
+            val string = scanner.scanUntil('"')
+            return JavascriptExpression.Literal(value = JavascriptValue.String(string))
+        }
+
         val literal = scanner.scanWhile(moveAfter = false) { it.isLetterOrDigit() }
         val literalAsDouble = literal.toDoubleOrNull()
 

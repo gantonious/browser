@@ -15,6 +15,14 @@ class JavascriptInterpreter {
         setProperty("input", NativeFunction {
             JavascriptValue.Double((readLine() ?: "").toDouble())
         })
+
+        setProperty("console", JavascriptValue.Object(JavascriptObject().apply {
+                setProperty("log", NativeFunction {
+                    println("${it.first()}")
+                    JavascriptValue.Undefined
+                })
+            })
+        )
     }
 
     private var currentScope = globalObject
