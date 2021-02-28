@@ -8,6 +8,7 @@ import ca.antonious.browser.libraries.javascript.ast.JavascriptValue
 class JavascriptInterpreter {
     private val globalObject = JavascriptObject()
     private var currentScope = globalObject
+    private var lastReturn: JavascriptValue? = null
 
     fun interpret(node: JavascriptNode): JavascriptValue {
         when (node) {
@@ -19,14 +20,24 @@ class JavascriptInterpreter {
                 return JavascriptValue.Undefined
             }
             is JavascriptNode.Return -> {
-                return interpret(node.expression)
+                lastReturn = interpret(node.expression)
+                return JavascriptValue.Undefined
             }
             is JavascriptExpression.FunctionCall -> {
                 val function = currentScope.getProperty(node.name) as? JavascriptNode.Function ?: error("Cannot invoke function on undefined '${node.name}'")
                 enterFunction(function, node.parameters)
-                val result = interpretChildren(function.body)
+
+                for (child in function.body) {
+                    interpret(child)
+                    if (lastReturn != null) {
+                        break
+                    }
+                }
+
                 exitFunction()
-                return result
+                return (lastReturn ?: JavascriptValue.Undefined).also {
+                    lastReturn = null
+                }
             }
             is JavascriptExpression.BooleanOperation -> {
                 val lhsValue = interpret(node.lhs)
