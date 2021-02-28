@@ -3,7 +3,7 @@ package ca.antonious.browser.libraries.javascript.ast
 sealed class JavascriptNode {
     data class Program(val body: List<JavascriptNode>) : JavascriptNode()
     data class Return(val expression: JavascriptExpression) : JavascriptNode()
-    data class Function(val name: String, val body: List<JavascriptNode>) : JavascriptNode()
+    data class Function(val name: String, val parameterNames: List<String>, val body: List<JavascriptNode>) : JavascriptNode()
 }
 
 sealed class JavascriptExpression : JavascriptNode() {
@@ -20,7 +20,11 @@ sealed class BooleanOperator {
 }
 
 sealed class JavascriptValue {
-    object Undefined : JavascriptValue()
+    object Undefined : JavascriptValue() {
+        override fun toString(): kotlin.String {
+            return "undefined"
+        }
+    }
     data class Double(val value: kotlin.Double) : JavascriptValue()
     data class String(val value: kotlin.String) : JavascriptValue()
 }

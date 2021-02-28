@@ -9,31 +9,13 @@ import ca.antonious.browser.libraries.javascript.parser.ExpressionParser
 import ca.antonious.browser.libraries.javascript.parser.JavascriptParser
 
 fun main() {
-    val program2 = JavascriptNode.Program(
-        body = listOf(
-            JavascriptNode.Function(
-                name = "test",
-                body = listOf(
-                    JavascriptNode.Return(
-                        expression = JavascriptExpression.BooleanOperation(
-                            operator = BooleanOperator.Add,
-                            lhs = JavascriptExpression.Literal(value = JavascriptValue.Double(4.0)),
-                            rhs = JavascriptExpression.Literal(value = JavascriptValue.Double(5.0))
-                        )
-                    )
-                )
-            ),
-            JavascriptExpression.FunctionCall(name = "test", parameters = emptyList())
-        )
-    )
-
     val rawProgram = """
-        function test2() {
-            return 10 * 5 - 3
+        function test2(var) {
+            return var + 2
         }
         
         function test() {
-            return 5 + 2 * test2()          
+            return 5+2*test2(2)          
         }
         
         test()
@@ -41,8 +23,4 @@ fun main() {
 
     val program = JavascriptNode.Program(body = JavascriptParser().parse(rawProgram))
     println(JavascriptInterpreter().interpret(program))
-
-//    val expression = "5 + func(1, anotherFunc(2)) * 3"
-
-//    println(program)
 }

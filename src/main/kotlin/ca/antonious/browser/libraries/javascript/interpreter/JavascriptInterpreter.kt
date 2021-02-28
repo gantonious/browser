@@ -7,6 +7,7 @@ import ca.antonious.browser.libraries.javascript.ast.JavascriptValue
 
 class JavascriptInterpreter {
     private val globalObject = JavascriptObject()
+    private var currentScope = globalObject
 
     fun interpret(node: JavascriptNode): JavascriptValue {
         when (node) {
@@ -14,19 +15,30 @@ class JavascriptInterpreter {
                 return interpretChildren(node.body)
             }
             is JavascriptNode.Function -> {
-                globalObject.properties[node.name] = node
+                currentScope.setProperty(key = node.name, value = node)
                 return JavascriptValue.Undefined
             }
             is JavascriptNode.Return -> {
                 return interpret(node.expression)
             }
             is JavascriptExpression.FunctionCall -> {
-                val function = globalObject.properties[node.name] as? JavascriptNode.Function ?: error("Cannot invoke function on undefined '${node.name}'")
-                return interpretChildren(function.body)
+                val function = currentScope.getProperty(node.name) as? JavascriptNode.Function ?: error("Cannot invoke function on undefined '${node.name}'")
+                enterFunction(function, node.parameters)
+                val result = interpretChildren(function.body)
+                exitFunction()
+                return result
             }
             is JavascriptExpression.BooleanOperation -> {
-                val lhsValue = interpret(node.lhs) as? JavascriptValue.Double ?: error("")
-                val rhsValue = interpret(node.rhs) as? JavascriptValue.Double ?: error("")
+                val lhsValue = interpret(node.lhs)
+                val rhsValue = interpret(node.rhs)
+
+                if (lhsValue !is JavascriptValue.Double) {
+                    error("Can't execute math on '${lhsValue}'")
+                }
+
+                if (rhsValue !is JavascriptValue.Double) {
+                    error("Can't execute math on '${rhsValue}'")
+                }
 
                 return when (node.operator) {
                     is BooleanOperator.Add -> {
@@ -41,7 +53,7 @@ class JavascriptInterpreter {
                 }
             }
             is JavascriptExpression.Reference -> {
-                return globalObject.properties[node.name] as JavascriptValue
+                return interpret(currentScope.getProperty(node.name) as? JavascriptNode ?: JavascriptExpression.Literal(value = JavascriptValue.Undefined))
             }
             is JavascriptExpression.Literal -> {
                 return node.value
@@ -56,5 +68,17 @@ class JavascriptInterpreter {
         }
 
         return result
+    }
+
+    private fun enterFunction(function: JavascriptNode.Function, passedParameters: List<JavascriptExpression>) {
+        currentScope = JavascriptObject(currentScope).apply {
+            function.parameterNames.forEachIndexed { index, parameterName ->
+                setProperty(parameterName, passedParameters[index])
+            }
+        }
+    }
+
+    private fun exitFunction() {
+        currentScope = currentScope.parent ?: globalObject
     }
 }

@@ -4,7 +4,6 @@ import ca.antonious.browser.libraries.javascript.ast.BooleanOperator
 import ca.antonious.browser.libraries.javascript.ast.JavascriptExpression
 import ca.antonious.browser.libraries.javascript.ast.JavascriptNode
 import ca.antonious.browser.libraries.javascript.ast.JavascriptValue
-import kotlin.math.exp
 
 class JavascriptParser {
     fun parse(rawJavascript: String): List<JavascriptNode> {
@@ -20,12 +19,13 @@ class JavascriptParser {
                 val params = scanner.scanUntil(char = ')')
                 scanner.scanUntil('{')
                 val block = scanner.scanUntil('}')
-                body += JavascriptNode.Function(name = name, body = parse(block))
+                body += JavascriptNode.Function(name = name, body = parse(block), parameterNames = params.split(",").filter { it.isNotEmpty() }.map { it.trim() })
             } else if (nextWord == "return") {
                 val rawReturnExpression = scanner.scanUntil { it == ';' || it == '\n' }
                 body += JavascriptNode.Return(expression = ExpressionParser(rawReturnExpression).parse())
             } else if (nextWord.isNotEmpty()) {
-                body += ExpressionParser(nextWord).parse()
+
+                body += ExpressionParser(nextWord + scanner.scanUntil { it == ';' || it == '\n' }).parse()
             }
         }
 
@@ -43,7 +43,7 @@ class ExpressionParser(expression: String) {
     private fun parseAdditionExpression(): JavascriptExpression {
         val lhs = parseMultiplicationExpression()
 
-         scanner.moveAfterWhitespace()
+        scanner.moveAfterWhitespace()
         val nextChar = scanner.nextChar()
 
         if (nextChar == '+') {
@@ -92,16 +92,18 @@ class ExpressionParser(expression: String) {
         if (lhs is JavascriptExpression.Reference) {
             val parameters = mutableListOf<JavascriptExpression>()
 
-            if (scanner.nextChar() != ')') {
-                while (scanner.currentChar() != ')') {
-                    parameters += parse()
-                    scanner.moveAfterWhitespace()
-                }
-
-                if (parameters.count() > 1) {
-                    scanner.moveForward()
-                }
+            if (scanner.nextChar() != '(') {
+                return lhs
             }
+            // Consume '(
+            scanner.moveForward()
+
+            while (scanner.nextChar() != ')') {
+                parameters += parse()
+                scanner.moveAfterWhitespace()
+            }
+
+            scanner.moveForward()
 
             return JavascriptExpression.FunctionCall(name = lhs.name, parameters = parameters)
         }
@@ -110,7 +112,7 @@ class ExpressionParser(expression: String) {
     }
 
     private fun parseSimpleExpression(): JavascriptExpression {
-        val literal = scanner.scanUntil { it == ' ' || it == '(' || it == ',' || it == ')' }
+        val literal = scanner.scanWhile(moveAfter = false) { it.isLetterOrDigit() }
         val literalAsDouble = literal.toDoubleOrNull()
 
         if (literalAsDouble != null) {

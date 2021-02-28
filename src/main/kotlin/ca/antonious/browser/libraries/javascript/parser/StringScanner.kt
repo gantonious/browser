@@ -81,6 +81,29 @@ class StringScanner(private val string: String) {
         }
     }
 
+    fun scanWhile(moveAfter: Boolean = true, predicate: (Char) -> Boolean): String {
+        if (isAtEnd) {
+            return ""
+        }
+
+        val startIndex = cursor
+        var nextChar = string[cursor]
+
+        while (predicate(nextChar) && cursor < string.length) {
+            cursor += 1
+            if (cursor < string.length) {
+                nextChar = string[cursor]
+            }
+        }
+
+        if (cursor < string.length && moveAfter) {
+            cursor += 1
+            return string.substring(startIndex, cursor - 1)
+        } else {
+            return string.substring(startIndex, cursor)
+        }
+    }
+
     fun scanAround(char: Char): Pair<String, String?> {
         if (isAtEnd) {
             return "" to null
