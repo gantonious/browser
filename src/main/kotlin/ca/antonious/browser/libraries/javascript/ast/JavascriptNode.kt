@@ -21,7 +21,7 @@ sealed class BooleanOperator {
 }
 
 sealed class JavascriptValue {
-    abstract val isTruthy: Boolean
+    abstract val isTruthy: kotlin.Boolean
 
     object Undefined : JavascriptValue() {
         override val isTruthy = false
@@ -30,6 +30,11 @@ sealed class JavascriptValue {
             return "undefined"
         }
     }
+
+    data class Boolean(val value: kotlin.Boolean) : JavascriptValue() {
+        override val isTruthy = value
+    }
+
     data class Double(val value: kotlin.Double) : JavascriptValue() {
         override val isTruthy = value != 0.0
     }

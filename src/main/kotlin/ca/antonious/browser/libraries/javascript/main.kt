@@ -18,7 +18,7 @@ fun main() {
         }
         
         function test() {
-            return 5+2*test2(2)          
+            return 5+2*test2()          
         }
         
         test()

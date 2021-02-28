@@ -91,7 +91,9 @@ class JavascriptInterpreter {
     private fun enterFunction(function: JavascriptNode.Function, passedParameters: List<JavascriptExpression>) {
         currentScope = JavascriptObject(currentScope).apply {
             function.parameterNames.forEachIndexed { index, parameterName ->
-                setProperty(parameterName, passedParameters[index])
+                setProperty(parameterName, passedParameters.getOrElse(index) {
+                    JavascriptExpression.Literal(value = JavascriptValue.Undefined)
+                })
             }
         }
     }

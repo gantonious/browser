@@ -130,6 +130,18 @@ class ExpressionParser(expression: String) {
             return JavascriptExpression.Literal(value = JavascriptValue.Double(literalAsDouble))
         }
 
+        if (literal == "true") {
+            return JavascriptExpression.Literal(value = JavascriptValue.Boolean(true))
+        }
+
+        if (literal == "false") {
+            return JavascriptExpression.Literal(value = JavascriptValue.Boolean(false))
+        }
+
+        if (literal == "undefined") {
+            return JavascriptExpression.Literal(value = JavascriptValue.Undefined)
+        }
+
         return JavascriptExpression.Reference(name = literal)
     }
 }
