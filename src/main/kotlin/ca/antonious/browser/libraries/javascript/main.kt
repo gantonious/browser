@@ -11,6 +11,7 @@ import ca.antonious.browser.libraries.javascript.parser.JavascriptParser
 fun main() {
     val rawProgram = """
         function test2(var) {
+            consoleLog(var)
             if (var) {
                 return 1
             }
@@ -18,7 +19,7 @@ fun main() {
         }
         
         function test() {
-            return 5+2*test2()          
+            return 5+2*test2(20)          
         }
         
         test()

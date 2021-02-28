@@ -6,7 +6,13 @@ import ca.antonious.browser.libraries.javascript.ast.JavascriptNode
 import ca.antonious.browser.libraries.javascript.ast.JavascriptValue
 
 class JavascriptInterpreter {
-    private val globalObject = JavascriptObject()
+    private val globalObject = JavascriptObject().apply {
+        setProperty("consoleLog", NativeFunction {
+            println("${it.first()}")
+            JavascriptValue.Undefined
+        })
+    }
+
     private var currentScope = globalObject
     private var lastReturn: JavascriptValue? = null
 
@@ -24,7 +30,14 @@ class JavascriptInterpreter {
                 return JavascriptValue.Undefined
             }
             is JavascriptExpression.FunctionCall -> {
-                val function = currentScope.getProperty(node.name) as? JavascriptNode.Function ?: error("Cannot invoke function on undefined '${node.name}'")
+                val function = currentScope.getProperty(node.name)
+
+                if (function is NativeFunction) {
+                    return function.body.invoke(node.parameters.map { interpret(it) })
+                } else if (function !is JavascriptNode.Function) {
+                    error("Cannot invoke function on undefined '${node.name}'")
+                }
+
                 enterFunction(function, node.parameters)
 
                 for (child in function.body) {
