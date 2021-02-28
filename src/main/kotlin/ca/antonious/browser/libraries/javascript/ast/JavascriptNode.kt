@@ -5,6 +5,7 @@ sealed class JavascriptNode {
     data class Return(val expression: JavascriptExpression) : JavascriptNode()
     data class Function(val name: String, val parameterNames: List<String>, val body: List<JavascriptNode>) : JavascriptNode()
     data class IfStatement(val expression: JavascriptExpression, val body: List<JavascriptNode>) : JavascriptNode()
+    data class LetAssignment(val name: String, val expression: JavascriptExpression) : JavascriptNode()
 }
 
 sealed class JavascriptExpression : JavascriptNode() {

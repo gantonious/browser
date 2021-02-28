@@ -34,6 +34,22 @@ class JavascriptParser {
                     body = parse(ifBody)
                 )
 
+            } else if (nextWord == "let") {
+                scanner.moveAfterWhitespace()
+                val variableName = scanner.scanUntil { it == '=' || it == ' ' }
+                if (scanner.nextChar() != '=') {
+                    scanner.scanUntil { it == '=' }
+                } else if (scanner.nextChar() == '=') {
+                    scanner.moveForward()
+                }
+
+                scanner.moveAfterWhitespace()
+                val variableExpression = scanner.scanUntil { it == ';' || it == '\n' }
+
+                body += JavascriptNode.LetAssignment(
+                    name = variableName,
+                    expression = ExpressionParser(variableExpression).parse()
+                )
             } else if (nextWord.isNotEmpty()) {
 
                 body += ExpressionParser(nextWord + scanner.scanUntil { it == ';' || it == '\n' }).parse()

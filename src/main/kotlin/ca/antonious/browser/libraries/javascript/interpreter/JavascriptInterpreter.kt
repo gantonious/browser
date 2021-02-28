@@ -11,6 +11,10 @@ class JavascriptInterpreter {
             println("${it.first()}")
             JavascriptValue.Undefined
         })
+
+        setProperty("input", NativeFunction {
+            JavascriptValue.Double((readLine() ?: "").toDouble())
+        })
     }
 
     private var currentScope = globalObject
@@ -59,6 +63,10 @@ class JavascriptInterpreter {
                 }
                 return JavascriptValue.Undefined
             }
+            is JavascriptNode.LetAssignment -> {
+                currentScope.setProperty(node.name, interpret(node.expression))
+                return JavascriptValue.Undefined
+            }
             is JavascriptExpression.BooleanOperation -> {
                 val lhsValue = interpret(node.lhs)
                 val rhsValue = interpret(node.rhs)
@@ -84,7 +92,11 @@ class JavascriptInterpreter {
                 }
             }
             is JavascriptExpression.Reference -> {
-                return interpret(currentScope.getProperty(node.name) as? JavascriptNode ?: JavascriptExpression.Literal(value = JavascriptValue.Undefined))
+                return when (val value = currentScope.getProperty(node.name)) {
+                    is JavascriptValue -> value
+                    is JavascriptNode -> interpret(value)
+                    else -> JavascriptValue.Undefined
+                }
             }
             is JavascriptExpression.Literal -> {
                 return node.value

@@ -11,18 +11,19 @@ import ca.antonious.browser.libraries.javascript.parser.JavascriptParser
 fun main() {
     val rawProgram = """
         function test2(var) {
-            consoleLog(var)
             if (var) {
                 return 1
             }
             return 2
         }
         
-        function test() {
-            return 5+2*test2(20)          
+        function test(number) {
+            return 5*test2(number)          
         }
         
-        test()
+        let input = input()
+        test(input)
+
     """.trimIndent()
 
     val program = JavascriptNode.Program(body = JavascriptParser().parse(rawProgram))
