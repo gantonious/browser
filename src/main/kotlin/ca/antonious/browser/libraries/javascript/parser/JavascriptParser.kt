@@ -23,6 +23,17 @@ class JavascriptParser {
             } else if (nextWord == "return") {
                 val rawReturnExpression = scanner.scanUntil { it == ';' || it == '\n' }
                 body += JavascriptNode.Return(expression = ExpressionParser(rawReturnExpression).parse())
+            } else if (nextWord == "if") {
+                scanner.scanUntil(char = '(')
+                val expression = scanner.scanUntil(char = ')')
+                scanner.scanUntil('{')
+                val ifBody = scanner.scanUntil('}')
+
+                body += JavascriptNode.IfStatement(
+                    expression = ExpressionParser(expression).parse(),
+                    body = parse(ifBody)
+                )
+
             } else if (nextWord.isNotEmpty()) {
 
                 body += ExpressionParser(nextWord + scanner.scanUntil { it == ';' || it == '\n' }).parse()

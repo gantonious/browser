@@ -39,6 +39,13 @@ class JavascriptInterpreter {
                     lastReturn = null
                 }
             }
+            is JavascriptNode.IfStatement -> {
+                val ifConditionValue = interpret(node.expression)
+                if (ifConditionValue.isTruthy) {
+                    interpretChildren(node.body)
+                }
+                return JavascriptValue.Undefined
+            }
             is JavascriptExpression.BooleanOperation -> {
                 val lhsValue = interpret(node.lhs)
                 val rhsValue = interpret(node.rhs)
