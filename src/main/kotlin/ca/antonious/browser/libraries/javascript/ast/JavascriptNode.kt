@@ -31,25 +31,26 @@ sealed class JavascriptValue {
 
     object Undefined : JavascriptValue() {
         override val isTruthy = false
-
-        override fun toString(): kotlin.String {
-            return "undefined"
-        }
+        override fun toString() = "undefined"
     }
 
     data class Boolean(val value: kotlin.Boolean) : JavascriptValue() {
         override val isTruthy = value
+        override fun toString() = value.toString()
     }
 
-    data class Double(val value: kotlin.Double) : JavascriptValue() {
+    data class Number(val value: Double) : JavascriptValue() {
         override val isTruthy = value != 0.0
+        override fun toString() = value.toString()
     }
 
     data class String(val value: kotlin.String) : JavascriptValue() {
         override val isTruthy = value.isNotEmpty()
+        override fun toString() = value
     }
 
     data class Object(val value: JavascriptObject) : JavascriptValue() {
         override val isTruthy = true
+        override fun toString() = value.toString()
     }
 }

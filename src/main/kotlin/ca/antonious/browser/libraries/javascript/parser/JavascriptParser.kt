@@ -4,7 +4,6 @@ import ca.antonious.browser.libraries.javascript.ast.BooleanOperator
 import ca.antonious.browser.libraries.javascript.ast.JavascriptExpression
 import ca.antonious.browser.libraries.javascript.ast.JavascriptNode
 import ca.antonious.browser.libraries.javascript.ast.JavascriptValue
-import kotlin.math.exp
 
 class JavascriptParser {
     fun parse(rawJavascript: String): List<JavascriptNode> {
@@ -198,7 +197,7 @@ class ExpressionParser(expression: String) {
         val literalAsDouble = literal.toDoubleOrNull()
 
         if (literalAsDouble != null) {
-            return JavascriptExpression.Literal(value = JavascriptValue.Double(literalAsDouble))
+            return JavascriptExpression.Literal(value = JavascriptValue.Number(literalAsDouble))
         }
 
         if (literal == "true") {

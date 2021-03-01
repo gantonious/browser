@@ -18,14 +18,6 @@ class StringScanner(private val string: String) {
         cursor -= 1
     }
 
-    fun currentChar(): Char? {
-        if (string.isEmpty()) {
-            return null
-        }
-
-        return string[cursor - 1]
-    }
-
     fun nextChar(): Char? {
         if (isAtEnd) return null
         return string[cursor]
@@ -54,11 +46,11 @@ class StringScanner(private val string: String) {
             }
         }
 
-        if (cursor < string.length) {
+        return if (cursor < string.length) {
             cursor += 1
-            return string.substring(startIndex, cursor - 1)
+            string.substring(startIndex, cursor - 1)
         } else {
-            return string.substring(startIndex, cursor)
+            string.substring(startIndex, cursor)
         }
     }
 
@@ -77,11 +69,11 @@ class StringScanner(private val string: String) {
             }
         }
 
-        if (cursor < string.length) {
+        return if (cursor < string.length) {
             cursor += 1
-            return string.substring(startIndex, cursor - 1)
+            string.substring(startIndex, cursor - 1)
         } else {
-            return string.substring(startIndex, cursor)
+            string.substring(startIndex, cursor)
         }
     }
 
@@ -100,34 +92,11 @@ class StringScanner(private val string: String) {
             }
         }
 
-        if (moveAfter) {
+        return if (moveAfter) {
             cursor += 1
-            return string.substring(startIndex, cursor - 1)
+            string.substring(startIndex, cursor - 1)
         } else {
-            return string.substring(startIndex, cursor)
-        }
-    }
-
-    fun scanAround(char: Char): Pair<String, String?> {
-        if (isAtEnd) {
-            return "" to null
-        }
-
-        val startIndex = cursor
-        var nextChar = string[cursor]
-
-        while (nextChar != char) {
-            cursor += 1
-            if (cursor < string.length) {
-                nextChar = string[cursor]
-            }
-        }
-
-        return if (cursor < string.length) {
-            cursor += 1
-            string.substring(startIndex, cursor - 1) to string.substring(cursor)
-        } else {
-            string.substring(startIndex, cursor) to null
+            string.substring(startIndex, cursor)
         }
     }
 
@@ -140,13 +109,5 @@ class StringScanner(private val string: String) {
             return
         }
         scanUntil { it.isWhitespace() }
-    }
-
-    fun leftOfCursor(): String {
-        return string.substring(0, cursor - 2)
-    }
-
-    fun rightOfCursor(): String {
-        return string.substring(cursor, string.length - 1)
     }
 }

@@ -31,7 +31,7 @@ fun main() {
             return test2(counter)
         }
 
-        whileTest(input())
+        whileTest(getInput("Type number: "))
     """.trimIndent()
 
     val program = JavascriptNode.Program(body = JavascriptParser().parse(rawProgram))

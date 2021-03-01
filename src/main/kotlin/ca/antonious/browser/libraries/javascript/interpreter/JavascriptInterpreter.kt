@@ -12,8 +12,12 @@ class JavascriptInterpreter {
             JavascriptValue.Undefined
         })
 
-        setProperty("input", NativeFunction {
-            JavascriptValue.Double((readLine() ?: "").toDouble())
+        setProperty("getInput", NativeFunction {
+            val inputText = it.firstOrNull() as? JavascriptValue.String
+            if (inputText != null) {
+                print(inputText.value)
+            }
+            JavascriptValue.Number((readLine() ?: "").toDouble())
         })
 
         setProperty("console", JavascriptValue.Object(JavascriptObject().apply {
@@ -85,23 +89,23 @@ class JavascriptInterpreter {
                 val lhsValue = interpret(node.lhs)
                 val rhsValue = interpret(node.rhs)
 
-                if (lhsValue !is JavascriptValue.Double) {
-                    error("Can't execute math on '${lhsValue}'")
+                if (lhsValue !is JavascriptValue.Number) {
+                    error("Expected left hand side of operand '${lhsValue}' to be a number.")
                 }
 
-                if (rhsValue !is JavascriptValue.Double) {
-                    error("Can't execute math on '${rhsValue}'")
+                if (rhsValue !is JavascriptValue.Number) {
+                    error("Expected right hand side of operand '${rhsValue}' to be a number.")
                 }
 
                 return when (node.operator) {
                     is BooleanOperator.Add -> {
-                        JavascriptValue.Double(lhsValue.value + rhsValue.value)
+                        JavascriptValue.Number(lhsValue.value + rhsValue.value)
                     }
                     is BooleanOperator.Subtract -> {
-                        JavascriptValue.Double(lhsValue.value - rhsValue.value)
+                        JavascriptValue.Number(lhsValue.value - rhsValue.value)
                     }
                     is BooleanOperator.Multiply -> {
-                        JavascriptValue.Double(lhsValue.value * rhsValue.value)
+                        JavascriptValue.Number(lhsValue.value * rhsValue.value)
                     }
                     is BooleanOperator.LessThan -> {
                         JavascriptValue.Boolean(lhsValue.value < rhsValue.value)

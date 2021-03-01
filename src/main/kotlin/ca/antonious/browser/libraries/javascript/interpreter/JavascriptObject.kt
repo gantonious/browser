@@ -11,4 +11,6 @@ class JavascriptObject(val parent: JavascriptObject? = null) {
     fun setProperty(key: String, value: Any?) {
         properties[key] = value
     }
+
+    override fun toString() = properties.toString()
 }
