@@ -1,11 +1,7 @@
 package ca.antonious.browser.libraries.javascript
 
-import ca.antonious.browser.libraries.javascript.ast.BooleanOperator
-import ca.antonious.browser.libraries.javascript.ast.JavascriptExpression
 import ca.antonious.browser.libraries.javascript.ast.JavascriptNode
-import ca.antonious.browser.libraries.javascript.ast.JavascriptValue
 import ca.antonious.browser.libraries.javascript.interpreter.JavascriptInterpreter
-import ca.antonious.browser.libraries.javascript.parser.ExpressionParser
 import ca.antonious.browser.libraries.javascript.parser.JavascriptParser
 
 fun main() {

@@ -1,6 +1,6 @@
 package ca.antonious.browser.libraries.javascript.interpreter
 
-import ca.antonious.browser.libraries.javascript.ast.BooleanOperator
+import ca.antonious.browser.libraries.javascript.ast.JavascriptBooleanOperator
 import ca.antonious.browser.libraries.javascript.ast.JavascriptExpression
 import ca.antonious.browser.libraries.javascript.ast.JavascriptNode
 import ca.antonious.browser.libraries.javascript.ast.JavascriptValue
@@ -69,7 +69,7 @@ class JavascriptInterpreter {
                 }
             }
             is JavascriptNode.IfStatement -> {
-                val ifConditionValue = interpret(node.expression)
+                val ifConditionValue = interpret(node.condition)
                 if (ifConditionValue.isTruthy) {
                     interpretChildren(node.body)
                 }
@@ -98,16 +98,16 @@ class JavascriptInterpreter {
                 }
 
                 return when (node.operator) {
-                    is BooleanOperator.Add -> {
+                    is JavascriptBooleanOperator.Add -> {
                         JavascriptValue.Number(lhsValue.value + rhsValue.value)
                     }
-                    is BooleanOperator.Subtract -> {
+                    is JavascriptBooleanOperator.Subtract -> {
                         JavascriptValue.Number(lhsValue.value - rhsValue.value)
                     }
-                    is BooleanOperator.Multiply -> {
+                    is JavascriptBooleanOperator.Multiply -> {
                         JavascriptValue.Number(lhsValue.value * rhsValue.value)
                     }
-                    is BooleanOperator.LessThan -> {
+                    is JavascriptBooleanOperator.LessThan -> {
                         JavascriptValue.Boolean(lhsValue.value < rhsValue.value)
                     }
                 }

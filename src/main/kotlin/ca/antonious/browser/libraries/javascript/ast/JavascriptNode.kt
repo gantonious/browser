@@ -4,11 +4,11 @@ import ca.antonious.browser.libraries.javascript.interpreter.JavascriptObject
 
 sealed class JavascriptNode {
     data class Program(val body: List<JavascriptNode>) : JavascriptNode()
-    data class Return(val expression: JavascriptExpression) : JavascriptNode()
     data class Function(val name: String, val parameterNames: List<String>, val body: List<JavascriptNode>) : JavascriptNode()
-    data class IfStatement(val expression: JavascriptExpression, val body: List<JavascriptNode>) : JavascriptNode()
-    data class LetAssignment(val name: String, val expression: JavascriptExpression) : JavascriptNode()
+    data class Return(val expression: JavascriptExpression) : JavascriptNode()
+    data class IfStatement(val condition: JavascriptExpression, val body: List<JavascriptNode>) : JavascriptNode()
     data class WhileLoop(val condition: JavascriptExpression, val body: List<JavascriptNode>) : JavascriptNode()
+    data class LetAssignment(val name: String, val expression: JavascriptExpression) : JavascriptNode()
 }
 
 sealed class JavascriptExpression : JavascriptNode() {
@@ -16,14 +16,14 @@ sealed class JavascriptExpression : JavascriptNode() {
     data class DotAccess(val propertyName: String, val expression: JavascriptExpression) : JavascriptExpression()
     data class Reference(val name: String) : JavascriptExpression()
     data class Literal(val value: JavascriptValue) : JavascriptExpression()
-    data class BooleanOperation(val operator: BooleanOperator, val lhs: JavascriptExpression, val rhs: JavascriptExpression): JavascriptExpression()
+    data class BooleanOperation(val operator: JavascriptBooleanOperator, val lhs: JavascriptExpression, val rhs: JavascriptExpression): JavascriptExpression()
 }
 
-sealed class BooleanOperator {
-    object Add : BooleanOperator()
-    object Subtract : BooleanOperator()
-    object Multiply : BooleanOperator()
-    object LessThan : BooleanOperator()
+sealed class JavascriptBooleanOperator {
+    object Add : JavascriptBooleanOperator()
+    object Subtract : JavascriptBooleanOperator()
+    object Multiply : JavascriptBooleanOperator()
+    object LessThan : JavascriptBooleanOperator()
 }
 
 sealed class JavascriptValue {
