@@ -27,6 +27,7 @@ fun main() {
             return test2(counter)
         }
 
+        console.log("hello")
         whileTest(getInput("Type number: "))
     """.trimIndent()
 

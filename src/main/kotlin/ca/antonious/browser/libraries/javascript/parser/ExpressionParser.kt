@@ -79,15 +79,11 @@ class ExpressionParser(expression: String) {
 
     private fun parseDotAccess(): JavascriptExpression {
         val lhs = parseSimpleExpression()
+        scanner.moveAfterWhitespace()
 
-        if (lhs is JavascriptExpression.Reference) {
-            if (scanner.nextChar() != '.') {
-                return lhs
-            }
-
+        if (scanner.nextChar() == '.') {
             scanner.moveForward()
-
-            val propertyName = scanner.scanWhile { it.isLetterOrDigit() }
+            val propertyName = scanner.scanWhile(moveAfter = false) { it.isLetterOrDigit() }
             return JavascriptExpression.DotAccess(propertyName = propertyName, expression = lhs)
         }
 
@@ -96,7 +92,6 @@ class ExpressionParser(expression: String) {
 
     private fun parseFunctionCall(): JavascriptExpression {
         val lhs = parseDotAccess()
-
         scanner.moveAfterWhitespace()
 
         if (scanner.nextChar() == '(') {
