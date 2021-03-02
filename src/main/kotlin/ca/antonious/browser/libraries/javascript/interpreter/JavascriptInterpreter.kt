@@ -7,11 +7,6 @@ import ca.antonious.browser.libraries.javascript.ast.JavascriptValue
 
 class JavascriptInterpreter {
     private val globalObject = JavascriptObject().apply {
-        setNativeFunction("consoleLog") {
-            println("${it.first()}")
-            JavascriptValue.Undefined
-        }
-
         setNativeFunction("getInput") {
             val inputText = it.firstOrNull() as? JavascriptValue.String
             if (inputText != null) {

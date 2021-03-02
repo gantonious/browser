@@ -14,7 +14,11 @@ class JavascriptObject(val parent: JavascriptObject? = null) {
         properties[key] = value
     }
 
-    override fun toString() = properties.toString()
+    override fun toString(): String {
+        val newLineIfHasProperties = if (properties.isNotEmpty()) "\n" else ""
+
+        return "Object {$newLineIfHasProperties${properties.entries.joinToString(separator = ",\n") { "    ${it.key}: ${it.value}" }}$newLineIfHasProperties}"
+    }
 }
 
 fun JavascriptObject.setNativeFunction(name: String, body: (List<JavascriptValue>) -> JavascriptValue) {

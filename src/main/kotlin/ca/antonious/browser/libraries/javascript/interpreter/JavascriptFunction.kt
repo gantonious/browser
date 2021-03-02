@@ -9,5 +9,7 @@ sealed class JavascriptFunction {
             return "function ${functionNode.name}(${functionNode.parameterNames.joinToString { ", "}}) { ... }"
         }
     }
-    class Native(val body: (List<JavascriptValue>) -> JavascriptValue) : JavascriptFunction()
+    class Native(val body: (List<JavascriptValue>) -> JavascriptValue) : JavascriptFunction() {
+        override fun toString() = "NativeFunction@${hashCode().toString(16)}"
+    }
 }

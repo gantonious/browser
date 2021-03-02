@@ -20,14 +20,14 @@ fun main() {
         function whileTest(max) {
             let counter = 0
             while (counter < max) {
-                consoleLog(counter)
+                console.log(counter)
                 let counter = counter + 1 
             }
             
             return test2(counter)
         }
 
-        console.log("hello")
+        console.log(console)
         whileTest(getInput("Type number: "))
     """.trimIndent()
 
