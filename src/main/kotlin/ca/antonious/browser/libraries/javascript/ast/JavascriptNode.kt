@@ -1,5 +1,6 @@
 package ca.antonious.browser.libraries.javascript.ast
 
+import ca.antonious.browser.libraries.javascript.interpreter.JavascriptFunction
 import ca.antonious.browser.libraries.javascript.interpreter.JavascriptObject
 
 sealed class JavascriptNode {
@@ -12,7 +13,7 @@ sealed class JavascriptNode {
 }
 
 sealed class JavascriptExpression : JavascriptNode() {
-    data class FunctionCall(val name: String, val parameters: List<JavascriptExpression>) : JavascriptExpression()
+    data class FunctionCall(val expression: JavascriptExpression, val parameters: List<JavascriptExpression>) : JavascriptExpression()
     data class DotAccess(val propertyName: String, val expression: JavascriptExpression) : JavascriptExpression()
     data class Reference(val name: String) : JavascriptExpression()
     data class Literal(val value: JavascriptValue) : JavascriptExpression()
@@ -50,6 +51,11 @@ sealed class JavascriptValue {
     }
 
     data class Object(val value: JavascriptObject) : JavascriptValue() {
+        override val isTruthy = true
+        override fun toString() = value.toString()
+    }
+
+    data class Function(val value: JavascriptFunction) : JavascriptValue() {
         override val isTruthy = true
         override fun toString() = value.toString()
     }

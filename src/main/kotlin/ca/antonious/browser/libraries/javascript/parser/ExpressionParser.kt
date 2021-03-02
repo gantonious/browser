@@ -3,6 +3,7 @@ package ca.antonious.browser.libraries.javascript.parser
 import ca.antonious.browser.libraries.javascript.ast.JavascriptBooleanOperator
 import ca.antonious.browser.libraries.javascript.ast.JavascriptExpression
 import ca.antonious.browser.libraries.javascript.ast.JavascriptValue
+import kotlin.math.exp
 
 class ExpressionParser(expression: String) {
     private val scanner = StringScanner(expression)
@@ -96,12 +97,11 @@ class ExpressionParser(expression: String) {
     private fun parseFunctionCall(): JavascriptExpression {
         val lhs = parseDotAccess()
 
-        if (lhs is JavascriptExpression.Reference) {
+        scanner.moveAfterWhitespace()
+
+        if (scanner.nextChar() == '(') {
             val parameters = mutableListOf<JavascriptExpression>()
 
-            if (scanner.nextChar() != '(') {
-                return lhs
-            }
             // Consume '(
             scanner.moveForward()
 
@@ -112,7 +112,7 @@ class ExpressionParser(expression: String) {
 
             scanner.moveForward()
 
-            return JavascriptExpression.FunctionCall(name = lhs.name, parameters = parameters)
+            return JavascriptExpression.FunctionCall(expression = lhs, parameters = parameters)
         }
 
         return lhs

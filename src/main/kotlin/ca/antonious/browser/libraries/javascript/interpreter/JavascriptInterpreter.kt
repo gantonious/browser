@@ -7,26 +7,25 @@ import ca.antonious.browser.libraries.javascript.ast.JavascriptValue
 
 class JavascriptInterpreter {
     private val globalObject = JavascriptObject().apply {
-        setProperty("consoleLog", NativeFunction {
+        setNativeFunction("consoleLog") {
             println("${it.first()}")
             JavascriptValue.Undefined
-        })
+        }
 
-        setProperty("getInput", NativeFunction {
+        setNativeFunction("getInput") {
             val inputText = it.firstOrNull() as? JavascriptValue.String
             if (inputText != null) {
                 print(inputText.value)
             }
             JavascriptValue.Number((readLine() ?: "").toDouble())
-        })
+        }
 
         setProperty("console", JavascriptValue.Object(JavascriptObject().apply {
-                setProperty("log", NativeFunction {
-                    println("${it.first()}")
-                    JavascriptValue.Undefined
-                })
-            })
-        )
+            setNativeFunction("log") {
+                println("${it.first()}")
+                JavascriptValue.Undefined
+            }
+        }))
     }
 
     private var currentScope = globalObject
@@ -38,7 +37,10 @@ class JavascriptInterpreter {
                 return interpretChildren(node.body)
             }
             is JavascriptNode.Function -> {
-                currentScope.setProperty(key = node.name, value = node)
+                val value = JavascriptValue.Function(
+                    value = JavascriptFunction.UserDefined(functionNode = node)
+                )
+                currentScope.setProperty(key = node.name, value = value)
                 return JavascriptValue.Undefined
             }
             is JavascriptNode.Return -> {
@@ -46,26 +48,32 @@ class JavascriptInterpreter {
                 return JavascriptValue.Undefined
             }
             is JavascriptExpression.FunctionCall -> {
-                val function = currentScope.getProperty(node.name)
+                val callableValue = interpret(node.expression)
 
-                if (function is NativeFunction) {
-                    return function.body.invoke(node.parameters.map { interpret(it) })
-                } else if (function !is JavascriptNode.Function) {
-                    error("Cannot invoke function on undefined '${node.name}'")
+                if (callableValue !is JavascriptValue.Function) {
+                    error("Can't call non-function type '$callableValue'.")
                 }
 
-                enterFunction(function, node.parameters)
-
-                for (child in function.body) {
-                    interpret(child)
-                    if (lastReturn != null) {
-                        break
+                when (val function = callableValue.value) {
+                    is JavascriptFunction.Native -> {
+                        return function.body.invoke(node.parameters.map { interpret(it) })
                     }
-                }
+                    is JavascriptFunction.UserDefined -> {
 
-                exitFunction()
-                return (lastReturn ?: JavascriptValue.Undefined).also {
-                    lastReturn = null
+                        enterFunction(function.functionNode, node.parameters)
+
+                        for (child in function.functionNode.body) {
+                            interpret(child)
+                            if (lastReturn != null) {
+                                break
+                            }
+                        }
+
+                        exitFunction()
+                        return (lastReturn ?: JavascriptValue.Undefined).also {
+                            lastReturn = null
+                        }
+                    }
                 }
             }
             is JavascriptNode.IfStatement -> {

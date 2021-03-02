@@ -1,5 +1,7 @@
 package ca.antonious.browser.libraries.javascript.interpreter
 
+import ca.antonious.browser.libraries.javascript.ast.JavascriptValue
+
 class JavascriptObject(val parent: JavascriptObject? = null) {
 
     private val properties = mutableMapOf<String, Any?>()
@@ -13,4 +15,8 @@ class JavascriptObject(val parent: JavascriptObject? = null) {
     }
 
     override fun toString() = properties.toString()
+}
+
+fun JavascriptObject.setNativeFunction(name: String, body: (List<JavascriptValue>) -> JavascriptValue) {
+    setProperty(name, JavascriptValue.Function(value = JavascriptFunction.Native(body)))
 }
