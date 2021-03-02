@@ -101,8 +101,12 @@ class ExpressionParser(expression: String) {
             scanner.moveForward()
 
             while (scanner.nextChar() != ')') {
+                scanner.moveAfterWhitespace()
                 parameters += parse()
                 scanner.moveAfterWhitespace()
+                if (scanner.nextChar() == ',') {
+                    scanner.moveForward()
+                }
             }
 
             scanner.moveForward()

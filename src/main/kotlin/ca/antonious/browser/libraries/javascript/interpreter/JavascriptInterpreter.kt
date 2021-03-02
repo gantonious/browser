@@ -17,7 +17,7 @@ class JavascriptInterpreter {
 
         setProperty("console", JavascriptValue.Object(JavascriptObject().apply {
             setNativeFunction("log") {
-                println("${it.first()}")
+                println(it.joinToString(separator = " "))
                 JavascriptValue.Undefined
             }
         }))
@@ -54,7 +54,6 @@ class JavascriptInterpreter {
                         return function.body.invoke(node.parameters.map { interpret(it) })
                     }
                     is JavascriptFunction.UserDefined -> {
-
                         enterFunction(function.functionNode, node.parameters)
 
                         for (child in function.functionNode.body) {
