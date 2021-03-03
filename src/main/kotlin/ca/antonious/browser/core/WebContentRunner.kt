@@ -10,7 +10,7 @@ class WebContentRunner(private val documentListener: (HtmlDocument) -> Unit) {
 
     private val document = HtmlDocument(
         root = HtmlElement.Node(
-            name = "root",
+            name = "html",
             children = listOf(
                 HtmlElement.Node(
                     name = "head",

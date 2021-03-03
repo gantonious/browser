@@ -3,6 +3,7 @@ package ca.antonious.browser
 import ca.antonious.browser.core.WebContentRunner
 import ca.antonious.browser.libraries.html.HtmlDocument
 import ca.antonious.browser.libraries.html.HtmlElement
+import ca.antonious.browser.libraries.html.HtmlParser
 import ca.antonious.browser.libraries.http.HttpClient
 import ca.antonious.browser.libraries.http.HttpMethod
 import ca.antonious.browser.libraries.http.HttpRequest
@@ -25,6 +26,7 @@ class HelloApp : ApplicationAdapter() {
     private lateinit var spriteBatch: SpriteBatch
     private var fontGenerator = FreeTypeFontGenerator(FileHandle("./Arial.ttf"))
     private lateinit var font: BitmapFont
+    private lateinit var pfont: BitmapFont
     private lateinit var camera: OrthographicCamera
     private lateinit var webContentRunner: WebContentRunner
 
@@ -44,8 +46,22 @@ class HelloApp : ApplicationAdapter() {
             color = Color.BLACK
         })
 
+        pfont = fontGenerator.generateFont(FreeTypeFontGenerator.FreeTypeFontParameter().apply {
+            size = 30
+            borderStraight = true
+            flip = true
+            genMipMaps = true
+            minFilter = Texture.TextureFilter.Nearest
+            magFilter = Texture.TextureFilter.MipMapLinearNearest
+            color = Color.BLACK
+        })
+
         webContentRunner = WebContentRunner { document ->
             this.document = document
+        }
+
+        HttpClient().execute(HttpRequest("skrundz.ca", method = HttpMethod.Get)).onSuccess { response ->
+            this.document = HtmlDocument(HtmlParser().parse(response.body).first())
         }
     }
 
@@ -70,7 +86,7 @@ class HelloApp : ApplicationAdapter() {
             }
             is HtmlElement.Node -> {
                 when (htmlElement.name.toLowerCase()) {
-                    "root", "body" -> {
+                    "html", "body" -> {
                         var currentPoint = Point(x = atPoint.x, y = atPoint.y + htmlElement.attributes.getOrDefault("marginTop", "0").toFloat())
 
                         for (child in htmlElement.children) {
@@ -81,8 +97,14 @@ class HelloApp : ApplicationAdapter() {
                         return RenderResult(width = 0f, height = currentPoint.y - atPoint.y)
                     }
                     "h1" -> {
-                        val point = Point(x = atPoint.x, y = atPoint.y + htmlElement.attributes.getOrDefault("marginTop", "0").toFloat())
-                        return renderBlock(atPoint = point, htmlElement = htmlElement.requireChildrenAsText())
+                        val text = htmlElement.requireChildrenAsText().text
+                        val layout = font.draw(spriteBatch, text, atPoint.x, atPoint.y)
+                        return RenderResult(layout.width, layout.height)
+                    }
+                    "p" -> {
+                        val text = htmlElement.requireChildrenAsText().text
+                        val layout = pfont.draw(spriteBatch, text, atPoint.x, atPoint.y)
+                        return RenderResult(layout.width, layout.height)
                     }
                     else -> {
                         return RenderResult(0f, 0f)
@@ -98,6 +120,6 @@ fun main() {
         title = "Browser"
         useHDPI = true
     }
-    
+
     LwjglApplication(HelloApp(), config)
 }

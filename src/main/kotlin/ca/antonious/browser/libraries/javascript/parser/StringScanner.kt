@@ -54,6 +54,7 @@ class StringScanner(private val string: String) {
         }
     }
 
+
     fun scanUntil(predicate: (Char) -> Boolean): String {
         if (isAtEnd) {
             return ""
@@ -109,5 +110,34 @@ class StringScanner(private val string: String) {
             return
         }
         scanUntil { it.isWhitespace() }
+    }
+
+    fun moveAfterText(text: String) {
+        if (cursor + text.length >= string.length) {
+            return
+        }
+
+        if (string.substring(cursor, cursor + text.length) == text) {
+            cursor += text.length
+        }
+    }
+
+    fun scanUntil(text: String): String {
+        if (isAtEnd) {
+            return ""
+        }
+
+        val startIndex = cursor
+
+        while (string.substring(cursor, cursor + text.length) != text && cursor + text.length < string.length) {
+            cursor += 1
+        }
+
+        return if (cursor + text.length < string.length) {
+            cursor += text.length + 1
+            string.substring(startIndex, cursor - text.length -1)
+        } else {
+            string.substring(startIndex, cursor)
+        }
     }
 }
