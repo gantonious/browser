@@ -6,7 +6,7 @@ import ca.antonious.browser.libraries.javascript.ast.JavascriptNode
 import ca.antonious.browser.libraries.javascript.ast.JavascriptValue
 
 class JavascriptInterpreter {
-    private val globalObject = JavascriptObject().apply {
+    val globalObject = JavascriptObject().apply {
         setNativeFunction("getInput") {
             val inputText = it.firstOrNull() as? JavascriptValue.String
             if (inputText != null) {

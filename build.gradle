@@ -17,6 +17,8 @@ dependencies {
     compile "com.badlogicgames.gdx:gdx:1.9.14"
     compile "com.badlogicgames.gdx:gdx-backend-lwjgl:1.9.14"
     compile "com.badlogicgames.gdx:gdx-platform:1.9.14:natives-desktop"
+    compile "com.badlogicgames.gdx:gdx-freetype:1.9.14"
+    compile "com.badlogicgames.gdx:gdx-freetype-platform:1.9.14:natives-desktop"
 }
 
 compileKotlin {
