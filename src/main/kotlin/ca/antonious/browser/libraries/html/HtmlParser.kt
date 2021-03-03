@@ -1,58 +1,131 @@
 package ca.antonious.browser.libraries.html
 
-import ca.antonious.browser.libraries.javascript.parser.StringScanner
+import java.util.*
+
+data class TagParsingScope(
+    val name: String,
+    val attributes: Map<String, String> = emptyMap(),
+    val children: MutableList<HtmlElement> = mutableListOf()
+)
 
 class HtmlParser {
+    companion object {
+        val autoClosingTags = setOf(
+            "img",
+            "a",
+            "link",
+            "meta",
+            "br",
+            "input"
+        )
+    }
     fun parse(rawHtml: String): List<HtmlElement> {
-        val scanner = StringScanner(rawHtml)
-        val children = mutableListOf<HtmlElement>()
-        scanner.moveAfterText("<!DOCTYPE html>")
+        var cursor = 0
+        var tagStack = Stack<TagParsingScope>()
+        var currentText = ""
 
-        while (!scanner.isAtEnd) {
-            scanner.scanWhile(moveAfter = false) { it.isWhitespace() }
-
-            if (scanner.isAtEnd) {
-                break
+        fun currentCharacter(): Char? {
+            if (cursor >= rawHtml.length) {
+                return null
             }
+            return rawHtml[cursor]
+        }
 
-            if (scanner.nextChar() == '<') {
-                scanner.moveForward()
-                val tagName = scanner.scanUntil { it.isWhitespace() || it == '>' || it == '/' }
-                children += when {
-                    scanner.currentChar() == '>' -> {
-                        when (tagName) {
-                            "link", "br", "meta" -> {
-                                // These tags are allowed to not be properly terminated
-                                HtmlElement.Node(name = tagName, children = emptyList())
-                            }
-                            else -> {
-                                val tagChildren = scanner.scanUntil("</$tagName>", balancedAgainst = "<$tagName")
-                                HtmlElement.Node(name = tagName, children = parse(tagChildren))
+        fun peekNextCharacter(): Char? {
+            if (cursor + 1 >= rawHtml.length) {
+                return null
+            }
+            return rawHtml[cursor + 1]
+        }
+
+        fun advanceCursor() {
+            cursor += 1
+        }
+
+        mainLoop@while (cursor < rawHtml.length) {
+            when (val currentCharacter = rawHtml[cursor]) {
+                '\n', '\r' -> {
+                    advanceCursor()
+                }
+                '<' -> {
+                    if (currentText.isNotEmpty()) {
+                        tagStack.peek().children += HtmlElement.Text(text = currentText)
+                        currentText = ""
+                    }
+
+                    advanceCursor()
+                    when(rawHtml[cursor]) {
+                        '!' -> {
+                            while(currentCharacter().let { it != null && it != '\n' }) {
+                                advanceCursor()
                             }
                         }
+                        '/' -> {
+                            advanceCursor()
+                            var tagName = ""
+                            while (currentCharacter()?.isLetterOrDigit() == true) {
+                                tagName += currentCharacter()
+                                advanceCursor()
+                            }
 
-                    }
-                    scanner.currentChar() == '/' && scanner.nextChar() == '>' -> {
-                        HtmlElement.Node(name = tagName, children = emptyList())
-                    }
-                    else -> {
-                        val tagContent = scanner.scanUntil('>')
+                            if (currentCharacter() != '>') {
+                                error("Expected tag '$tagName' to be terminated.")
+                            }
 
-                        if (tagContent.endsWith("/")) {
-                            HtmlElement.Node(name = tagName, children = emptyList())
-                        } else if (tagName in setOf("link", "br", "meta", "img")) {
-                            HtmlElement.Node(name = tagName, children = emptyList())
-                        } else {
-                            val tagChildren = scanner.scanUntil("</$tagName>", balancedAgainst = "<$tagName")
-                            HtmlElement.Node(name = tagName, children = parse(tagChildren))
+                            advanceCursor()
+
+                            var matchingOpening = tagStack.pop()
+
+                            while (matchingOpening.name != tagName && matchingOpening.name in autoClosingTags) {
+                                tagStack.peek().children += HtmlElement.Node(name = matchingOpening.name, attributes = matchingOpening.attributes, children = matchingOpening.children)
+                                matchingOpening = tagStack.pop()
+                            }
+
+                            if (matchingOpening.name != tagName) {
+                                error("Couldn't find matching opening tag for '$tagName'")
+                            }
+
+                            val parsedNode = HtmlElement.Node(name = matchingOpening.name, attributes = matchingOpening.attributes, children = matchingOpening.children)
+
+                            if (tagStack.isEmpty()) {
+                                return listOf(parsedNode)
+                            } else {
+                                tagStack.peek().children += parsedNode
+                            }
+                        }
+                        else -> {
+                            var tagName = ""
+
+                            while (currentCharacter()?.isLetterOrDigit() == true) {
+                                tagName += currentCharacter()
+                                advanceCursor()
+                            }
+
+                            while (currentCharacter().let { it != null && it != '>' }) {
+                                advanceCursor()
+                            }
+
+                            when(rawHtml[cursor - 1]) {
+                                '/' -> {
+                                    advanceCursor()
+                                    advanceCursor()
+                                    tagStack.peek().children += HtmlElement.Node(name = tagName)
+                                }
+                                else -> {
+                                    advanceCursor()
+                                    tagStack.push(TagParsingScope(name = tagName))
+                                }
+                            }
                         }
                     }
                 }
-            } else {
-                children += HtmlElement.Text(text = scanner.scanWhile(moveAfter = false) { it != '<' })
+                else -> {
+                    currentText += currentCharacter
+                    advanceCursor()
+                }
             }
         }
 
-        return children
+        error("")
     }
 }
