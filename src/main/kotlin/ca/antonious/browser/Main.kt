@@ -3,6 +3,9 @@ package ca.antonious.browser
 import ca.antonious.browser.core.WebContentRunner
 import ca.antonious.browser.libraries.html.HtmlDocument
 import ca.antonious.browser.libraries.html.HtmlElement
+import ca.antonious.browser.libraries.http.HttpClient
+import ca.antonious.browser.libraries.http.HttpMethod
+import ca.antonious.browser.libraries.http.HttpRequest
 import com.badlogic.gdx.ApplicationAdapter
 import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.backends.lwjgl.LwjglApplication
@@ -95,5 +98,6 @@ fun main() {
         title = "Browser"
         useHDPI = true
     }
+    
     LwjglApplication(HelloApp(), config)
 }
