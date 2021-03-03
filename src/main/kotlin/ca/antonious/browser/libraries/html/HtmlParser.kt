@@ -31,6 +31,13 @@ class HtmlParser {
             return rawHtml[cursor]
         }
 
+        fun lastCharacter(): Char? {
+            if (cursor - 1 >= rawHtml.length && cursor - 1 > 0) {
+                return null
+            }
+            return rawHtml[cursor - 1]
+        }
+
         fun peekNextCharacter(): Char? {
             if (cursor + 1 >= rawHtml.length) {
                 return null
@@ -95,6 +102,7 @@ class HtmlParser {
                         }
                         else -> {
                             var tagName = ""
+                            var attributes = mutableMapOf<String, String>()
 
                             while (currentCharacter()?.isLetterOrDigit() == true) {
                                 tagName += currentCharacter()
@@ -102,18 +110,67 @@ class HtmlParser {
                             }
 
                             while (currentCharacter().let { it != null && it != '>' }) {
-                                advanceCursor()
+                                when (currentCharacter()) {
+                                    ' ' -> advanceCursor()
+                                    else -> {
+                                        if (currentCharacter()?.isLetter() == true) {
+                                            var attributeName = ""
+
+                                            while (currentCharacter()?.isLetterOrDigit() == true) {
+                                                attributeName += currentCharacter()
+                                                advanceCursor()
+                                            }
+
+                                            while (currentCharacter() == ' ') {
+                                                advanceCursor()
+                                            }
+
+                                            if (currentCharacter() != '=') {
+                                                error("Expected '=' following attribute name '$attributeName'.")
+                                            }
+
+                                            advanceCursor()
+
+                                            while (currentCharacter() == ' ') {
+                                                advanceCursor()
+                                            }
+
+                                            if (currentCharacter() != '\'' && currentCharacter() != '"') {
+                                                error("Expected quote to start attribute")
+                                            }
+
+                                            advanceCursor()
+
+                                            fun parseAttributeValue(usingQuoteCharacter: Char) {
+                                                var attributeValue = ""
+
+                                                while (currentCharacter() != usingQuoteCharacter && lastCharacter() != '\\') {
+                                                    attributeValue += currentCharacter()
+                                                    advanceCursor()
+                                                }
+
+                                                advanceCursor()
+                                                attributes[attributeName] = attributeValue
+                                            }
+
+                                            parseAttributeValue(usingQuoteCharacter = lastCharacter()!!)
+                                        } else {
+                                            advanceCursor()
+                                        }
+                                    }
+                                }
+
                             }
 
                             when(rawHtml[cursor - 1]) {
                                 '/' -> {
                                     advanceCursor()
                                     advanceCursor()
-                                    tagStack.peek().children += HtmlElement.Node(name = tagName)
+                                    tagStack.peek().children += HtmlElement.Node(name = tagName, attributes = attributes)
                                 }
                                 else -> {
                                     advanceCursor()
-                                    tagStack.push(TagParsingScope(name = tagName))
+                                    tagStack.push(TagParsingScope(name = tagName, attributes = attributes))
                                 }
                             }
                         }
