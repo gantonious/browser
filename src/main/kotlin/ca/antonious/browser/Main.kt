@@ -65,6 +65,12 @@ class HelloApp : ApplicationAdapter() {
         }
     }
 
+    override fun resize(width: Int, height: Int) {
+        camera.viewportWidth = width.toFloat()
+        camera.viewportHeight = height.toFloat()
+        camera.setToOrtho(true, width.toFloat(), height.toFloat())
+    }
+
     override fun render() {
         Gdx.gl.glClearColor(1f, 1f, 1f, 1f);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
@@ -81,7 +87,7 @@ class HelloApp : ApplicationAdapter() {
     private fun renderBlock(atPoint: Point, htmlElement: HtmlElement): RenderResult {
         when (htmlElement) {
             is HtmlElement.Text -> {
-                val layout = font.draw(spriteBatch, htmlElement.text, atPoint.x, atPoint.y)
+                val layout = pfont.draw(spriteBatch, htmlElement.text, atPoint.x, atPoint.y)
                 return RenderResult(layout.width, layout.height)
             }
             is HtmlElement.Node -> {
