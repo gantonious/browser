@@ -18,6 +18,13 @@ class StringScanner(private val string: String) {
         cursor -= 1
     }
 
+    fun currentChar(): Char? {
+        if (string.isNotEmpty() && cursor > 0) {
+            return string[cursor - 1]
+        }
+        return null
+    }
+
     fun nextChar(): Char? {
         if (isAtEnd) return null
         return string[cursor]
@@ -54,6 +61,12 @@ class StringScanner(private val string: String) {
         }
     }
 
+    fun scanUntilEnd(): String {
+        if (string.isEmpty() || isAtEnd) {
+            return ""
+        }
+        return string.substring(cursor, string.length)
+    }
 
     fun scanUntil(predicate: (Char) -> Boolean): String {
         if (isAtEnd) {
@@ -122,22 +135,32 @@ class StringScanner(private val string: String) {
         }
     }
 
-    fun scanUntil(text: String): String {
+    fun scanUntil(text: String, balancedAgainst: String? = null): String {
         if (isAtEnd) {
             return ""
         }
 
+        var balance = 1
         val startIndex = cursor
 
-        while (string.substring(cursor, cursor + text.length) != text && cursor + text.length < string.length) {
-            cursor += 1
+        while (balance != 0 && cursor + text.length < string.length) {
+            if (string.substring(cursor, cursor + text.length) == text) {
+                balance -= 1
+            } else if (balancedAgainst != null && string.substring(cursor, cursor + balancedAgainst.length) == balancedAgainst) {
+                balance += 1
+            }
+            if (balance != 0) {
+                cursor += 1
+            }
         }
 
         return if (cursor + text.length < string.length) {
             cursor += text.length + 1
             string.substring(startIndex, cursor - text.length -1)
         } else {
-            string.substring(startIndex, cursor)
+            string.substring(startIndex, cursor).also {
+                cursor = string.length
+            }
         }
     }
 }

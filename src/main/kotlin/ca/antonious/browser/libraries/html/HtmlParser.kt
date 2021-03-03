@@ -9,16 +9,47 @@ class HtmlParser {
         scanner.moveAfterText("<!DOCTYPE html>")
 
         while (!scanner.isAtEnd) {
-            scanner.moveAfterWhitespace()
+            scanner.scanWhile(moveAfter = false) { it.isWhitespace() }
+
+            if (scanner.isAtEnd) {
+                break
+            }
 
             if (scanner.nextChar() == '<') {
                 scanner.moveForward()
-                val tagContent = scanner.scanUntil('>')
-                val tagChildren = scanner.scanUntil("</$tagContent>")
-                children += HtmlElement.Node(name = tagContent, children = parse(tagChildren))
+                val tagName = scanner.scanUntil { it.isWhitespace() || it == '>' || it == '/' }
+                children += when {
+                    scanner.currentChar() == '>' -> {
+                        when (tagName) {
+                            "link", "br", "meta" -> {
+                                // These tags are allowed to not be properly terminated
+                                HtmlElement.Node(name = tagName, children = emptyList())
+                            }
+                            else -> {
+                                val tagChildren = scanner.scanUntil("</$tagName>", balancedAgainst = "<$tagName")
+                                HtmlElement.Node(name = tagName, children = parse(tagChildren))
+                            }
+                        }
+
+                    }
+                    scanner.currentChar() == '/' && scanner.nextChar() == '>' -> {
+                        HtmlElement.Node(name = tagName, children = emptyList())
+                    }
+                    else -> {
+                        val tagContent = scanner.scanUntil('>')
+
+                        if (tagContent.endsWith("/")) {
+                            HtmlElement.Node(name = tagName, children = emptyList())
+                        } else if (tagName in setOf("link", "br", "meta", "img")) {
+                            HtmlElement.Node(name = tagName, children = emptyList())
+                        } else {
+                            val tagChildren = scanner.scanUntil("</$tagName>", balancedAgainst = "<$tagName")
+                            HtmlElement.Node(name = tagName, children = parse(tagChildren))
+                        }
+                    }
+                }
             } else {
-                children += HtmlElement.Text(text = rawHtml)
-                break
+                children += HtmlElement.Text(text = scanner.scanWhile(moveAfter = false) { it != '<' })
             }
         }
 

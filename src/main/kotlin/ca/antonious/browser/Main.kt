@@ -92,7 +92,7 @@ class HelloApp : ApplicationAdapter() {
             }
             is HtmlElement.Node -> {
                 when (htmlElement.name.toLowerCase()) {
-                    "html", "body" -> {
+                    "html", "body", "div", "a" -> {
                         var currentPoint = Point(x = atPoint.x, y = atPoint.y + htmlElement.attributes.getOrDefault("marginTop", "0").toFloat())
 
                         for (child in htmlElement.children) {
@@ -102,14 +102,32 @@ class HelloApp : ApplicationAdapter() {
 
                         return RenderResult(width = 0f, height = currentPoint.y - atPoint.y)
                     }
+                    "br" -> {
+                        val layout = pfont.draw(spriteBatch, "\n", atPoint.x, atPoint.y)
+                        return RenderResult(layout.width, layout.height)
+                    }
                     "h1" -> {
                         val text = htmlElement.requireChildrenAsText().text
                         val layout = font.draw(spriteBatch, text, atPoint.x, atPoint.y)
                         return RenderResult(layout.width, layout.height)
                     }
                     "p" -> {
-                        val text = htmlElement.requireChildrenAsText().text
-                        val layout = pfont.draw(spriteBatch, text, atPoint.x, atPoint.y)
+                        if (htmlElement.children.first() is HtmlElement.Text) {
+                            val layout = pfont.draw(spriteBatch, htmlElement.requireChildrenAsText().text, atPoint.x, atPoint.y)
+                            return RenderResult(layout.width, layout.height)
+                        } else {
+                            var currentPoint = Point(x = atPoint.x, y = atPoint.y + htmlElement.attributes.getOrDefault("marginTop", "0").toFloat())
+
+                            for (child in htmlElement.children) {
+                                val renderResult = renderBlock(atPoint = currentPoint, htmlElement = child)
+                                currentPoint = Point(x = currentPoint.x, y = currentPoint.y + renderResult.height)
+                            }
+
+                            return RenderResult(width = 0f, height = currentPoint.y - atPoint.y)
+                        }
+                    }
+                    "img" -> {
+                        val layout = pfont.draw(spriteBatch, "[IMAGE]", atPoint.x, atPoint.y)
                         return RenderResult(layout.width, layout.height)
                     }
                     else -> {

@@ -6,7 +6,7 @@ import java.net.Socket
 
 class HttpClient {
     fun execute(httpRequest: HttpRequest): Task<HttpResponse> {
-        val socket = Socket(httpRequest.url, 80)
+        val socket = Socket("localhost", 8080)
         val task = HttpTask { socket.close() }
 
         Thread {
