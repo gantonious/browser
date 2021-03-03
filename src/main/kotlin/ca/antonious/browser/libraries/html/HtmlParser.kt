@@ -116,7 +116,7 @@ class HtmlParser {
                                         if (currentCharacter()?.isLetter() == true) {
                                             var attributeName = ""
 
-                                            while (currentCharacter()?.isLetterOrDigit() == true) {
+                                            while (currentCharacter()?.let { it.isLetterOrDigit() || it == '-' || it == '_'} == true) {
                                                 attributeName += currentCharacter()
                                                 advanceCursor()
                                             }
