@@ -15,12 +15,12 @@ class LibgdxCanvas : Canvas {
         drawCalls += LibgdxDrawCall.DrawRect(rect, paint)
     }
 
-    override fun drawText(text: String, x: Float, y: Float, paint: Paint) {
-        drawCalls += LibgdxDrawCall.DrawText(text, x, y, paint)
+    override fun drawText(text: String, x: Float, y: Float, width: Float, paint: Paint) {
+        drawCalls += LibgdxDrawCall.DrawText(text, x, y, width, paint)
     }
 }
 
 sealed class LibgdxDrawCall {
     data class DrawRect(val rect: Rect, val paint: Paint) : LibgdxDrawCall()
-    data class DrawText(val text: String, val x: Float, val y: Float, val paint: Paint) : LibgdxDrawCall()
+    data class DrawText(val text: String, val x: Float, val y: Float, val width: Float, val paint: Paint) : LibgdxDrawCall()
 }

@@ -9,8 +9,8 @@ class CanvasView(
         backingCanvas.drawRect(Rect(rect.x + bounds.x, rect.y + bounds.y, rect.width, rect.height), paint)
     }
 
-    override fun drawText(text: String, x: Float, y: Float, paint: Paint) {
-        backingCanvas.drawText(text, bounds.x + x, bounds.y + y, paint)
+    override fun drawText(text: String, x: Float, y: Float, width: Float, paint: Paint) {
+        backingCanvas.drawText(text, bounds.x + x, bounds.y + y, width, paint)
     }
 }
 

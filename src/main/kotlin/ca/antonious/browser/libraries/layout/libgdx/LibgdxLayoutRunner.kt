@@ -19,6 +19,7 @@ import com.badlogic.gdx.graphics.g2d.BitmapFont
 import com.badlogic.gdx.graphics.g2d.SpriteBatch
 import com.badlogic.gdx.graphics.g2d.freetype.FreeTypeFontGenerator
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer
+import com.badlogic.gdx.utils.Align
 
 class LibgdxLayoutRunner : LayoutRunner {
     override fun runLayout(layoutNode: LayoutNode) {
@@ -46,7 +47,7 @@ private class LibgdxLayoutRunnerApplication(val rootNode: LayoutNode) : Applicat
         shapeRenderer.setAutoShapeType(true)
 
         font = fontGenerator.generateFont(FreeTypeFontGenerator.FreeTypeFontParameter().apply {
-            size = 30
+            size = 40
             borderStraight = true
             flip = true
             genMipMaps = true
@@ -92,7 +93,7 @@ private class LibgdxLayoutRunnerApplication(val rootNode: LayoutNode) : Applicat
 
         spriteBatch.begin()
             canvas.drawCalls.filterIsInstance<LibgdxDrawCall.DrawText>().forEach { drawTextCall ->
-                font.draw(spriteBatch, drawTextCall.text, drawTextCall.x, drawTextCall.y)
+                font.draw(spriteBatch, drawTextCall.text, drawTextCall.x, drawTextCall.y, drawTextCall.width, Align.left, true)
             }
         spriteBatch.end()
     }
