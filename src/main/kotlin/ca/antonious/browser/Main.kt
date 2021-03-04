@@ -7,6 +7,7 @@ import ca.antonious.browser.libraries.html.HtmlParser
 import ca.antonious.browser.libraries.http.HttpClient
 import ca.antonious.browser.libraries.http.HttpMethod
 import ca.antonious.browser.libraries.http.HttpRequest
+import ca.antonious.browser.libraries.http.toUri
 import com.badlogic.gdx.ApplicationAdapter
 import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.backends.lwjgl.LwjglApplication
@@ -60,7 +61,7 @@ class HelloApp : ApplicationAdapter() {
             this.document = document
         }
 
-        HttpClient().execute(HttpRequest("skrundz.ca", method = HttpMethod.Get)).onSuccess { response ->
+        HttpClient().execute(HttpRequest("https://www.antonious.ca", method = HttpMethod.Get)).onSuccess { response ->
             this.document = HtmlDocument(HtmlParser().parse(response.body).first())
         }
     }
@@ -92,7 +93,7 @@ class HelloApp : ApplicationAdapter() {
             }
             is HtmlElement.Node -> {
                 when (htmlElement.name.toLowerCase()) {
-                    "html", "body", "div", "a" -> {
+                    "html", "body", "div", "a", "ul", "li" -> {
                         var currentPoint = Point(x = atPoint.x, y = atPoint.y + htmlElement.attributes.getOrDefault("marginTop", "0").toFloat())
 
                         for (child in htmlElement.children) {
