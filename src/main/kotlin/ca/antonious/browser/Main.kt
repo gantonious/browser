@@ -93,16 +93,6 @@ class HelloApp : ApplicationAdapter() {
             }
             is HtmlElement.Node -> {
                 when (htmlElement.name.toLowerCase()) {
-                    "html", "body", "div", "a", "ul", "li" -> {
-                        var currentPoint = Point(x = atPoint.x, y = atPoint.y + htmlElement.attributes.getOrDefault("marginTop", "0").toFloat())
-
-                        for (child in htmlElement.children) {
-                            val renderResult = renderBlock(atPoint = currentPoint, htmlElement = child)
-                            currentPoint = Point(x = currentPoint.x, y = currentPoint.y + renderResult.height)
-                        }
-
-                        return RenderResult(width = 0f, height = currentPoint.y - atPoint.y)
-                    }
                     "br" -> {
                         val layout = pfont.draw(spriteBatch, "\n", atPoint.x, atPoint.y)
                         return RenderResult(layout.width, layout.height)
@@ -132,7 +122,14 @@ class HelloApp : ApplicationAdapter() {
                         return RenderResult(layout.width, layout.height)
                     }
                     else -> {
-                        return RenderResult(0f, 0f)
+                        var currentPoint = Point(x = atPoint.x, y = atPoint.y + htmlElement.attributes.getOrDefault("marginTop", "0").toFloat())
+
+                        for (child in htmlElement.children) {
+                            val renderResult = renderBlock(atPoint = currentPoint, htmlElement = child)
+                            currentPoint = Point(x = currentPoint.x, y = currentPoint.y + renderResult.height)
+                        }
+
+                        return RenderResult(width = 0f, height = currentPoint.y - atPoint.y)
                     }
                 }
             }
