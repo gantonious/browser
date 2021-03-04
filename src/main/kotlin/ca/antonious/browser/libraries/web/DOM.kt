@@ -1,5 +1,6 @@
 package ca.antonious.browser.libraries.web
 
+import ca.antonious.browser.libraries.graphics.core.Color
 import ca.antonious.browser.libraries.html.HtmlElement
 import ca.antonious.browser.libraries.layout.builtins.BlockNode
 import ca.antonious.browser.libraries.layout.builtins.TextNode
@@ -21,6 +22,9 @@ fun HtmlElement.toDomElement(): DOMElement {
         htmlElement = this,
         layoutNode = when (this) {
             is HtmlElement.Node -> BlockNode().apply {
+                if (name == "h1") {
+                    backgroundColor = Color.blue
+                }
                 setChildren(this@toDomElement.children.toDomElements().map { it.layoutNode })
             }
             is HtmlElement.Text -> TextNode().apply {

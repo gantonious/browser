@@ -1,11 +1,11 @@
 package ca.antonious.browser.libraries.graphics.libgdx
 
-import ca.antonious.browser.libraries.graphics.core.MeasureTape
+import ca.antonious.browser.libraries.graphics.core.MeasuringTape
 import ca.antonious.browser.libraries.graphics.core.Size
 import com.badlogic.gdx.graphics.g2d.BitmapFont
 import com.badlogic.gdx.graphics.g2d.GlyphLayout
 
-class LibgdxMeasureTape(private val font: BitmapFont) : MeasureTape {
+class LibgdxMeasuringTape(private val font: BitmapFont) : MeasuringTape {
 
     private val glyphLayout = GlyphLayout()
 

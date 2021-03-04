@@ -8,18 +8,19 @@ import com.badlogic.gdx.graphics.g2d.BitmapFont
 import com.badlogic.gdx.graphics.g2d.SpriteBatch
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer
 
-class LibgdxCanvas (
-    private val spriteBatch: SpriteBatch,
-    private val shapeRenderer: ShapeRenderer,
-    private val font: BitmapFont
-) : Canvas {
+class LibgdxCanvas : Canvas {
+    val drawCalls = mutableListOf<LibgdxDrawCall>()
 
     override fun drawRect(rect: Rect, paint: Paint) {
-        shapeRenderer.color = Color(paint.color.r, paint.color.g, paint.color.b, paint.color.a)
-        shapeRenderer.rect(rect.x, rect.y, rect.width, rect.height)
+        drawCalls += LibgdxDrawCall.DrawRect(rect, paint)
     }
 
     override fun drawText(text: String, x: Float, y: Float, paint: Paint) {
-        font.draw(spriteBatch, text, x, y)
+        drawCalls += LibgdxDrawCall.DrawText(text, x, y, paint)
     }
+}
+
+sealed class LibgdxDrawCall {
+    data class DrawRect(val rect: Rect, val paint: Paint) : LibgdxDrawCall()
+    data class DrawText(val text: String, val x: Float, val y: Float, val paint: Paint) : LibgdxDrawCall()
 }

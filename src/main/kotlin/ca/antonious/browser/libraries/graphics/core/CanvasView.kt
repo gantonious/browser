@@ -10,7 +10,7 @@ class CanvasView(
     }
 
     override fun drawText(text: String, x: Float, y: Float, paint: Paint) {
-        backingCanvas.drawText(text, bounds.x  + x, bounds.y + y, paint)
+        backingCanvas.drawText(text, bounds.x + x, bounds.y + y, paint)
     }
 }
 

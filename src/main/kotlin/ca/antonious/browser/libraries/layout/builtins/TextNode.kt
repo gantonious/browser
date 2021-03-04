@@ -7,8 +7,8 @@ import ca.antonious.browser.libraries.layout.core.LayoutNode
 class TextNode : LayoutNode() {
     var text = ""
 
-    override fun measure(measureTape: MeasureTape, widthConstraint: LayoutConstraint, heightConstraint: LayoutConstraint): Size {
-        return measureTape.measureTextSize(text).also {
+    override fun measure(measuringTape: MeasuringTape, widthConstraint: LayoutConstraint, heightConstraint: LayoutConstraint): Size {
+        return measuringTape.measureTextSize(text).also {
             frame.width = it.width
             frame.height = it.height
         }

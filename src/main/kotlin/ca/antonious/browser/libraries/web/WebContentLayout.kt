@@ -1,7 +1,7 @@
 package ca.antonious.browser.libraries.web
 
 import ca.antonious.browser.libraries.graphics.core.Canvas
-import ca.antonious.browser.libraries.graphics.core.MeasureTape
+import ca.antonious.browser.libraries.graphics.core.MeasuringTape
 import ca.antonious.browser.libraries.graphics.core.Size
 import ca.antonious.browser.libraries.html.HtmlParser
 import ca.antonious.browser.libraries.http.HttpClient
@@ -19,8 +19,8 @@ class WebContentLayout(url: String) : LayoutNode() {
         }
     }
 
-    override fun measure(measureTape: MeasureTape, widthConstraint: LayoutConstraint, heightConstraint: LayoutConstraint): Size {
-        return dom.rootNode.measure(measureTape, widthConstraint, heightConstraint)
+    override fun measure(measuringTape: MeasuringTape, widthConstraint: LayoutConstraint, heightConstraint: LayoutConstraint): Size {
+        return dom.rootNode.measure(measuringTape, widthConstraint, heightConstraint)
     }
 
     override fun drawTo(canvas: Canvas) {

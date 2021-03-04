@@ -1,7 +1,8 @@
 package ca.antonious.browser.libraries.layout.libgdx
 
 import ca.antonious.browser.libraries.graphics.libgdx.LibgdxCanvas
-import ca.antonious.browser.libraries.graphics.libgdx.LibgdxMeasureTape
+import ca.antonious.browser.libraries.graphics.libgdx.LibgdxDrawCall
+import ca.antonious.browser.libraries.graphics.libgdx.LibgdxMeasuringTape
 import ca.antonious.browser.libraries.layout.core.LayoutConstraint
 import ca.antonious.browser.libraries.layout.core.LayoutNode
 import ca.antonious.browser.libraries.layout.core.LayoutRunner
@@ -42,6 +43,7 @@ private class LibgdxLayoutRunnerApplication(val rootNode: LayoutNode) : Applicat
         camera.setToOrtho(true, Gdx.graphics.width.toFloat(), Gdx.graphics.width.toFloat())
         spriteBatch = SpriteBatch()
         shapeRenderer = ShapeRenderer()
+        shapeRenderer.setAutoShapeType(true)
 
         font = fontGenerator.generateFont(FreeTypeFontGenerator.FreeTypeFontParameter().apply {
             size = 30
@@ -65,20 +67,33 @@ private class LibgdxLayoutRunnerApplication(val rootNode: LayoutNode) : Applicat
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 
         camera.update()
-        spriteBatch.begin()
         spriteBatch.projectionMatrix = camera.combined
+        shapeRenderer.projectionMatrix = camera.combined
 
-        val measureTape = LibgdxMeasureTape(font)
+        val measureTape = LibgdxMeasuringTape(font)
 
         rootNode.measure(
-            measureTape = measureTape,
+            measuringTape = measureTape,
             widthConstraint = LayoutConstraint.SpecificSize(camera.viewportWidth),
             heightConstraint = LayoutConstraint.SpecificSize(camera.viewportHeight)
         )
 
-        val canvas = LibgdxCanvas(spriteBatch, shapeRenderer, font)
+        val canvas = LibgdxCanvas()
         rootNode.drawTo(canvas)
 
+        shapeRenderer.begin(ShapeRenderer.ShapeType.Filled)
+            canvas.drawCalls.filterIsInstance<LibgdxDrawCall.DrawRect>().forEach { drawRectCall ->
+                val paint = drawRectCall.paint
+                val rect = drawRectCall.rect
+                shapeRenderer.color = Color(paint.color.r, paint.color.g, paint.color.b, paint.color.a)
+                shapeRenderer.rect(rect.x, rect.y, rect.width, rect.height)
+            }
+        shapeRenderer.end()
+
+        spriteBatch.begin()
+            canvas.drawCalls.filterIsInstance<LibgdxDrawCall.DrawText>().forEach { drawTextCall ->
+                font.draw(spriteBatch, drawTextCall.text, drawTextCall.x, drawTextCall.y)
+            }
         spriteBatch.end()
     }
 }
