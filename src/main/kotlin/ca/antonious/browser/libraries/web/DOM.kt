@@ -14,7 +14,7 @@ class DOM {
 }
 
 fun List<HtmlElement>.toDomElements(): List<DOMElement> {
-    return map { it.toDomElement() }
+    return filter { (it as? HtmlElement.Node)?.name != "head" }.map { it.toDomElement() }
 }
 
 fun HtmlElement.toDomElement(): DOMElement {
