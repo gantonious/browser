@@ -22,7 +22,7 @@ class HttpClient {
             socket.use {
                 (it as? SSLSocket)?.startHandshake()
                 OutputStreamWriter(socket.getOutputStream()).let {
-                    val rawRequest = "${httpRequest.method.name.toUpperCase()} ${requestUri.path} HTTP/1.1\r\nHost: skrundz.ca\r\nConnection: close\r\n\r\n"
+                    val rawRequest = "${httpRequest.method.name.toUpperCase()} ${requestUri.path} HTTP/1.1\r\nHost: ${requestUri.host}\r\nConnection: close\r\n\r\n"
                     it.write(rawRequest)
                     it.flush()
                 }
