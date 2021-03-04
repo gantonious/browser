@@ -61,7 +61,7 @@ class HelloApp : ApplicationAdapter() {
             this.document = document
         }
 
-        HttpClient().execute(HttpRequest("https://www.antonious.ca", method = HttpMethod.Get)).onSuccess { response ->
+        HttpClient().execute(HttpRequest("localhost:8080", method = HttpMethod.Get)).onSuccess { response ->
             this.document = HtmlDocument(HtmlParser().parse(response.body).first())
         }
     }

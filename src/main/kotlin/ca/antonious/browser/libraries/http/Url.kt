@@ -8,7 +8,13 @@ data class Uri(
 )
 
 fun String.toUri(): Uri {
-    val scheme = split("://").first()
+    val scheme = split("://").let {
+        if (it.count() == 1) {
+            "http"
+        } else {
+            it.first()
+        }
+    }
     val hostAndPortAndPath = replace("$scheme://", "").split("/")
     val hostAndPort = hostAndPortAndPath.first().split(":")
 
