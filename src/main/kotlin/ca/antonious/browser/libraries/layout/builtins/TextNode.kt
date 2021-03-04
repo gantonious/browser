@@ -4,13 +4,14 @@ import ca.antonious.browser.libraries.graphics.core.*
 import ca.antonious.browser.libraries.layout.core.LayoutConstraint
 import ca.antonious.browser.libraries.layout.core.LayoutNode
 
-class TextNode : LayoutNode {
+class TextNode : LayoutNode() {
     var text = ""
 
-    override val frame = Rect.zero
-
-    override fun measure(widthConstraint: LayoutConstraint, heightConstraint: LayoutConstraint): Size {
-        return Size(width = 0f, height = 0f)
+    override fun measure(measureTape: MeasureTape, widthConstraint: LayoutConstraint, heightConstraint: LayoutConstraint): Size {
+        return measureTape.measureTextSize(text).also {
+            frame.width = it.width
+            frame.height = it.height
+        }
     }
 
     override fun drawTo(canvas: Canvas) {

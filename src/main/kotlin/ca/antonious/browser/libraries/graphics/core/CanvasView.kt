@@ -6,11 +6,11 @@ class CanvasView(
 ) : Canvas {
 
     override fun drawRect(rect: Rect, paint: Paint) {
-        backingCanvas.drawRect(Rect(rect.x - bounds.x, rect.y - bounds.y, rect.width, rect.height), paint)
+        backingCanvas.drawRect(Rect(rect.x + bounds.x, rect.y + bounds.y, rect.width, rect.height), paint)
     }
 
     override fun drawText(text: String, x: Float, y: Float, paint: Paint) {
-        backingCanvas.drawText(text, x - bounds.x, y - bounds.y, paint)
+        backingCanvas.drawText(text, bounds.x  + x, bounds.y + y, paint)
     }
 }
 
