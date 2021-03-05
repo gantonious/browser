@@ -57,7 +57,7 @@ class CssParser {
                 advanceCursor()
             }
 
-            currentSelector = CssSelector.MatchesClass(name = tagName)
+            currentSelector = CssSelector.MatchesTag(tag = tagName)
         }
 
         fun parseSelector() {
@@ -79,7 +79,7 @@ class CssParser {
             }
             advanceCursor()
 
-            val attributes = mutableMapOf<String, String>()
+            val attributes = mutableListOf<CssAttribute>()
             while (currentCharacter() != '}') {
                 while (currentCharacter()?.isWhitespace() == true) { advanceCursor() }
 
@@ -102,7 +102,11 @@ class CssParser {
                     advanceCursor()
                 }
 
-                attributes[attributeName] = attributeValue.trim()
+                when (attributeName) {
+                    "width" -> {
+                        attributes += CssAttribute.Width(size = CssSize.Em(30))
+                    }
+                }
 
                 advanceCursor()
                 while (currentCharacter()?.isWhitespace() == true) { advanceCursor() }

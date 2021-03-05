@@ -5,5 +5,6 @@ import ca.antonious.browser.libraries.layout.core.LayoutNode
 
 data class DOMElement(
     val htmlElement: HtmlElement,
-    val layoutNode: LayoutNode
+    val layoutNode: LayoutNode,
+    val resolvedStyle: ResolvedStyle
 )
