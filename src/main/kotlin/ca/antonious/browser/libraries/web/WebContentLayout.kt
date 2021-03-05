@@ -14,9 +14,7 @@ class WebContentLayout(url: String) : LayoutNode() {
     private val dom = DOM()
 
     init {
-        HttpClient().execute(HttpRequest(url, method = HttpMethod.Get)).onSuccess { response ->
-            dom.replaceDocument(HtmlParser().parse(response.body))
-        }
+        dom.loadSite(url = url)
     }
 
     override fun measure(measuringTape: MeasuringTape, widthConstraint: LayoutConstraint, heightConstraint: LayoutConstraint): Size {

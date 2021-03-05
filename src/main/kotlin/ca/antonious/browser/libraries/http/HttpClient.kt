@@ -8,7 +8,7 @@ import javax.net.ssl.SSLSocketFactory
 
 class HttpClient {
     fun execute(httpRequest: HttpRequest): Task<HttpResponse> {
-        val requestUri = httpRequest.url.toUri()
+        val requestUri = httpRequest.url
 
         val socket = if (requestUri.port == 443) {
             SSLSocketFactory.getDefault().createSocket(requestUri.host, requestUri.port)

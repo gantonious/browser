@@ -2,6 +2,8 @@ package ca.antonious.browser.libraries.web
 
 import ca.antonious.browser.libraries.css.CssParser
 import ca.antonious.browser.libraries.html.HtmlElement
+import ca.antonious.browser.libraries.html.HtmlParser
+import ca.antonious.browser.libraries.http.*
 import ca.antonious.browser.libraries.javascript.ast.JavascriptNode
 import ca.antonious.browser.libraries.javascript.interpreter.JavascriptInterpreter
 import ca.antonious.browser.libraries.javascript.parser.JavascriptParser
@@ -14,8 +16,23 @@ class DOM {
     val rootNode = BlockNode()
     private val cssStyleResolver = CssStyleResolver()
     private val javascriptInterpreter = JavascriptInterpreter()
+    private val httpClient = HttpClient()
+    private var siteUrl: Uri? = null
 
-    fun replaceDocument(htmlDocument: List<HtmlElement>) {
+    private val htmlParser = HtmlParser()
+    private val cssParser = CssParser()
+    private val javascriptParser = JavascriptParser()
+
+    fun loadSite(url: String) {
+        siteUrl = url.toUri()
+        val httpRequest = HttpRequest(url = siteUrl!!, method = HttpMethod.Get)
+        httpClient.execute(httpRequest).onSuccess { response ->
+            val rawHtml = response.body
+            replaceDocument(htmlParser.parse(rawHtml))
+        }
+    }
+
+    private fun replaceDocument(htmlDocument: List<HtmlElement>) {
         val layoutTree = loadDocument(htmlDocument)
         resolveStyles(layoutTree)
         rootNode.setChildren(layoutTree)
@@ -51,12 +68,23 @@ class DOM {
                 when (htmlElement.name) {
                     "style" -> {
                         val text = htmlElement.requireChildrenAsText().text
-                        cssStyleResolver.addRules(CssParser().parse(text))
+                        cssStyleResolver.addRules(cssParser.parse(text))
                     }
                     "script" -> {
                         val script = htmlElement.requireChildrenAsText().text
-                        val parsedScript = JavascriptParser().parse(script)
+                        val parsedScript = javascriptParser.parse(script)
                         javascriptInterpreter.interpret(JavascriptNode.Program(parsedScript))
+                    }
+                    "link" -> {
+                        when (htmlElement.attributes["rel"]) {
+                            "stylesheet" -> {
+                                val href = htmlElement.attributes["href"]
+                                val styleSheetUrl = siteUrl!!.copy(path = href!!)
+                                httpClient.execute(HttpRequest(styleSheetUrl, HttpMethod.Get)).onSuccess { response ->
+                                    cssStyleResolver.addRules(cssParser.parse(response.body))
+                                }
+                            }
+                        }
                     }
                 }
             }
