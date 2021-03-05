@@ -14,4 +14,8 @@ sealed class HtmlElement {
     data class Text(
         val text: String
     ) : HtmlElement()
+
+    fun requireAsText(): Text {
+        return this as Text
+    }
 }

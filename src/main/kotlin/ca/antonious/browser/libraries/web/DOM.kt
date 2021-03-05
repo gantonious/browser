@@ -1,80 +1,63 @@
 package ca.antonious.browser.libraries.web
 
 import ca.antonious.browser.libraries.css.CssParser
-import ca.antonious.browser.libraries.graphics.core.Color
 import ca.antonious.browser.libraries.html.HtmlElement
+import ca.antonious.browser.libraries.javascript.ast.JavascriptNode
+import ca.antonious.browser.libraries.javascript.interpreter.JavascriptInterpreter
+import ca.antonious.browser.libraries.javascript.parser.JavascriptParser
 import ca.antonious.browser.libraries.layout.builtins.BlockNode
-import ca.antonious.browser.libraries.layout.builtins.TextNode
-import com.jcraft.jorbis.Block
+import ca.antonious.browser.libraries.web.layout.DOMLayoutNode
+import ca.antonious.browser.libraries.web.layout.DOMParentLayoutNode
+import ca.antonious.browser.libraries.web.layout.DOMTextNode
 
 class DOM {
-    val rootNode = BlockNode().apply {
-        element = DOMElement(
-            htmlElement = HtmlElement.Text(""),
-            resolvedStyle = ResolvedStyle(),
-            layoutNode = this
-        )
-    }
-    val cssStyleResolver = CssStyleResolver()
+    val rootNode = BlockNode()
+    private val cssStyleResolver = CssStyleResolver()
+    private val javascriptInterpreter = JavascriptInterpreter()
 
     fun replaceDocument(htmlDocument: List<HtmlElement>) {
-        htmlDocument.findHead()?.let(::processHead)
-        rootNode.setChildren(htmlDocument.toDomElements().map { it.layoutNode })
+        rootNode.setChildren(loadDocument(htmlDocument))
+    }
+
+    private fun loadDocument(htmlDocument: List<HtmlElement>, parent: DOMLayoutNode? = null): List<DOMLayoutNode> {
+        val layoutTree = mutableListOf<DOMLayoutNode>()
+
+        for (htmlElement in htmlDocument) {
+            when (htmlElement) {
+                is HtmlElement.Node -> {
+                    when (htmlElement.name) {
+                        "head" -> processHead(htmlElement)
+                        else -> {
+                            val layoutNode = DOMParentLayoutNode(parent = parent, htmlElement = htmlElement)
+                            layoutNode.setChildren(children = loadDocument(htmlElement.children, parent = layoutNode))
+                            layoutTree += layoutNode
+                        }
+                    }
+                }
+                is HtmlElement.Text -> {
+                    layoutTree += DOMTextNode(parent = parent, htmlElement = htmlElement)
+                }
+            }
+        }
+
+        return layoutTree
     }
 
     private fun processHead(node: HtmlElement.Node) {
-        for (child in node.children) {
-            if (child is HtmlElement.Node) {
-                when (child.name) {
+        for (htmlElement in node.children) {
+            if (htmlElement is HtmlElement.Node) {
+                when (htmlElement.name) {
                     "style" -> {
-                        val text = child.requireChildrenAsText().text
+                        val text = htmlElement.requireChildrenAsText().text
                         cssStyleResolver.addRules(CssParser().parse(text))
+                    }
+                    "script" -> {
+                        val script = htmlElement.requireChildrenAsText().text
+                        val parsedScript = JavascriptParser().parse(script)
+                        javascriptInterpreter.interpret(JavascriptNode.Program(parsedScript))
                     }
                 }
             }
         }
     }
-
-    fun List<HtmlElement>.toDomElements(): List<DOMElement> {
-        return filter { (it as? HtmlElement.Node)?.name != "head" }.map { it.toDomElement() }
-    }
-
-    fun HtmlElement.toDomElement(): DOMElement {
-        return DOMElement(
-            htmlElement = this,
-            resolvedStyle = ResolvedStyle(),
-            layoutNode = when (this) {
-                is HtmlElement.Node -> BlockNode().apply {
-                    setChildren(this@toDomElement.children.toDomElements().map { it.layoutNode })
-                }
-                is HtmlElement.Text -> TextNode().apply {
-                    text = this@toDomElement.text
-                }
-            }
-        ).apply {
-            (layoutNode as? BlockNode)?.element = this
-            copy(resolvedStyle = cssStyleResolver.resolveStyleFor(this))
-        }
-    }
 }
-
-fun List<HtmlElement>.findHead(): HtmlElement.Node? {
-    val children = mutableListOf<HtmlElement>()
-
-    forEach { element ->
-        (element as? HtmlElement.Node)?.let {
-            if (it.name == "head") {
-                return it
-            } else {
-                children += it.children
-            }
-        }
-    }
-
-    return if (children.isEmpty()) {
-        null
-    } else {
-        children.findHead()
-    }
-}
-
