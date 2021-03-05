@@ -16,7 +16,7 @@ class DOMParentLayoutNode(
 ) : DOMLayoutNode(parent, htmlElement) {
 
     var resolvedStyle = ResolvedStyle()
-    private val children = mutableListOf<DOMLayoutNode>()
+    val children = mutableListOf<DOMLayoutNode>()
 
     fun setChildren(children: List<DOMLayoutNode>) {
         this.children.clear()

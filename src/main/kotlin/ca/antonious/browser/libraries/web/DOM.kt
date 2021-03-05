@@ -16,7 +16,9 @@ class DOM {
     private val javascriptInterpreter = JavascriptInterpreter()
 
     fun replaceDocument(htmlDocument: List<HtmlElement>) {
-        rootNode.setChildren(loadDocument(htmlDocument))
+        val layoutTree = loadDocument(htmlDocument)
+        resolveStyles(layoutTree)
+        rootNode.setChildren(layoutTree)
     }
 
     private fun loadDocument(htmlDocument: List<HtmlElement>, parent: DOMLayoutNode? = null): List<DOMLayoutNode> {
@@ -56,6 +58,17 @@ class DOM {
                         val parsedScript = JavascriptParser().parse(script)
                         javascriptInterpreter.interpret(JavascriptNode.Program(parsedScript))
                     }
+                }
+            }
+        }
+    }
+
+    private fun resolveStyles(layoutTree: List<DOMLayoutNode>) {
+        for (layoutNode in layoutTree) {
+            when (layoutNode) {
+                is DOMParentLayoutNode -> {
+                    layoutNode.resolvedStyle = cssStyleResolver.resolveStyleFor(layoutNode)
+                    resolveStyles(layoutNode.children)
                 }
             }
         }

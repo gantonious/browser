@@ -6,6 +6,7 @@ import ca.antonious.browser.libraries.css.CssSelector
 import ca.antonious.browser.libraries.css.CssSize
 import ca.antonious.browser.libraries.graphics.core.Insets
 import ca.antonious.browser.libraries.graphics.core.Rect
+import ca.antonious.browser.libraries.web.layout.DOMParentLayoutNode
 
 class CssStyleResolver {
     private val rules = mutableListOf(
@@ -21,9 +22,9 @@ class CssStyleResolver {
         this.rules += rules
     }
 
-    fun resolveStyleFor(domElement: DOMElement): ResolvedStyle {
+    fun resolveStyleFor(domParentLayoutNode: DOMParentLayoutNode): ResolvedStyle {
         val matchingAttributes = rules
-            .filter { it.selector.matches(domElement) }
+            .filter { it.selector.matches(domParentLayoutNode) }
             .flatMap { it.attributes }
 
         val margins = Insets.zero()
