@@ -1,5 +1,6 @@
 package ca.antonious.browser.libraries.web.layout
 
+import ca.antonious.browser.libraries.css.CssSize
 import ca.antonious.browser.libraries.graphics.core.Canvas
 import ca.antonious.browser.libraries.graphics.core.MeasuringTape
 import ca.antonious.browser.libraries.graphics.core.Size
@@ -7,6 +8,7 @@ import ca.antonious.browser.libraries.graphics.core.subRegion
 import ca.antonious.browser.libraries.html.HtmlElement
 import ca.antonious.browser.libraries.layout.core.LayoutConstraint
 import ca.antonious.browser.libraries.web.ResolvedStyle
+import ca.antonious.browser.libraries.web.resolveSize
 import kotlin.math.max
 import kotlin.math.min
 
@@ -28,34 +30,60 @@ class DOMParentLayoutNode(
         widthConstraint: LayoutConstraint,
         heightConstraint: LayoutConstraint
     ): Size {
+        val explicitTopMargin = measuringTape.resolveSize(resolvedStyle.margins.top) ?: 0f
+
         var width = 0f
-        var height = 0f
+        var height = explicitTopMargin
 
         var x = 0f
-        var y = 0f
+        var y = explicitTopMargin
+
+        val styleWidth = measuringTape.resolveSize(resolvedStyle.width)
+
+        val startMargin = measuringTape.resolveSize(resolvedStyle.margins.start)
+        val endMargin = measuringTape.resolveSize(resolvedStyle.margins.end)
+
+        val explicitHorizontalMarginSize = (startMargin ?: 0f) + (endMargin ?: 0f)
 
         val realWidthConstraint = when (widthConstraint) {
             is LayoutConstraint.SpecificSize -> {
-                LayoutConstraint.SpecificSize(min(widthConstraint.size, resolvedStyle.width ?: widthConstraint.size))
+                LayoutConstraint.SpecificSize(min(widthConstraint.size, styleWidth ?: widthConstraint.size) - explicitHorizontalMarginSize)
             }
             is LayoutConstraint.AnySize -> {
-                if (resolvedStyle.width == null) {
+                if (styleWidth == null) {
                     LayoutConstraint.AnySize
                 } else {
-                    LayoutConstraint.SpecificSize(resolvedStyle.width!!)
+                    LayoutConstraint.SpecificSize(styleWidth - explicitHorizontalMarginSize)
                 }
             }
         }
 
+        height += measuringTape.resolveSize(resolvedStyle.margins.bottom) ?: 0f
+
         for (child in children) {
             val childMeasureResult = child.measure(measuringTape, realWidthConstraint, heightConstraint)
-            child.frame.x = x
+            child.frame.x = x + (startMargin ?: 0f)
             child.frame.y = y
 
             height += childMeasureResult.height
             y = height
 
             width = max(width, childMeasureResult.width)
+        }
+
+        when (widthConstraint) {
+            is LayoutConstraint.SpecificSize -> {
+                if (width < widthConstraint.size) {
+                    when {
+                        resolvedStyle.margins.start is CssSize.Auto && resolvedStyle.margins.end is CssSize.Auto -> {
+                            val remainingMargin = (widthConstraint.size - width) / 2
+                            for (child in children) {
+                                child.frame.x = remainingMargin
+                            }
+                        }
+                    }
+                }
+            }
         }
 
         return Size(width = width, height = height).also {

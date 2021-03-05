@@ -2,6 +2,7 @@ package ca.antonious.browser.libraries.layout.libgdx
 
 import ca.antonious.browser.libraries.graphics.libgdx.LibgdxCanvas
 import ca.antonious.browser.libraries.graphics.libgdx.LibgdxDrawCall
+import ca.antonious.browser.libraries.graphics.libgdx.LibgdxFontProvider
 import ca.antonious.browser.libraries.graphics.libgdx.LibgdxMeasuringTape
 import ca.antonious.browser.libraries.layout.core.LayoutConstraint
 import ca.antonious.browser.libraries.layout.core.LayoutNode
@@ -36,8 +37,7 @@ private class LibgdxLayoutRunnerApplication(val rootNode: LayoutNode) : Applicat
     private lateinit var spriteBatch: SpriteBatch
     private lateinit var shapeRenderer: ShapeRenderer
     private lateinit var camera: OrthographicCamera
-    private var fontGenerator = FreeTypeFontGenerator(FileHandle("./Arial.ttf"))
-    private lateinit var font: BitmapFont
+    private val fontProvider = LibgdxFontProvider()
 
     override fun create() {
         camera = OrthographicCamera(Gdx.graphics.width.toFloat(), Gdx.graphics.width.toFloat())
@@ -45,16 +45,6 @@ private class LibgdxLayoutRunnerApplication(val rootNode: LayoutNode) : Applicat
         spriteBatch = SpriteBatch()
         shapeRenderer = ShapeRenderer()
         shapeRenderer.setAutoShapeType(true)
-
-        font = fontGenerator.generateFont(FreeTypeFontGenerator.FreeTypeFontParameter().apply {
-            size = 40
-            borderStraight = true
-            flip = true
-            genMipMaps = true
-            minFilter = Texture.TextureFilter.Nearest
-            magFilter = Texture.TextureFilter.MipMapLinearNearest
-            color = Color.BLACK
-        })
     }
 
     override fun resize(width: Int, height: Int) {
@@ -71,7 +61,7 @@ private class LibgdxLayoutRunnerApplication(val rootNode: LayoutNode) : Applicat
         spriteBatch.projectionMatrix = camera.combined
         shapeRenderer.projectionMatrix = camera.combined
 
-        val measureTape = LibgdxMeasuringTape(font)
+        val measureTape = LibgdxMeasuringTape(fontProvider)
 
         rootNode.measure(
             measuringTape = measureTape,
@@ -93,6 +83,7 @@ private class LibgdxLayoutRunnerApplication(val rootNode: LayoutNode) : Applicat
 
         spriteBatch.begin()
             canvas.drawCalls.filterIsInstance<LibgdxDrawCall.DrawText>().forEach { drawTextCall ->
+                val font = fontProvider.getFont(drawTextCall.font)
                 font.draw(spriteBatch, drawTextCall.text, drawTextCall.x, drawTextCall.y, drawTextCall.width, Align.left, true)
             }
         spriteBatch.end()
