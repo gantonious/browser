@@ -102,9 +102,36 @@ class CssParser {
                     advanceCursor()
                 }
 
+                // Include this in the main state machine to avoid multiple iterations.
+                fun parseSize(size: String): CssSize {
+                    if (size.endsWith("em")) {
+                        return CssSize.Em(size.replace("em", "").trim().toInt())
+                    } else if (size.endsWith("px")) {
+                        return CssSize.Pixel(size.replace("px", "").trim().toInt())
+                    } else if (size.toIntOrNull() != null) {
+                        return CssSize.Pixel(size.toInt())
+                    }
+
+                    return CssSize.Auto
+                }
+
                 when (attributeName) {
                     "width" -> {
-                        attributes += CssAttribute.Width(size = CssSize.Em(30))
+                        attributes += CssAttribute.Width(size = parseSize(attributeValue))
+                    }
+                    "margin" -> {
+                        val marginValues = attributeValue.trim().split(" ")
+                            .map { it.trim() }
+                            .map { parseSize(it) }
+
+                        when (marginValues.size) {
+                            2 -> {
+                                attributes += CssAttribute.MarginTop(size = marginValues[0])
+                                attributes += CssAttribute.MarginBottom(size = marginValues[0])
+                                attributes += CssAttribute.MarginStart(size = marginValues[1])
+                                attributes += CssAttribute.MarginEnd(size = marginValues[1])
+                            }
+                        }
                     }
                 }
 
