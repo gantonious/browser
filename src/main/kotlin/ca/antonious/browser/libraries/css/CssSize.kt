@@ -8,7 +8,7 @@ sealed class CssSize {
     fun toFloat(): Float? {
         return when (this) {
             is Pixel -> size.toFloat()
-            is Em -> size.toFloat()
+            is Em -> size.toFloat() * 100
             is Auto -> null
         }
     }
