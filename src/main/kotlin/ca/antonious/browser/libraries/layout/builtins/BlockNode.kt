@@ -6,7 +6,7 @@ import ca.antonious.browser.libraries.layout.core.LayoutNode
 import kotlin.math.max
 
 class BlockNode : LayoutNode() {
-    private val children = mutableListOf<LayoutNode>()
+    val children = mutableListOf<LayoutNode>()
 
     fun setChildren(nodes: List<LayoutNode>) {
         children.clear()

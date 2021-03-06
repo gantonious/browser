@@ -1,5 +1,8 @@
 package ca.antonious.browser.libraries.css
 
+import ca.antonious.browser.libraries.graphics.core.Color
+import ca.antonious.browser.libraries.graphics.core.toColor
+
 class CssParser {
     companion object {
         val selectorTextTerminators = setOf(
@@ -162,6 +165,9 @@ class CssParser {
                                 attributes += CssAttribute.MarginEnd(size = marginValues[1])
                             }
                         }
+                    }
+                    "background-color" -> {
+                        attributes += CssAttribute.BackgroundColor(color = attributeValue.toColor())
                     }
                 }
 

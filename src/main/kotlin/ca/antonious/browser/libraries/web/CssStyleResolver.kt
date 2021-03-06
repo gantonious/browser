@@ -4,6 +4,7 @@ import ca.antonious.browser.libraries.css.CssAttribute
 import ca.antonious.browser.libraries.css.CssRule
 import ca.antonious.browser.libraries.css.CssSelector
 import ca.antonious.browser.libraries.css.CssSize
+import ca.antonious.browser.libraries.graphics.core.Color
 import ca.antonious.browser.libraries.graphics.core.Insets
 import ca.antonious.browser.libraries.web.layout.DOMParentLayoutNode
 
@@ -53,6 +54,7 @@ class CssStyleResolver {
         val padding = CssInsets.zero()
         var width: CssSize = CssSize.Auto
         var fontSize: CssSize = CssSize.Pixel(8)
+        var backgroundColor = Color.clear
 
         for (attribute in matchingAttributes) {
             when (attribute) {
@@ -62,6 +64,7 @@ class CssStyleResolver {
                 is CssAttribute.MarginBottom -> margins.bottom = attribute.size
                 is CssAttribute.Width -> width = attribute.size
                 is CssAttribute.FontSize -> fontSize = attribute.size
+                is CssAttribute.BackgroundColor -> backgroundColor = attribute.color
             }
         }
 
@@ -69,7 +72,8 @@ class CssStyleResolver {
             margins = margins,
             padding = padding,
             width = width,
-            fontSize = fontSize
+            fontSize = fontSize,
+            backgroundColor = backgroundColor
         )
     }
 }

@@ -1,13 +1,15 @@
 package ca.antonious.browser.libraries.web
 
 import ca.antonious.browser.libraries.css.CssSize
+import ca.antonious.browser.libraries.graphics.core.Color
 import ca.antonious.browser.libraries.graphics.core.MeasuringTape
 
 data class ResolvedStyle(
     val margins: CssInsets = CssInsets.zero(),
     val padding: CssInsets = CssInsets.zero(),
     val fontSize: CssSize = CssSize.Pixel(8),
-    val width: CssSize = CssSize.Auto
+    val width: CssSize = CssSize.Auto,
+    val backgroundColor: Color = Color.clear
 )
 
 data class CssInsets(

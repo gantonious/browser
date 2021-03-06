@@ -1,10 +1,7 @@
 package ca.antonious.browser.libraries.web.layout
 
 import ca.antonious.browser.libraries.css.CssSize
-import ca.antonious.browser.libraries.graphics.core.Canvas
-import ca.antonious.browser.libraries.graphics.core.MeasuringTape
-import ca.antonious.browser.libraries.graphics.core.Size
-import ca.antonious.browser.libraries.graphics.core.subRegion
+import ca.antonious.browser.libraries.graphics.core.*
 import ca.antonious.browser.libraries.html.HtmlElement
 import ca.antonious.browser.libraries.layout.core.LayoutConstraint
 import ca.antonious.browser.libraries.web.ResolvedStyle
@@ -93,6 +90,7 @@ class DOMParentLayoutNode(
     }
 
     override fun drawTo(canvas: Canvas) {
+        canvas.drawRect(Rect(0f, 0f, frame.width, frame.height), Paint(color = resolvedStyle.backgroundColor))
         children.forEach {
             it.drawTo(canvas.subRegion(it.frame))
         }

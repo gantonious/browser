@@ -90,6 +90,7 @@ class DOM {
                                 val styleSheetUrl = siteUrl!!.copy(path = href!!)
                                 httpClient.execute(HttpRequest(styleSheetUrl, HttpMethod.Get)).onSuccess { response ->
                                     cssStyleResolver.addRules(cssParser.parse(response.body))
+                                    resolveStyles(rootNode.children.map { it as DOMLayoutNode })
                                 }
                             }
                         }

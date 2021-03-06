@@ -1,5 +1,7 @@
 package ca.antonious.browser.libraries.css
 
+import ca.antonious.browser.libraries.graphics.core.Color
+
 sealed class CssAttribute {
     data class Width(val size: CssSize) : CssAttribute()
     data class MarginStart(val size: CssSize) : CssAttribute()
@@ -7,4 +9,5 @@ sealed class CssAttribute {
     data class MarginTop(val size: CssSize) : CssAttribute()
     data class MarginBottom(val size: CssSize) : CssAttribute()
     data class FontSize(val size: CssSize) : CssAttribute()
+    data class BackgroundColor(val color: Color) : CssAttribute()
 }

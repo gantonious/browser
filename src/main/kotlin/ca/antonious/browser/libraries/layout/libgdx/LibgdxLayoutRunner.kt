@@ -56,6 +56,8 @@ private class LibgdxLayoutRunnerApplication(val rootNode: LayoutNode) : Applicat
     override fun render() {
         Gdx.gl.glClearColor(1f, 1f, 1f, 1f);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
+        Gdx.gl.glEnable(GL20.GL_BLEND);
+        Gdx.gl.glBlendFunc(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA);
 
         camera.update()
         spriteBatch.projectionMatrix = camera.combined
