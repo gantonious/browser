@@ -166,7 +166,6 @@ class HtmlParser {
                             when(rawHtml[cursor - 1]) {
                                 '/' -> {
                                     advanceCursor()
-                                    advanceCursor()
                                     tagStack.peek().children += HtmlElement.Node(name = tagName, attributes = attributes)
                                 }
                                 else -> {
