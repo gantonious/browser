@@ -112,13 +112,19 @@ class DOMParentLayoutNode(
             }
         }
 
-        when (widthConstraint) {
+        val widthConstraintToFill = if (resolvedStyle.displayType == CssDisplay.inlineBlock) {
+            realWidthConstraint
+        } else {
+            widthConstraint
+        }
+
+        when (widthConstraintToFill) {
             is LayoutConstraint.SpecificSize -> {
-                if (childrenWidth < widthConstraint.size) {
+                if (childrenWidth < widthConstraintToFill.size) {
                     when {
                         (resolvedStyle.margins.start is CssSize.Auto && resolvedStyle.margins.end is CssSize.Auto) ||
                         (resolvedStyle.textAlignment == CssAlignment.center) -> {
-                            val remainingMargin = (widthConstraint.size - childrenWidth) / 2
+                            val remainingMargin = (widthConstraintToFill.size - childrenWidth) / 2
                             for (child in children) {
                                 child.frame.x += remainingMargin
                             }

@@ -33,7 +33,7 @@ class CssStyleResolver {
                 CssAttribute.MarginStart(size = CssSize.Pixel(8)),
                 CssAttribute.MarginEnd(size = CssSize.Pixel(8)),
                 CssAttribute.MarginBottom(size = CssSize.Pixel(8)),
-                CssAttribute.FontSize(size = CssSize.Pixel(18))
+                CssAttribute.FontSize(size = CssSize.Pixel(12))
             )
         )
     )
