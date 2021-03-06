@@ -7,7 +7,7 @@ sealed class HtmlElement {
         val children: List<HtmlElement> = emptyList()
     ) : HtmlElement() {
         fun requireChildrenAsText(): Text {
-            return children.first() as Text
+            return children.firstOrNull()?.let { it as Text } ?: Text("")
         }
     }
 

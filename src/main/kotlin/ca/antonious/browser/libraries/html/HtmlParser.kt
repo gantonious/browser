@@ -38,6 +38,13 @@ class HtmlParser {
             return rawHtml[cursor - 1]
         }
 
+        fun lastNthCharacter(n: Int): Char? {
+            if (cursor - n >= rawHtml.length && cursor - n > 0) {
+                return null
+            }
+            return rawHtml[cursor - n]
+        }
+
         fun peekNextCharacter(): Char? {
             if (cursor + 1 >= rawHtml.length) {
                 return null
@@ -45,9 +52,21 @@ class HtmlParser {
             return rawHtml[cursor + 1]
         }
 
+        fun peekNextNthCharacter(n: Int): Char? {
+            if (cursor + n >= rawHtml.length) {
+                return null
+            }
+            return rawHtml[cursor + n]
+        }
+
         fun advanceCursor() {
             cursor += 1
         }
+
+        fun advanceCursorBy(amount: Int) {
+            cursor += amount
+        }
+
 
         mainLoop@while (cursor < rawHtml.length) {
             when (val currentCharacter = rawHtml[cursor]) {
@@ -63,8 +82,21 @@ class HtmlParser {
                     advanceCursor()
                     when(rawHtml[cursor]) {
                         '!' -> {
-                            while(currentCharacter().let { it != null && it != '\n' }) {
-                                advanceCursor()
+                            when (peekNextCharacter()) {
+                                '-' -> {
+                                    advanceCursorBy(3)
+                                    var commentText = ""
+                                    while(!(currentCharacter() == '-' && peekNextCharacter() == '-' && peekNextNthCharacter(2) == '>')) {
+                                        commentText += currentCharacter()
+                                        advanceCursor()
+                                    }
+                                    advanceCursorBy(3)
+                                }
+                                else -> {
+                                    while(currentCharacter().let { it != null && it != '\n' && it != '<'}) {
+                                        advanceCursor()
+                                    }
+                                }
                             }
                         }
                         '/' -> {
@@ -83,14 +115,22 @@ class HtmlParser {
 
                             var matchingOpening = tagStack.pop()
 
-                            while (matchingOpening.name != tagName && matchingOpening.name in autoClosingTags) {
-                                tagStack.peek().children += HtmlElement.Node(name = matchingOpening.name, attributes = matchingOpening.attributes)
-                                tagStack.peek().children += matchingOpening.children
-                                matchingOpening = tagStack.pop()
-                            }
+                            while (matchingOpening.name != tagName) {
+                                if (matchingOpening.name in autoClosingTags) {
+                                    tagStack.peek().children += HtmlElement.Node(name = matchingOpening.name, attributes = matchingOpening.attributes)
+                                    tagStack.peek().children += matchingOpening.children
+                                    matchingOpening = tagStack.pop()
+                                } else {
+                                    println("WARN: Couldn't find matching closing tag for '${matchingOpening.name}'")
+                                    val node = HtmlElement.Node(name = matchingOpening.name, attributes = matchingOpening.attributes, children = matchingOpening.children)
 
-                            if (matchingOpening.name != tagName) {
-                                error("Couldn't find matching opening tag for '$tagName'")
+                                    if (tagStack.isEmpty()) {
+                                        return listOf(node)
+                                    } else {
+                                        tagStack.peek().children += node
+                                        matchingOpening = tagStack.pop()
+                                    }
+                                }
                             }
 
                             val parsedNode = HtmlElement.Node(name = matchingOpening.name, attributes = matchingOpening.attributes, children = matchingOpening.children)
