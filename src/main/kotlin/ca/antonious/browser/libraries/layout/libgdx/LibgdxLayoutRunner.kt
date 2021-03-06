@@ -4,11 +4,13 @@ import ca.antonious.browser.libraries.graphics.libgdx.LibgdxCanvas
 import ca.antonious.browser.libraries.graphics.libgdx.LibgdxDrawCall
 import ca.antonious.browser.libraries.graphics.libgdx.LibgdxFontProvider
 import ca.antonious.browser.libraries.graphics.libgdx.LibgdxMeasuringTape
+import ca.antonious.browser.libraries.layout.core.InputEvent
 import ca.antonious.browser.libraries.layout.core.LayoutConstraint
 import ca.antonious.browser.libraries.layout.core.LayoutNode
 import ca.antonious.browser.libraries.layout.core.LayoutRunner
 import com.badlogic.gdx.ApplicationAdapter
 import com.badlogic.gdx.Gdx
+import com.badlogic.gdx.InputProcessor
 import com.badlogic.gdx.backends.lwjgl.LwjglApplication
 import com.badlogic.gdx.backends.lwjgl.LwjglApplicationConfiguration
 import com.badlogic.gdx.files.FileHandle
@@ -33,13 +35,16 @@ class LibgdxLayoutRunner : LayoutRunner {
     }
 }
 
-private class LibgdxLayoutRunnerApplication(val rootNode: LayoutNode) : ApplicationAdapter() {
+private class LibgdxLayoutRunnerApplication(val rootNode: LayoutNode) : ApplicationAdapter(), InputProcessor {
     private lateinit var spriteBatch: SpriteBatch
     private lateinit var shapeRenderer: ShapeRenderer
     private lateinit var camera: OrthographicCamera
     private val fontProvider = LibgdxFontProvider()
 
+    private val inputEventsToProcess = mutableListOf<InputEvent>()
+
     override fun create() {
+        Gdx.input.inputProcessor = this
         camera = OrthographicCamera(Gdx.graphics.width.toFloat(), Gdx.graphics.width.toFloat())
         camera.setToOrtho(true, Gdx.graphics.width.toFloat(), Gdx.graphics.width.toFloat())
         spriteBatch = SpriteBatch()
@@ -64,6 +69,12 @@ private class LibgdxLayoutRunnerApplication(val rootNode: LayoutNode) : Applicat
         shapeRenderer.projectionMatrix = camera.combined
 
         val measureTape = LibgdxMeasuringTape(fontProvider)
+
+        for (inputEvent in inputEventsToProcess) {
+            rootNode.handleInputEvent(inputEvent)
+        }
+
+        inputEventsToProcess.clear()
 
         rootNode.measure(
             measuringTape = measureTape,
@@ -91,5 +102,38 @@ private class LibgdxLayoutRunnerApplication(val rootNode: LayoutNode) : Applicat
                 font.draw(spriteBatch, drawTextCall.text, drawTextCall.x, drawTextCall.y, drawTextCall.width, Align.left, true)
             }
         spriteBatch.end()
+    }
+
+    override fun touchUp(screenX: Int, screenY: Int, pointer: Int, button: Int): Boolean {
+        return true
+    }
+
+    override fun mouseMoved(screenX: Int, screenY: Int): Boolean {
+        return true
+    }
+
+    override fun keyTyped(character: Char): Boolean {
+        return true
+    }
+
+    override fun scrolled(amountX: Float, amountY: Float): Boolean {
+        inputEventsToProcess += InputEvent.OnScrolled(dy = amountY)
+        return true
+    }
+
+    override fun keyUp(keycode: Int): Boolean {
+        return true
+    }
+
+    override fun touchDragged(screenX: Int, screenY: Int, pointer: Int): Boolean {
+        return true
+    }
+
+    override fun keyDown(keycode: Int): Boolean {
+        return true
+    }
+
+    override fun touchDown(screenX: Int, screenY: Int, pointer: Int, button: Int): Boolean {
+        return true
     }
 }

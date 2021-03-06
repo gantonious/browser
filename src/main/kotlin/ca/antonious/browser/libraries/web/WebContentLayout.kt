@@ -7,6 +7,7 @@ import ca.antonious.browser.libraries.html.HtmlParser
 import ca.antonious.browser.libraries.http.HttpClient
 import ca.antonious.browser.libraries.http.HttpMethod
 import ca.antonious.browser.libraries.http.HttpRequest
+import ca.antonious.browser.libraries.layout.core.InputEvent
 import ca.antonious.browser.libraries.layout.core.LayoutConstraint
 import ca.antonious.browser.libraries.layout.core.LayoutNode
 
@@ -23,5 +24,9 @@ class WebContentLayout(url: String) : LayoutNode() {
 
     override fun drawTo(canvas: Canvas) {
         dom.rootNode.drawTo(canvas)
+    }
+
+    override fun handleInputEvent(inputEvent: InputEvent) {
+        dom.rootNode.handleInputEvent(inputEvent)
     }
 }

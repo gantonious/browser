@@ -1,9 +1,11 @@
 package ca.antonious.browser.libraries.layout.builtins
 
 import ca.antonious.browser.libraries.graphics.core.*
+import ca.antonious.browser.libraries.layout.core.InputEvent
 import ca.antonious.browser.libraries.layout.core.LayoutConstraint
 import ca.antonious.browser.libraries.layout.core.LayoutNode
 import kotlin.math.max
+import kotlin.math.min
 
 class BlockNode : LayoutNode() {
     val children = mutableListOf<LayoutNode>()
@@ -34,11 +36,20 @@ class BlockNode : LayoutNode() {
     }
 
     override fun drawTo(canvas: Canvas) {
-        var y = 0f
+        var y = frame.y
 
         for (child in children) {
             child.drawTo(canvas.subRegion(Rect(0f, y, child.frame.width, child.frame.height)))
             y += child.frame.height
+        }
+    }
+
+    override fun handleInputEvent(inputEvent: InputEvent) {
+        when (inputEvent) {
+            is InputEvent.OnScrolled -> {
+                frame.y -= inputEvent.dy * 100
+                frame.y = min(0f, frame.y)
+            }
         }
     }
 }

@@ -15,4 +15,6 @@ abstract class LayoutNode {
     ): Size
 
     abstract fun drawTo(canvas: Canvas)
+
+    open fun handleInputEvent(inputEvent: InputEvent) = Unit
 }
