@@ -56,6 +56,7 @@ class CssStyleResolver {
 
         val resolvedStyle = (domParentLayoutNode.parent as? DOMParentLayoutNode)?.resolvedStyle?.copy() ?: ResolvedStyle()
         resolvedStyle.displayType = CssDisplay.block
+        resolvedStyle.backgroundColor = Color.clear
         resolvedStyle.width = CssSize.Percent(1f)
 
         for (attribute in matchingAttributes) {
