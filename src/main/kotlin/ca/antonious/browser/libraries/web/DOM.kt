@@ -24,11 +24,24 @@ class DOM {
     private val javascriptParser = JavascriptParser()
 
     fun loadSite(url: String) {
-        siteUrl = url.toUri()
+        loadSite(url.toUri())
+    }
+
+    fun loadSite(url: Uri) {
+        siteUrl = url
         val httpRequest = HttpRequest(url = siteUrl!!, method = HttpMethod.Get)
         httpClient.execute(httpRequest).onSuccess { response ->
             val rawHtml = response.body
             replaceDocument(htmlParser.parse(rawHtml))
+        }
+    }
+
+    private fun handleEvent(event: DOMEvent) {
+        when (event) {
+            is DOMEvent.NodeClicked -> {
+                val url = siteUrl!!.copy(path = event.element.attributes["href"]!!)
+                loadSite(url)
+            }
         }
     }
 
@@ -48,7 +61,7 @@ class DOM {
                     when (htmlElement.name) {
                         "head" -> processHead(htmlElement)
                         else -> {
-                            val layoutNode = DOMParentLayoutNode(parent = parent, htmlElement = htmlElement)
+                            val layoutNode = DOMParentLayoutNode(parent = parent, htmlElement = htmlElement, domEventHandler = ::handleEvent)
                             layoutNode.setChildren(children = loadDocument(htmlElement.children, parent = layoutNode))
                             layoutTree += layoutNode
                         }

@@ -24,7 +24,7 @@ class WebContentLayout(url: String) : LayoutNode() {
     }
 
     override fun measure(measuringTape: MeasuringTape, widthConstraint: LayoutConstraint, heightConstraint: LayoutConstraint): Size {
-        val navigationBarSize = navigationBar.measure(measuringTape, widthConstraint, heightConstraint)
+        navigationBar.measure(measuringTape, widthConstraint, heightConstraint)
         return dom.rootNode.measure(measuringTape, widthConstraint, heightConstraint)
     }
 
@@ -35,6 +35,13 @@ class WebContentLayout(url: String) : LayoutNode() {
 
     override fun handleInputEvent(inputEvent: InputEvent) {
         navigationBar.handleInputEvent(inputEvent)
-        dom.rootNode.handleInputEvent(inputEvent)
+        dom.rootNode.handleInputEvent(
+            when (inputEvent) {
+                is InputEvent.TouchUp -> InputEvent.TouchUp(
+                    inputEvent.mousePosition.copy(y = inputEvent.mousePosition.y - navigationBar.frame.height)
+                )
+                else -> inputEvent
+            }
+        )
     }
 }

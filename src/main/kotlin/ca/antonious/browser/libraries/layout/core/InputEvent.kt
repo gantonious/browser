@@ -1,8 +1,11 @@
 package ca.antonious.browser.libraries.layout.core
 
+import ca.antonious.browser.libraries.graphics.core.Point
+
 sealed class InputEvent {
     data class OnScrolled(val dy: Float) : InputEvent()
     data class KeyDown(val key: Key) : InputEvent()
+    data class TouchUp(val mousePosition: Point) : InputEvent()
 }
 
 enum class Key {

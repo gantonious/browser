@@ -50,6 +50,16 @@ class BlockNode : LayoutNode() {
                 frame.y -= inputEvent.dy * 100
                 frame.y = min(0f, frame.y)
             }
+            is InputEvent.TouchUp -> {
+                for (child in children) {
+                    if (child.frame.contains(inputEvent.mousePosition)) {
+                        child.handleInputEvent(InputEvent.TouchUp(inputEvent.mousePosition.positionInsideOf(child.frame)))
+                    }
+                }
+            }
+            else -> {
+                children.forEach { it.handleInputEvent(inputEvent) }
+            }
         }
     }
 }

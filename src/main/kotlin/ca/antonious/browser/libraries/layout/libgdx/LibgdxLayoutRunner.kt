@@ -1,5 +1,6 @@
 package ca.antonious.browser.libraries.layout.libgdx
 
+import ca.antonious.browser.libraries.graphics.core.Point
 import ca.antonious.browser.libraries.graphics.libgdx.LibgdxCanvas
 import ca.antonious.browser.libraries.graphics.libgdx.LibgdxDrawCall
 import ca.antonious.browser.libraries.graphics.libgdx.LibgdxFontProvider
@@ -105,6 +106,7 @@ private class LibgdxLayoutRunnerApplication(val rootNode: LayoutNode) : Applicat
     }
 
     override fun touchUp(screenX: Int, screenY: Int, pointer: Int, button: Int): Boolean {
+        inputEventsToProcess += InputEvent.TouchUp(Point(screenX.toFloat(), screenY.toFloat()))
         return true
     }
 

@@ -6,7 +6,9 @@ import ca.antonious.browser.libraries.css.CssDisplay
 import ca.antonious.browser.libraries.css.CssSize
 import ca.antonious.browser.libraries.graphics.core.*
 import ca.antonious.browser.libraries.html.HtmlElement
+import ca.antonious.browser.libraries.layout.core.InputEvent
 import ca.antonious.browser.libraries.layout.core.LayoutConstraint
+import ca.antonious.browser.libraries.web.DOMEvent
 import ca.antonious.browser.libraries.web.ResolvedStyle
 import ca.antonious.browser.libraries.web.resolveSize
 import kotlin.math.max
@@ -14,7 +16,8 @@ import kotlin.math.min
 
 class DOMParentLayoutNode(
     parent: DOMLayoutNode?,
-    htmlElement: HtmlElement
+    htmlElement: HtmlElement,
+    private val domEventHandler: (DOMEvent) -> Unit
 ) : DOMLayoutNode(parent, htmlElement) {
 
     var resolvedStyle = ResolvedStyle()
@@ -144,6 +147,29 @@ class DOMParentLayoutNode(
         canvas.drawRect(Rect(0f, 0f, frame.width, frame.height), Paint(color = resolvedStyle.backgroundColor))
         children.forEach {
             it.drawTo(canvas.subRegion(it.frame))
+        }
+    }
+
+    override fun handleInputEvent(inputEvent: InputEvent) {
+        when (inputEvent) {
+            is InputEvent.OnScrolled -> {
+                frame.y -= inputEvent.dy * 100
+                frame.y = min(0f, frame.y)
+            }
+            is InputEvent.TouchUp -> {
+                if ((htmlElement as HtmlElement.Node).name == "a") {
+                    domEventHandler.invoke(DOMEvent.NodeClicked(htmlElement))
+                }
+
+                for (child in children) {
+                    if (child.frame.contains(inputEvent.mousePosition)) {
+                        child.handleInputEvent(InputEvent.TouchUp(inputEvent.mousePosition.positionInsideOf(child.frame)))
+                    }
+                }
+            }
+            else -> {
+                children.forEach { it.handleInputEvent(inputEvent) }
+            }
         }
     }
 }
