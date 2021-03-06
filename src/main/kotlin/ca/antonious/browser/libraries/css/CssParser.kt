@@ -160,6 +160,12 @@ class CssParser {
                             .map { parseSize(it) }
 
                         when (marginValues.size) {
+                            1 -> {
+                                attributes += CssAttribute.MarginTop(size = marginValues[0])
+                                attributes += CssAttribute.MarginBottom(size = marginValues[0])
+                                attributes += CssAttribute.MarginStart(size = marginValues[0])
+                                attributes += CssAttribute.MarginEnd(size = marginValues[0])
+                            }
                             2 -> {
                                 attributes += CssAttribute.MarginTop(size = marginValues[0])
                                 attributes += CssAttribute.MarginBottom(size = marginValues[0])
