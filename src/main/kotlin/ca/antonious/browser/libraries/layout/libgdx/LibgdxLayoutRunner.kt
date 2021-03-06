@@ -130,6 +130,7 @@ private class LibgdxLayoutRunnerApplication(val rootNode: LayoutNode) : Applicat
     }
 
     override fun keyDown(keycode: Int): Boolean {
+        inputEventsToProcess += InputEvent.KeyDown(key = keycode.key)
         return true
     }
 

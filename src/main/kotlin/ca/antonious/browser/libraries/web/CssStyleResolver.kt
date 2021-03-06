@@ -6,7 +6,7 @@ import ca.antonious.browser.libraries.graphics.core.Insets
 import ca.antonious.browser.libraries.web.layout.DOMParentLayoutNode
 
 class CssStyleResolver {
-    private val rules = mutableListOf(
+    private val defaultRules = listOf(
         CssRule(
             selector = CssSelector.MatchesTag("body"),
             attributes = listOf(
@@ -37,6 +37,13 @@ class CssStyleResolver {
             )
         )
     )
+
+    private val rules = defaultRules.toMutableList()
+
+    fun reset() {
+        rules.clear()
+        rules.addAll(defaultRules)
+    }
 
     fun addRules(rules: List<CssRule>) {
         this.rules += rules

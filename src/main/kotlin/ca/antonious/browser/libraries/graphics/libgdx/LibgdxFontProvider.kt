@@ -8,7 +8,7 @@ import com.badlogic.gdx.graphics.g2d.BitmapFont
 import com.badlogic.gdx.graphics.g2d.freetype.FreeTypeFontGenerator
 
 class LibgdxFontProvider {
-    private val fontGenerator = FreeTypeFontGenerator(FileHandle("./Arial.ttf"))
+    private val fontGenerator = FreeTypeFontGenerator(FileHandle("/Library/Fonts/SF-Pro.ttf"))
     private val fontCache = mutableMapOf<Font, BitmapFont>()
 
     fun getFont(font: Font): BitmapFont {

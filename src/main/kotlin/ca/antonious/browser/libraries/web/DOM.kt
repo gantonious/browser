@@ -34,6 +34,7 @@ class DOM {
 
     private fun replaceDocument(htmlDocument: List<HtmlElement>) {
         val layoutTree = loadDocument(htmlDocument)
+        cssStyleResolver.reset()
         resolveStyles(layoutTree)
         rootNode.setChildren(layoutTree)
     }
