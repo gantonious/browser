@@ -62,6 +62,7 @@ class CssStyleResolver {
                 is CssAttribute.FontSize -> resolvedStyle.fontSize = attribute.size
                 is CssAttribute.BackgroundColor -> resolvedStyle.backgroundColor = attribute.color
                 is CssAttribute.Color -> resolvedStyle.color = attribute.color
+                is CssAttribute.TextAlignment -> resolvedStyle.textAlignment = attribute.alignment
             }
         }
 

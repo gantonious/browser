@@ -1,5 +1,7 @@
 package ca.antonious.browser.libraries.web.layout
 
+import ca.antonious.browser.libraries.css.CssAlignment
+import ca.antonious.browser.libraries.css.CssAttribute
 import ca.antonious.browser.libraries.css.CssSize
 import ca.antonious.browser.libraries.graphics.core.*
 import ca.antonious.browser.libraries.html.HtmlElement
@@ -30,6 +32,7 @@ class DOMParentLayoutNode(
         val explicitTopMargin = measuringTape.resolveSize(resolvedStyle.margins.top) ?: 0f
 
         var width = 0f
+        var childrenWidth = 0f
         var height = explicitTopMargin
 
         var x = 0f
@@ -73,15 +76,16 @@ class DOMParentLayoutNode(
             height += childMeasureResult.height
             y = height
 
-            width = max(width, childMeasureResult.width)
+            childrenWidth = max(childrenWidth, childMeasureResult.width)
         }
 
         when (widthConstraint) {
             is LayoutConstraint.SpecificSize -> {
                 if (width < widthConstraint.size) {
                     when {
-                        resolvedStyle.margins.start is CssSize.Auto && resolvedStyle.margins.end is CssSize.Auto -> {
-                            val remainingMargin = (widthConstraint.size - width) / 2
+                        (resolvedStyle.margins.start is CssSize.Auto && resolvedStyle.margins.end is CssSize.Auto) ||
+                        (resolvedStyle.textAlignment == CssAlignment.center) -> {
+                            val remainingMargin = (widthConstraint.size - childrenWidth) / 2
                             for (child in children) {
                                 child.frame.x = remainingMargin
                             }
@@ -91,7 +95,7 @@ class DOMParentLayoutNode(
             }
         }
 
-        return Size(width = width, height = height).also {
+        return Size(width = max(childrenWidth, width), height = height).also {
             frame.width = it.width
             frame.height = it.height
         }

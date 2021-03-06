@@ -180,6 +180,16 @@ class CssParser {
                     "color" -> {
                         attributes += CssAttribute.Color(color = attributeValue.toColor())
                     }
+                    "text-align" -> {
+                        attributes += CssAttribute.TextAlignment(
+                            alignment = when (attributeValue.trim()) {
+                                "left" -> CssAlignment.left
+                                "center" -> CssAlignment.center
+                                "right" -> CssAlignment.right
+                                else -> CssAlignment.left
+                            }
+                        )
+                    }
                 }
 
                 advanceCursor()

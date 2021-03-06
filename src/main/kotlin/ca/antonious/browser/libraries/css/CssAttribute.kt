@@ -11,4 +11,11 @@ sealed class CssAttribute {
     data class FontSize(val size: CssSize) : CssAttribute()
     data class BackgroundColor(val color: GraphicsColor) : CssAttribute()
     data class Color(val color: GraphicsColor) : CssAttribute()
+    data class TextAlignment(val alignment: CssAlignment) : CssAttribute()
+}
+
+enum class CssAlignment {
+    left,
+    center,
+    right
 }
