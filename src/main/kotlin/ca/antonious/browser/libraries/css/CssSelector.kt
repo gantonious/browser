@@ -32,4 +32,16 @@ sealed class CssSelector {
             }
         }
     }
+
+    data class MatchesParent(val parentSelectors: List<CssSelector>) : CssSelector() {
+        override fun matches(domElement: DOMParentLayoutNode): Boolean {
+            return false
+        }
+    }
+
+    data class MatchesState(val selector: CssSelector, val requiredState: String) : CssSelector() {
+        override fun matches(domElement: DOMParentLayoutNode): Boolean {
+            return false
+        }
+    }
 }

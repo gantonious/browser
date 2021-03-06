@@ -3,7 +3,7 @@ package ca.antonious.browser.libraries.css
 class CssParser {
     companion object {
         val selectorTextTerminators = setOf(
-            ' ', ':', '{', '\t'
+            ' ', ':', '{', '\t', '.'
         )
     }
     fun parse(rawCss: String): List<CssRule> {
@@ -36,6 +36,21 @@ class CssParser {
             cursor += 1
         }
 
+        fun tryParseStateSelector() {
+            if (currentCharacter() != ':') {
+                return
+            }
+
+            var stateName = ""
+            advanceCursor()
+
+            while (currentCharacter() !in selectorTextTerminators) {
+                stateName += currentCharacter()
+                advanceCursor()
+            }
+
+            currentSelector = CssSelector.MatchesState(selector = currentSelector!!, requiredState = stateName)
+        }
 
         fun parseClassSelector() {
             advanceCursor()
@@ -47,6 +62,7 @@ class CssParser {
             }
 
             currentSelector = CssSelector.MatchesClass(name = className)
+            tryParseStateSelector()
         }
 
         fun parseTagSelector() {
@@ -58,12 +74,26 @@ class CssParser {
             }
 
             currentSelector = CssSelector.MatchesTag(tag = tagName)
+            tryParseStateSelector()
         }
 
         fun parseSelector() {
             when (currentCharacter()) {
                 '.' -> parseClassSelector()
                 else -> parseTagSelector()
+            }
+        }
+
+        fun parseParentSelector() {
+            val previousSelector = currentSelector ?: error("Can't process parent selector since no selector is being parsed.")
+            parseSelector()
+            val capturedCurrentSelector = currentSelector ?: error("Expected current selector after parsing selector.")
+
+            currentSelector = when (previousSelector) {
+                is CssSelector.MatchesParent -> {
+                    previousSelector.copy(parentSelectors = previousSelector.parentSelectors + listOf(capturedCurrentSelector))
+                }
+                else -> CssSelector.MatchesParent(listOf(previousSelector, capturedCurrentSelector))
             }
         }
 
@@ -151,7 +181,7 @@ class CssParser {
                         while (currentCharacter() == ' ') { advanceCursor() }
                         when (currentCharacter()) {
                             '{' -> parseCssAttributes()
-                            else -> error("Parent selectors not supported")
+                            else ->  parseParentSelector()
                         }
                     } else {
                         advanceCursor()

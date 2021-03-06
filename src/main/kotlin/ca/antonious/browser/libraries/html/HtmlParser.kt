@@ -84,7 +84,8 @@ class HtmlParser {
                             var matchingOpening = tagStack.pop()
 
                             while (matchingOpening.name != tagName && matchingOpening.name in autoClosingTags) {
-                                tagStack.peek().children += HtmlElement.Node(name = matchingOpening.name, attributes = matchingOpening.attributes, children = matchingOpening.children)
+                                tagStack.peek().children += HtmlElement.Node(name = matchingOpening.name, attributes = matchingOpening.attributes)
+                                tagStack.peek().children += matchingOpening.children
                                 matchingOpening = tagStack.pop()
                             }
 

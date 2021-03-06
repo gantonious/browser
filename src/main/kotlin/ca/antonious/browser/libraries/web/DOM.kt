@@ -71,9 +71,17 @@ class DOM {
                         cssStyleResolver.addRules(cssParser.parse(text))
                     }
                     "script" -> {
-                        val script = htmlElement.requireChildrenAsText().text
-                        val parsedScript = javascriptParser.parse(script)
-                        javascriptInterpreter.interpret(JavascriptNode.Program(parsedScript))
+                        val src = htmlElement.attributes["src"]
+
+                        if (src == null) {
+                            val script = htmlElement.requireChildrenAsText().text
+                            val parsedScript = javascriptParser.parse(script)
+                            javascriptInterpreter.interpret(JavascriptNode.Program(parsedScript))
+                        } else {
+//                            httpClient.execute(HttpRequest(siteUrl!!.copy(path = src), HttpMethod.Get)).onSuccess { response ->
+//                                javascriptInterpreter.interpret(JavascriptNode.Program(javascriptParser.parse(response.body)))
+//                            }
+                        }
                     }
                     "link" -> {
                         when (htmlElement.attributes["rel"]) {
