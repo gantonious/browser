@@ -75,7 +75,7 @@ class HtmlParser {
                 }
                 '<' -> {
                     if (currentText.isNotBlank() && tagStack.isNotEmpty()) {
-                        tagStack.peek().children += HtmlElement.Text(text = currentText.trim().replace("&nbsp;", "\t"))
+                        tagStack.peek().children += HtmlElement.Text(text = currentText.trim().replace("&nbsp;", "    "))
                     }
                     currentText = ""
 
