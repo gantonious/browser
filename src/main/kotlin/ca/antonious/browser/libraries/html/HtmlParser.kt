@@ -126,35 +126,35 @@ class HtmlParser {
                                                 advanceCursor()
                                             }
 
-                                            if (currentCharacter() != '=') {
-                                                error("Expected '=' following attribute name '$attributeName'.")
-                                            }
-
-                                            advanceCursor()
-
-                                            while (currentCharacter() == ' ') {
+                                            if (currentCharacter() == '=') {
                                                 advanceCursor()
-                                            }
 
-                                            if (currentCharacter() != '\'' && currentCharacter() != '"') {
-                                                error("Expected quote to start attribute")
-                                            }
-
-                                            advanceCursor()
-
-                                            fun parseAttributeValue(usingQuoteCharacter: Char) {
-                                                var attributeValue = ""
-
-                                                while (currentCharacter() != usingQuoteCharacter && lastCharacter() != '\\') {
-                                                    attributeValue += currentCharacter()
+                                                while (currentCharacter() == ' ') {
                                                     advanceCursor()
                                                 }
 
-                                                advanceCursor()
-                                                attributes[attributeName] = attributeValue
-                                            }
+                                                if (currentCharacter() != '\'' && currentCharacter() != '"') {
+                                                    error("Expected quote to start attribute")
+                                                }
 
-                                            parseAttributeValue(usingQuoteCharacter = lastCharacter()!!)
+                                                advanceCursor()
+
+                                                fun parseAttributeValue(usingQuoteCharacter: Char) {
+                                                    var attributeValue = ""
+
+                                                    while (currentCharacter() != usingQuoteCharacter && lastCharacter() != '\\') {
+                                                        attributeValue += currentCharacter()
+                                                        advanceCursor()
+                                                    }
+
+                                                    advanceCursor()
+                                                    attributes[attributeName] = attributeValue
+                                                }
+
+                                                parseAttributeValue(usingQuoteCharacter = lastCharacter()!!)
+                                            } else {
+                                                attributes[attributeName] = "true"
+                                            }
                                         } else {
                                             advanceCursor()
                                         }
