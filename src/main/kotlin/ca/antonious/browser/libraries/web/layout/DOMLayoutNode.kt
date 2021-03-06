@@ -5,6 +5,6 @@ import ca.antonious.browser.libraries.layout.core.LayoutNode
 import ca.antonious.browser.libraries.web.ResolvedStyle
 
 abstract class DOMLayoutNode(
-    val parent: DOMLayoutNode?,
+    val parent: DOMParentLayoutNode?,
     val htmlElement: HtmlElement
 ) : LayoutNode()

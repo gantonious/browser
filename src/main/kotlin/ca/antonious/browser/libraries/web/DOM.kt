@@ -52,7 +52,7 @@ class DOM {
         rootNode.setChildren(layoutTree)
     }
 
-    private fun loadDocument(htmlDocument: List<HtmlElement>, parent: DOMLayoutNode? = null): List<DOMLayoutNode> {
+    private fun loadDocument(htmlDocument: List<HtmlElement>, parent: DOMParentLayoutNode? = null): List<DOMLayoutNode> {
         val layoutTree = mutableListOf<DOMLayoutNode>()
 
         for (htmlElement in htmlDocument) {

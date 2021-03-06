@@ -15,7 +15,7 @@ import kotlin.math.max
 import kotlin.math.min
 
 class DOMParentLayoutNode(
-    parent: DOMLayoutNode?,
+    parent: DOMParentLayoutNode?,
     htmlElement: HtmlElement,
     private val domEventHandler: (DOMEvent) -> Unit
 ) : DOMLayoutNode(parent, htmlElement) {
@@ -26,6 +26,15 @@ class DOMParentLayoutNode(
     fun setChildren(children: List<DOMLayoutNode>) {
         this.children.clear()
         this.children.addAll(children)
+    }
+
+    fun resolveFontSize(measuringTape: MeasuringTape): Float {
+        return when (val size = resolvedStyle.fontSize) {
+            is CssSize.Pixel -> size.size * 2f
+            is CssSize.Em -> (parent?.resolveFontSize(measuringTape) ?: 8f) * size.size.toFloat()
+            is CssSize.Percent -> (parent?.resolveFontSize(measuringTape) ?: 8f) * size.size
+            is CssSize.Auto -> 8f
+        }
     }
 
     override fun measure(

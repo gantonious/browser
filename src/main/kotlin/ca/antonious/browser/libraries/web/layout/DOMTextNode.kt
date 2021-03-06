@@ -5,12 +5,12 @@ import ca.antonious.browser.libraries.html.HtmlElement
 import ca.antonious.browser.libraries.layout.core.LayoutConstraint
 import ca.antonious.browser.libraries.web.resolveSize
 
-class DOMTextNode(parent: DOMLayoutNode?, htmlElement: HtmlElement) : DOMLayoutNode(parent, htmlElement) {
+class DOMTextNode(parent: DOMParentLayoutNode?, htmlElement: HtmlElement) : DOMLayoutNode(parent, htmlElement) {
 
     var font: Font? = null
 
     override fun measure(measuringTape: MeasuringTape, widthConstraint: LayoutConstraint, heightConstraint: LayoutConstraint): Size {
-        font = Font("", measuringTape.resolveSize((parent as DOMParentLayoutNode).resolvedStyle.fontSize) ?: 8f)
+        font = Font("", parent!!.resolveFontSize(measuringTape))
 
         val desiredWidth = when (widthConstraint) {
             is LayoutConstraint.SpecificSize -> widthConstraint.size

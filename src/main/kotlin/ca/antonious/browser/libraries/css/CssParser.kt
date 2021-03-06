@@ -205,6 +205,9 @@ class CssParser {
                             }
                         )
                     }
+                    "font-size" -> {
+                        attributes += CssAttribute.FontSize(size = parseSize(attributeValue))
+                    }
                 }
 
                 advanceCursor()
