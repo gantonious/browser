@@ -2,6 +2,7 @@ package ca.antonious.browser.libraries.web.layout
 
 import ca.antonious.browser.libraries.css.CssAlignment
 import ca.antonious.browser.libraries.css.CssAttribute
+import ca.antonious.browser.libraries.css.CssDisplay
 import ca.antonious.browser.libraries.css.CssSize
 import ca.antonious.browser.libraries.graphics.core.*
 import ca.antonious.browser.libraries.html.HtmlElement
@@ -35,15 +36,13 @@ class DOMParentLayoutNode(
         var childrenWidth = 0f
         var height = explicitTopMargin
 
-        var x = 0f
-        var y = explicitTopMargin
-
         val styleWidth = measuringTape.resolveSize(resolvedStyle.width)
-
         val startMargin = measuringTape.resolveSize(resolvedStyle.margins.start)
         val endMargin = measuringTape.resolveSize(resolvedStyle.margins.end)
-
         val explicitHorizontalMarginSize = (startMargin ?: 0f) + (endMargin ?: 0f)
+
+        var x = startMargin ?: 0f
+        var y = explicitTopMargin
 
         val realWidthConstraint = when (widthConstraint) {
             is LayoutConstraint.SpecificSize -> {
@@ -70,24 +69,32 @@ class DOMParentLayoutNode(
 
         for (child in children) {
             val childMeasureResult = child.measure(measuringTape, realWidthConstraint, heightConstraint)
-            child.frame.x = x + (startMargin ?: 0f)
+            child.frame.x = x
             child.frame.y = y
 
-            height += childMeasureResult.height
-            y = height
-
-            childrenWidth = max(childrenWidth, childMeasureResult.width)
+            when ((child as? DOMParentLayoutNode)?.resolvedStyle?.displayType ?: CssDisplay.block) {
+                CssDisplay.block -> {
+                    height += childMeasureResult.height
+                    y = height
+                    childrenWidth = max(childrenWidth, childMeasureResult.width)
+                }
+                CssDisplay.inlineBlock -> {
+                    childrenWidth += childMeasureResult.width
+                    x += childMeasureResult.width
+                    height = max(height, childMeasureResult.height)
+                }
+            }
         }
 
         when (widthConstraint) {
             is LayoutConstraint.SpecificSize -> {
-                if (width < widthConstraint.size) {
+                if (childrenWidth < widthConstraint.size) {
                     when {
                         (resolvedStyle.margins.start is CssSize.Auto && resolvedStyle.margins.end is CssSize.Auto) ||
                         (resolvedStyle.textAlignment == CssAlignment.center) -> {
                             val remainingMargin = (widthConstraint.size - childrenWidth) / 2
                             for (child in children) {
-                                child.frame.x = remainingMargin
+                                child.frame.x += remainingMargin
                             }
                         }
                     }

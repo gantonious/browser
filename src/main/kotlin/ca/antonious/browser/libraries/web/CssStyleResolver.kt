@@ -1,9 +1,6 @@
 package ca.antonious.browser.libraries.web
 
-import ca.antonious.browser.libraries.css.CssAttribute
-import ca.antonious.browser.libraries.css.CssRule
-import ca.antonious.browser.libraries.css.CssSelector
-import ca.antonious.browser.libraries.css.CssSize
+import ca.antonious.browser.libraries.css.*
 import ca.antonious.browser.libraries.graphics.core.Color
 import ca.antonious.browser.libraries.graphics.core.Insets
 import ca.antonious.browser.libraries.web.layout.DOMParentLayoutNode
@@ -51,6 +48,7 @@ class CssStyleResolver {
             .flatMap { it.attributes }
 
         val resolvedStyle = (domParentLayoutNode.parent as? DOMParentLayoutNode)?.resolvedStyle?.copy() ?: ResolvedStyle()
+        resolvedStyle.displayType = CssDisplay.block
 
         for (attribute in matchingAttributes) {
             when (attribute) {
@@ -63,6 +61,7 @@ class CssStyleResolver {
                 is CssAttribute.BackgroundColor -> resolvedStyle.backgroundColor = attribute.color
                 is CssAttribute.Color -> resolvedStyle.color = attribute.color
                 is CssAttribute.TextAlignment -> resolvedStyle.textAlignment = attribute.alignment
+                is CssAttribute.Display -> resolvedStyle.displayType = attribute.displayType
             }
         }
 

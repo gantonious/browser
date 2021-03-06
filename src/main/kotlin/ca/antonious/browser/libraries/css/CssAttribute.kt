@@ -12,6 +12,7 @@ sealed class CssAttribute {
     data class BackgroundColor(val color: GraphicsColor) : CssAttribute()
     data class Color(val color: GraphicsColor) : CssAttribute()
     data class TextAlignment(val alignment: CssAlignment) : CssAttribute()
+    data class Display(val displayType: CssDisplay) : CssAttribute()
 }
 
 enum class CssAlignment {

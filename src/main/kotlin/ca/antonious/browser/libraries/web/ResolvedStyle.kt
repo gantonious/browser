@@ -2,6 +2,7 @@ package ca.antonious.browser.libraries.web
 
 import ca.antonious.browser.libraries.css.CssAlignment
 import ca.antonious.browser.libraries.css.CssAttribute
+import ca.antonious.browser.libraries.css.CssDisplay
 import ca.antonious.browser.libraries.css.CssSize
 import ca.antonious.browser.libraries.graphics.core.Color
 import ca.antonious.browser.libraries.graphics.core.MeasuringTape
@@ -13,7 +14,8 @@ data class ResolvedStyle(
     var width: CssSize = CssSize.Auto,
     var backgroundColor: Color = Color.clear,
     var color: Color = Color.black,
-    var textAlignment: CssAlignment = CssAlignment.left
+    var textAlignment: CssAlignment = CssAlignment.left,
+    var displayType: CssDisplay = CssDisplay.block
 )
 
 data class CssInsets(

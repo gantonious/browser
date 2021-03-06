@@ -55,10 +55,10 @@ class HtmlParser {
                     advanceCursor()
                 }
                 '<' -> {
-                    if (currentText.isNotEmpty() && tagStack.isNotEmpty()) {
-                        tagStack.peek().children += HtmlElement.Text(text = currentText)
-                        currentText = ""
+                    if (currentText.isNotBlank() && tagStack.isNotEmpty()) {
+                        tagStack.peek().children += HtmlElement.Text(text = currentText.trim())
                     }
+                    currentText = ""
 
                     advanceCursor()
                     when(rawHtml[cursor]) {

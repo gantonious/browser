@@ -1,6 +1,5 @@
 package ca.antonious.browser
 
-import ca.antonious.browser.libraries.graphics.core.toColor
 import ca.antonious.browser.libraries.layout.libgdx.LibgdxLayoutRunner
 import ca.antonious.browser.libraries.web.WebContentLayout
 

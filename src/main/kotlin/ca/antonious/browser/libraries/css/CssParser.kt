@@ -190,6 +190,14 @@ class CssParser {
                             }
                         )
                     }
+                    "display" -> {
+                        attributes += CssAttribute.Display(
+                            displayType = when(attributeValue.trim()) {
+                                "inline-block" -> CssDisplay.inlineBlock
+                                else -> CssDisplay.block
+                            }
+                        )
+                    }
                 }
 
                 advanceCursor()
