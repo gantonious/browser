@@ -30,6 +30,10 @@ class DOMParentLayoutNode(
         widthConstraint: LayoutConstraint,
         heightConstraint: LayoutConstraint
     ): Size {
+        if (resolvedStyle.displayType == CssDisplay.none) {
+            return Size(0f, 0f)
+        }
+
         val explicitTopMargin = measuringTape.resolveSize(resolvedStyle.margins.top) ?: 0f
 
         var width = 0f
@@ -83,6 +87,7 @@ class DOMParentLayoutNode(
                     x += childMeasureResult.width
                     height = max(height, childMeasureResult.height)
                 }
+                CssDisplay.none -> Unit
             }
         }
 

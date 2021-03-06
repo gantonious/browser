@@ -194,6 +194,7 @@ class CssParser {
                         attributes += CssAttribute.Display(
                             displayType = when(attributeValue.trim()) {
                                 "inline-block" -> CssDisplay.inlineBlock
+                                "none" -> CssDisplay.none
                                 else -> CssDisplay.block
                             }
                         )
