@@ -86,6 +86,8 @@ private class LibgdxLayoutRunnerApplication(val rootNode: LayoutNode) : Applicat
         spriteBatch.begin()
             canvas.drawCalls.filterIsInstance<LibgdxDrawCall.DrawText>().forEach { drawTextCall ->
                 val font = fontProvider.getFont(drawTextCall.font)
+                val color = drawTextCall.paint.color
+                font.color = Color(color.r, color.g, color.b, color.a)
                 font.draw(spriteBatch, drawTextCall.text, drawTextCall.x, drawTextCall.y, drawTextCall.width, Align.left, true)
             }
         spriteBatch.end()

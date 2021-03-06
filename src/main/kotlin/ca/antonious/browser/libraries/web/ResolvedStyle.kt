@@ -7,9 +7,10 @@ import ca.antonious.browser.libraries.graphics.core.MeasuringTape
 data class ResolvedStyle(
     val margins: CssInsets = CssInsets.zero(),
     val padding: CssInsets = CssInsets.zero(),
-    val fontSize: CssSize = CssSize.Pixel(8),
-    val width: CssSize = CssSize.Auto,
-    val backgroundColor: Color = Color.clear
+    var fontSize: CssSize = CssSize.Pixel(8),
+    var width: CssSize = CssSize.Auto,
+    var backgroundColor: Color = Color.clear,
+    var color: Color = Color.black
 )
 
 data class CssInsets(
@@ -33,5 +34,6 @@ fun MeasuringTape.resolveSize(size: CssSize): Float? {
         is CssSize.Pixel -> size.size * 2f
         is CssSize.Em -> size.size * 20f
         is CssSize.Auto -> null
+        is CssSize.Percent -> null
     }
 }

@@ -23,6 +23,7 @@ class DOMTextNode(parent: DOMLayoutNode?, htmlElement: HtmlElement) : DOMLayoutN
     }
 
     override fun drawTo(canvas: Canvas) {
-        canvas.drawText(htmlElement.requireAsText().text, 0f, 0f, frame.width, Paint(Color.black), font!!)
+        val color = (parent as DOMParentLayoutNode).resolvedStyle.color
+        canvas.drawText(htmlElement.requireAsText().text, 0f, 0f, frame.width, Paint(color), font!!)
     }
 }

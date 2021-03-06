@@ -20,7 +20,7 @@ class LibgdxFontProvider {
                 genMipMaps = true
                 minFilter = Texture.TextureFilter.Nearest
                 magFilter = Texture.TextureFilter.MipMapLinearNearest
-                color = Color.BLACK
+                color = Color.WHITE
             })
         }.also {
             fontCache[font] = it

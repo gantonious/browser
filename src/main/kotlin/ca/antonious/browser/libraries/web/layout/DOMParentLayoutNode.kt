@@ -55,6 +55,14 @@ class DOMParentLayoutNode(
             }
         }
 
+        if (resolvedStyle.width is CssSize.Percent) {
+            when (realWidthConstraint) {
+                is LayoutConstraint.SpecificSize -> {
+                    width = realWidthConstraint.size * (resolvedStyle.width as CssSize.Percent).size
+                }
+            }
+        }
+
         height += measuringTape.resolveSize(resolvedStyle.margins.bottom) ?: 0f
 
         for (child in children) {

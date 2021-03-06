@@ -50,30 +50,21 @@ class CssStyleResolver {
             .filter { it.selector.matches(domParentLayoutNode) }
             .flatMap { it.attributes }
 
-        val margins = CssInsets.zero()
-        val padding = CssInsets.zero()
-        var width: CssSize = CssSize.Auto
-        var fontSize: CssSize = CssSize.Pixel(8)
-        var backgroundColor = Color.clear
+        val resolvedStyle = (domParentLayoutNode.parent as? DOMParentLayoutNode)?.resolvedStyle?.copy() ?: ResolvedStyle()
 
         for (attribute in matchingAttributes) {
             when (attribute) {
-                is CssAttribute.MarginStart -> margins.start = attribute.size
-                is CssAttribute.MarginEnd -> margins.end = attribute.size
-                is CssAttribute.MarginTop -> margins.top = attribute.size
-                is CssAttribute.MarginBottom -> margins.bottom = attribute.size
-                is CssAttribute.Width -> width = attribute.size
-                is CssAttribute.FontSize -> fontSize = attribute.size
-                is CssAttribute.BackgroundColor -> backgroundColor = attribute.color
+                is CssAttribute.MarginStart -> resolvedStyle.margins.start = attribute.size
+                is CssAttribute.MarginEnd -> resolvedStyle.margins.end = attribute.size
+                is CssAttribute.MarginTop -> resolvedStyle.margins.top = attribute.size
+                is CssAttribute.MarginBottom -> resolvedStyle.margins.bottom = attribute.size
+                is CssAttribute.Width -> resolvedStyle.width = attribute.size
+                is CssAttribute.FontSize -> resolvedStyle.fontSize = attribute.size
+                is CssAttribute.BackgroundColor -> resolvedStyle.backgroundColor = attribute.color
+                is CssAttribute.Color -> resolvedStyle.color = attribute.color
             }
         }
 
-        return ResolvedStyle(
-            margins = margins,
-            padding = padding,
-            width = width,
-            fontSize = fontSize,
-            backgroundColor = backgroundColor
-        )
+        return resolvedStyle
     }
 }

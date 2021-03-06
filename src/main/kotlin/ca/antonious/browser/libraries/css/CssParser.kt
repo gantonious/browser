@@ -141,6 +141,8 @@ class CssParser {
                         return CssSize.Em(size.replace("em", "").trim().toInt())
                     } else if (size.endsWith("px")) {
                         return CssSize.Pixel(size.replace("px", "").trim().toInt())
+                    } else if (size.endsWith("%")) {
+                        return CssSize.Percent(size.replace("%","").trim().toFloat() / 100f)
                     } else if (size.toIntOrNull() != null) {
                         return CssSize.Pixel(size.toInt())
                     }
@@ -168,6 +170,9 @@ class CssParser {
                     }
                     "background-color" -> {
                         attributes += CssAttribute.BackgroundColor(color = attributeValue.toColor())
+                    }
+                    "color" -> {
+                        attributes += CssAttribute.Color(color = attributeValue.toColor())
                     }
                 }
 
