@@ -71,6 +71,12 @@ class DOMParentLayoutNode(
 
         height += measuringTape.resolveSize(resolvedStyle.margins.bottom) ?: 0f
 
+        val maxWidth = if (realWidthConstraint is LayoutConstraint.SpecificSize) {
+            realWidthConstraint.size
+        } else {
+            Float.MAX_VALUE
+        }
+
         for (child in children) {
             val childMeasureResult = child.measure(measuringTape, realWidthConstraint, heightConstraint)
 
@@ -85,12 +91,22 @@ class DOMParentLayoutNode(
                     childrenWidth = max(childrenWidth, (child.frame.x + childMeasureResult.width))
                 }
                 CssDisplay.inlineBlock -> {
-                    child.frame.x = x
-                    child.frame.y = y
+                    if (childrenWidth + childMeasureResult.width > maxWidth) {
+                        x = startMargin ?: 0f
+                        child.frame.x = x
+                        child.frame.y = y
 
-                    childrenWidth += childMeasureResult.width
-                    x += childMeasureResult.width
-                    height = max(height, (child.frame.y + childMeasureResult.height))
+                        height += childMeasureResult.height
+                        y = height
+                        childrenWidth = max(childrenWidth, (child.frame.x + childMeasureResult.width))
+                    } else {
+                        child.frame.x = x
+                        child.frame.y = y
+
+                        childrenWidth += childMeasureResult.width
+                        x += childMeasureResult.width
+                        height = max(height, (child.frame.y + childMeasureResult.height))
+                    }
                 }
                 CssDisplay.none -> Unit
             }
