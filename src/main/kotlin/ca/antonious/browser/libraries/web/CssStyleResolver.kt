@@ -49,12 +49,12 @@ class CssStyleResolver {
         this.rules += rules
     }
 
-    fun resolveStyleFor(domParentLayoutNode: DOMParentLayoutNode): ResolvedStyle {
+    fun resolveStyleFor(domParentLayoutNode: DOMParentLayoutNode, inlineStyles: List<CssAttribute>): ResolvedStyle {
         val matchingAttributes = rules
             .filter { it.selector.matches(domParentLayoutNode) }
-            .flatMap { it.attributes }
+            .flatMap { it.attributes } + inlineStyles
 
-        val resolvedStyle = (domParentLayoutNode.parent as? DOMParentLayoutNode)?.resolvedStyle?.copy() ?: ResolvedStyle()
+        val resolvedStyle = domParentLayoutNode.parent?.resolvedStyle?.copy() ?: ResolvedStyle()
         resolvedStyle.displayType = CssDisplay.block
         resolvedStyle.backgroundColor = Color.clear
         resolvedStyle.width = CssSize.Percent(1f)

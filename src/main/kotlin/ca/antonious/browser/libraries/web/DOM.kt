@@ -1,5 +1,6 @@
 package ca.antonious.browser.libraries.web
 
+import ca.antonious.browser.libraries.css.CssAttributeParser
 import ca.antonious.browser.libraries.css.CssParser
 import ca.antonious.browser.libraries.html.HtmlElement
 import ca.antonious.browser.libraries.html.HtmlParser
@@ -14,6 +15,7 @@ import ca.antonious.browser.libraries.web.layout.DOMTextNode
 
 class DOM {
     val rootNode = BlockNode()
+    private val cssAttributeParser = CssAttributeParser()
     private val cssStyleResolver = CssStyleResolver()
     private val javascriptInterpreter = JavascriptInterpreter()
     private val httpClient = HttpClient()
@@ -118,7 +120,9 @@ class DOM {
         for (layoutNode in layoutTree) {
             when (layoutNode) {
                 is DOMParentLayoutNode -> {
-                    layoutNode.resolvedStyle = cssStyleResolver.resolveStyleFor(layoutNode)
+                    val style = (layoutNode.htmlElement as HtmlElement.Node).attributes["style"] ?: ""
+                    val inlineStyleAttributes = cssAttributeParser.parseInlineAttributes(style)
+                    layoutNode.resolvedStyle = cssStyleResolver.resolveStyleFor(layoutNode, inlineStyleAttributes)
                     resolveStyles(layoutNode.children)
                 }
             }
