@@ -172,6 +172,12 @@ class CssParser {
                                 attributes += CssAttribute.MarginStart(size = marginValues[1])
                                 attributes += CssAttribute.MarginEnd(size = marginValues[1])
                             }
+                            4 -> {
+                                attributes += CssAttribute.MarginTop(size = marginValues[0])
+                                attributes += CssAttribute.MarginBottom(size = marginValues[1])
+                                attributes += CssAttribute.MarginStart(size = marginValues[2])
+                                attributes += CssAttribute.MarginEnd(size = marginValues[3])
+                            }
                         }
                     }
                     "background-color" -> {
