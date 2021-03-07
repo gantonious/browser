@@ -10,8 +10,8 @@ class Lexer (private val source: String) {
             "if" to JavascriptTokenType.If,
             "while" to JavascriptTokenType.While,
             "return" to JavascriptTokenType.Return,
-            "true" to JavascriptTokenType.Boolean,
-            "false" to JavascriptTokenType.Boolean,
+            "true" to JavascriptTokenType.Boolean(true),
+            "false" to JavascriptTokenType.Boolean(false),
             "undefined" to JavascriptTokenType.Undefined
         )
 
@@ -19,6 +19,8 @@ class Lexer (private val source: String) {
             ',' to JavascriptTokenType.Comma,
             '(' to JavascriptTokenType.OpenParentheses,
             ')' to JavascriptTokenType.CloseParentheses,
+            '{' to JavascriptTokenType.OpenCurlyBracket,
+            '}' to JavascriptTokenType.CloseCurlyBracket,
             '+' to JavascriptTokenType.Plus,
             '-' to JavascriptTokenType.Minus,
             '*' to JavascriptTokenType.Multiply,
@@ -30,14 +32,24 @@ class Lexer (private val source: String) {
     }
 
     private var cursor = 0
+    private var sourceRow = 0
+    private var sourceColumnAtParse = 0
+    private var sourceColumn = 0
+
     private val tokens = mutableListOf<JavascriptToken>()
 
     fun lex(): List<JavascriptToken> {
         while (!isAtEnd()) {
+            sourceColumnAtParse = sourceColumn
             val currentChar = getCurrentChar()
             when {
                 currentChar.isWhitespace() -> {
                     advanceCursor()
+
+                    if (currentChar == '\n') {
+                        sourceRow += 1
+                        sourceColumn = 0
+                    }
                 }
                 currentChar == '"' -> {
                     advanceCursor()
@@ -47,10 +59,11 @@ class Lexer (private val source: String) {
                         advanceCursor()
                     }
 
-                    pushToken(JavascriptTokenType.String, source.substring(doubleQuoteStart, cursor))
+                    pushToken(JavascriptTokenType.String(source.substring(doubleQuoteStart, cursor)))
                     advanceCursor()
                 }
-                currentChar.isValidIdentifierStart() ->{
+                currentChar.isDigit() -> pushNumber()
+                currentChar.isValidIdentifierStart() -> {
                     val textStartPosition = cursor
 
                     do {
@@ -62,9 +75,9 @@ class Lexer (private val source: String) {
                     val matchingToken = keywordTokenMap[text]
 
                     if (matchingToken == null) {
-                        pushToken(JavascriptTokenType.Identifier, text)
+                        pushToken(JavascriptTokenType.Identifier(text))
                     } else {
-                        pushToken(matchingToken, text)
+                        pushToken(matchingToken)
                     }
                 }
                 else -> {
@@ -80,8 +93,71 @@ class Lexer (private val source: String) {
         return tokens
     }
 
-    private fun pushToken(tokenType: JavascriptTokenType, value: String? = null) {
-        tokens += JavascriptToken(tokenType, SourceInfo(0, 0), value)
+    private fun pushNumber() {
+        val currentChar = getCurrentChar()
+        val nextChar = peekNextChar()
+
+        when {
+            currentChar == '0' && (nextChar == 'x' || nextChar == 'X') -> {
+                advanceCursor()
+                advanceCursor()
+
+                val digitsStart = cursor
+
+                while (!isAtEnd() && getCurrentChar().isHexDigit()) {
+                    advanceCursor()
+                }
+
+                val digitsString = source.substring(digitsStart, cursor)
+                pushToken(JavascriptTokenType.Number(digitsString.toInt(16).toDouble()))
+            }
+            currentChar == '0' && (nextChar == 'o' || nextChar == 'O') -> {
+                advanceCursor()
+                advanceCursor()
+
+                val digitsStart = cursor
+
+                while (!isAtEnd() && getCurrentChar().isOctalDigit()) {
+                    advanceCursor()
+                }
+
+                val digitsString = source.substring(digitsStart, cursor)
+                pushToken(JavascriptTokenType.Number(digitsString.toInt(8).toDouble()))
+            }
+            currentChar == '0' && (nextChar == 'b' || nextChar == 'B') -> {
+                advanceCursor()
+                advanceCursor()
+
+                val digitsStart = cursor
+
+                while (!isAtEnd() && getCurrentChar().isBinaryDigit()) {
+                    advanceCursor()
+                }
+
+                val digitsString = source.substring(digitsStart, cursor)
+                pushToken(JavascriptTokenType.Number(digitsString.toInt(8).toDouble()))
+            }
+            else -> {
+                val digitsStart = cursor
+                var decimalFound = false
+
+                digitLoop@while (!isAtEnd()) {
+                    val currentDigit = getCurrentChar()
+                    when {
+                        !decimalFound && currentDigit == '.' -> decimalFound = true
+                        !currentDigit.isDigit() -> break@digitLoop
+                    }
+                    advanceCursor()
+                }
+
+                val digitsString = source.substring(digitsStart, cursor)
+                pushToken(JavascriptTokenType.Number(digitsString.toDouble()))
+            }
+        }
+    }
+
+    private fun pushToken(tokenType: JavascriptTokenType) {
+        tokens += JavascriptToken(tokenType, SourceInfo(sourceRow, sourceColumnAtParse))
     }
 
     private fun isAtEnd(): Boolean {
@@ -89,6 +165,7 @@ class Lexer (private val source: String) {
     }
 
     private fun advanceCursor() {
+        sourceColumn += 1
         cursor += 1
     }
 
@@ -108,7 +185,39 @@ class Lexer (private val source: String) {
         return source[cursor]
     }
 
-    private fun Char.isValidIdentifierStart(): Boolean {
-        return isLetterOrDigit() || this == '_' || this == '$'
+    private fun peekNextChar(): Char? {
+        if (cursor + 1 >= (source.length - 1)) {
+            return null
+        }
+
+        return source[cursor + 1]
     }
+
+    private fun Char.isValidIdentifierStart(): Boolean {
+        return isLetter() || this == '_' || this == '$'
+    }
+
+    private fun Char.isHexDigit(): Boolean {
+        return isDigit() ||
+            this == 'a' || this == 'A' ||
+            this == 'b' || this == 'B' ||
+            this == 'c' || this == 'C' ||
+            this == 'd' || this == 'D' ||
+            this == 'e' || this == 'E' ||
+            this == 'f' || this == 'F'
+    }
+
+    private fun Char.isOctalDigit(): Boolean {
+        return this == '0' || this == '1' ||
+            this == '2' || this == '3' ||
+            this == '4' || this == '5' ||
+            this == '6' || this == '7' ||
+            this == 'e' || this == 'E' ||
+            this == 'f' || this == 'F'
+    }
+
+    private fun Char.isBinaryDigit(): Boolean {
+        return this == '0' || this == '1'
+    }
+
 }
