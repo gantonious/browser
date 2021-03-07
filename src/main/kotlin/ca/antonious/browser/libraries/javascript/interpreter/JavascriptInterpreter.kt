@@ -4,6 +4,7 @@ import ca.antonious.browser.libraries.javascript.ast.JavascriptBooleanOperator
 import ca.antonious.browser.libraries.javascript.ast.JavascriptExpression
 import ca.antonious.browser.libraries.javascript.ast.JavascriptNode
 import ca.antonious.browser.libraries.javascript.ast.JavascriptValue
+import ca.antonious.browser.libraries.javascript.parser.JavascriptParser
 
 class JavascriptInterpreter {
     val globalObject = JavascriptObject().apply {
@@ -25,6 +26,11 @@ class JavascriptInterpreter {
 
     private var currentScope = globalObject
     private var lastReturn: JavascriptValue? = null
+
+    fun interpret(javascript: String): JavascriptValue {
+        val program = JavascriptNode.Program(JavascriptParser().parse(javascript))
+        return interpret(program)
+    }
 
     fun interpret(node: JavascriptNode): JavascriptValue {
         when (node) {

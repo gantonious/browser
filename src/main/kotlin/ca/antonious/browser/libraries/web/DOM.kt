@@ -6,7 +6,10 @@ import ca.antonious.browser.libraries.html.HtmlElement
 import ca.antonious.browser.libraries.html.HtmlParser
 import ca.antonious.browser.libraries.http.*
 import ca.antonious.browser.libraries.javascript.ast.JavascriptNode
+import ca.antonious.browser.libraries.javascript.ast.JavascriptValue
 import ca.antonious.browser.libraries.javascript.interpreter.JavascriptInterpreter
+import ca.antonious.browser.libraries.javascript.interpreter.JavascriptObject
+import ca.antonious.browser.libraries.javascript.interpreter.setNativeFunction
 import ca.antonious.browser.libraries.javascript.parser.JavascriptParser
 import ca.antonious.browser.libraries.layout.builtins.BlockNode
 import ca.antonious.browser.libraries.web.layout.DOMLayoutNode
@@ -17,13 +20,24 @@ class DOM {
     val rootNode = BlockNode()
     private val cssAttributeParser = CssAttributeParser()
     private val cssStyleResolver = CssStyleResolver()
-    private val javascriptInterpreter = JavascriptInterpreter()
+
     private val httpClient = HttpClient()
     private var siteUrl: Uri? = null
 
     private val htmlParser = HtmlParser()
     private val cssParser = CssParser()
     private val javascriptParser = JavascriptParser()
+
+    private val javascriptInterpreter = JavascriptInterpreter().apply {
+        globalObject.setProperty(
+            key = "window",
+            value = JavascriptValue.Object(
+                JavascriptObject().apply {
+                    setNativeFunction("onload") { JavascriptValue.Undefined }
+                }
+            )
+        )
+    }
 
     fun loadSite(url: String) {
         loadSite(url.toUri())
@@ -52,6 +66,7 @@ class DOM {
         cssStyleResolver.reset()
         resolveStyles(layoutTree)
         rootNode.setChildren(layoutTree)
+        javascriptInterpreter.interpret("window.onload()")
     }
 
     private fun loadDocument(htmlDocument: List<HtmlElement>, parent: DOMParentLayoutNode? = null): List<DOMLayoutNode> {
