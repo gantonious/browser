@@ -123,16 +123,16 @@ class DOM {
                             val parsedScript = javascriptParser.parse(script)
                             javascriptInterpreter.interpret(JavascriptNode.Program(parsedScript))
                         } else {
-                            httpClient.execute(HttpRequest(siteUrl!!.copy(path = src), HttpMethod.Get)).onSuccess { response ->
-                                javascriptInterpreter.interpret(JavascriptNode.Program(javascriptParser.parse(response.body)))
-                            }
+//                            httpClient.execute(HttpRequest(resolveUrl(src), HttpMethod.Get)).onSuccess { response ->
+//                                javascriptInterpreter.interpret(JavascriptNode.Program(javascriptParser.parse(response.body)))
+//                            }
                         }
                     }
                     "link" -> {
                         when (htmlElement.attributes["rel"]) {
                             "stylesheet" -> {
-                                val href = htmlElement.attributes["href"]
-                                val styleSheetUrl = siteUrl!!.copy(path = href!!)
+                                val href = htmlElement.attributes["href"] ?: ""
+                                val styleSheetUrl = resolveUrl(href)
                                 httpClient.execute(HttpRequest(styleSheetUrl, HttpMethod.Get)).onSuccess { response ->
                                     cssStyleResolver.addRules(cssParser.parse(response.body))
                                     resolveStyles(rootNode.children.map { it as DOMLayoutNode })
@@ -182,5 +182,13 @@ class DOM {
                 setProperty("tagName", JavascriptValue.String(value = name))
             }
         )
+    }
+
+    private fun resolveUrl(url: String): Uri {
+        if (url.startsWith("http")) {
+            return url.toUri()
+        }
+
+        return siteUrl!!.uriForPath(url)
     }
 }

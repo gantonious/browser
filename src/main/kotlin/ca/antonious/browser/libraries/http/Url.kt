@@ -5,7 +5,15 @@ data class Uri(
     val host: String,
     val port: Int,
     val path: String
-)
+) {
+    fun uriForPath(path: String): Uri {
+        return if (path.endsWith("/")) {
+            copy(path = "${this.path.removeSuffix("/")}/${path.removePrefix("/")}")
+        } else {
+            copy(path = "${this.path}/${path.removePrefix("/")}")
+        }
+    }
+}
 
 fun String.toUri(): Uri {
     val scheme = split("://").let {
@@ -25,6 +33,6 @@ fun String.toUri(): Uri {
             "https" -> 443
             else -> 80
         },
-        path = "/${hostAndPortAndPath.getOrNull(1) ?: ""}"
+        path = "/${hostAndPortAndPath.drop(1).joinToString("/")}"
     )
 }
