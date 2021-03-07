@@ -7,6 +7,7 @@ import ca.antonious.browser.libraries.html.HtmlParser
 import ca.antonious.browser.libraries.http.*
 import ca.antonious.browser.libraries.javascript.ast.JavascriptNode
 import ca.antonious.browser.libraries.javascript.ast.JavascriptValue
+import ca.antonious.browser.libraries.javascript.interpreter.JavascriptArray
 import ca.antonious.browser.libraries.javascript.interpreter.JavascriptInterpreter
 import ca.antonious.browser.libraries.javascript.interpreter.JavascriptObject
 import ca.antonious.browser.libraries.javascript.interpreter.setNativeFunction
@@ -34,6 +35,19 @@ class DOM {
             value = JavascriptValue.Object(
                 JavascriptObject().apply {
                     setNativeFunction("onload") { JavascriptValue.Undefined }
+                }
+            )
+        )
+
+        globalObject.setProperty(
+            key = "document",
+            value = JavascriptValue.Object(
+                JavascriptObject().apply {
+                    setNativeFunction("getElementsByClassName") {
+                        val className = it.first() as JavascriptValue.String
+                        val matchingNodes = findNodesWithClass(className.value, rootNode.children.map { it as DOMLayoutNode })
+                        JavascriptValue.Object(JavascriptArray(matchingNodes.map { it.toJavascriptObject() }))
+                    }
                 }
             )
         )
@@ -109,9 +123,9 @@ class DOM {
                             val parsedScript = javascriptParser.parse(script)
                             javascriptInterpreter.interpret(JavascriptNode.Program(parsedScript))
                         } else {
-//                            httpClient.execute(HttpRequest(siteUrl!!.copy(path = src), HttpMethod.Get)).onSuccess { response ->
-//                                javascriptInterpreter.interpret(JavascriptNode.Program(javascriptParser.parse(response.body)))
-//                            }
+                            httpClient.execute(HttpRequest(siteUrl!!.copy(path = src), HttpMethod.Get)).onSuccess { response ->
+                                javascriptInterpreter.interpret(JavascriptNode.Program(javascriptParser.parse(response.body)))
+                            }
                         }
                     }
                     "link" -> {
@@ -142,5 +156,31 @@ class DOM {
                 }
             }
         }
+    }
+
+    private fun findNodesWithClass(className: String, nodes: List<DOMLayoutNode>): List<HtmlElement.Node> {
+        val matchingElements = mutableListOf<HtmlElement.Node>()
+
+        for (node in nodes) {
+            when (node) {
+                is DOMParentLayoutNode -> {
+                    val htmlNode = node.htmlElement as HtmlElement.Node
+                    if (htmlNode.attributes["class"] == className) {
+                        matchingElements += htmlNode
+                    }
+
+                    matchingElements += findNodesWithClass(className, node.children)
+                }
+            }
+        }
+        return matchingElements
+    }
+
+    private fun HtmlElement.Node.toJavascriptObject(): JavascriptValue.Object {
+        return JavascriptValue.Object(
+            JavascriptObject().apply {
+                setProperty("tagName", JavascriptValue.String(value = name))
+            }
+        )
     }
 }

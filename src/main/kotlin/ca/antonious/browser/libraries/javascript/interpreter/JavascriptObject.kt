@@ -2,7 +2,7 @@ package ca.antonious.browser.libraries.javascript.interpreter
 
 import ca.antonious.browser.libraries.javascript.ast.JavascriptValue
 
-class JavascriptObject(val parent: JavascriptObject? = null) {
+open class JavascriptObject(val parent: JavascriptObject? = null) {
 
     private val properties = mutableMapOf<String, Any?>()
 
@@ -15,9 +15,7 @@ class JavascriptObject(val parent: JavascriptObject? = null) {
     }
 
     override fun toString(): String {
-        val newLineIfHasProperties = if (properties.isNotEmpty()) "\n" else ""
-
-        return "Object {$newLineIfHasProperties${properties.entries.joinToString(separator = ",\n") { "    ${it.key}: ${it.value}" }}$newLineIfHasProperties}"
+        return "Object {${properties.entries.joinToString(separator = ", ") { "${it.key}: ${it.value}" }}}"
     }
 }
 
