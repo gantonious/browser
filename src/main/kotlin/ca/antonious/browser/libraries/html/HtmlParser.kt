@@ -173,25 +173,32 @@ class HtmlParser {
                                                     advanceCursor()
                                                 }
 
-                                                if (currentCharacter() != '\'' && currentCharacter() != '"') {
-                                                    error("Expected quote to start attribute")
+                                                var attributeTerminator: Char? = null
+
+                                                if (currentCharacter() == '\'' || currentCharacter() == '"') {
+                                                    attributeTerminator = currentCharacter() ?: ' '
+                                                    advanceCursor()
                                                 }
 
-                                                advanceCursor()
-
-                                                fun parseAttributeValue(usingQuoteCharacter: Char) {
+                                                fun parseAttributeValue(usingQuoteCharacter: Char?) {
                                                     var attributeValue = ""
 
-                                                    while (currentCharacter() != usingQuoteCharacter && lastCharacter() != '\\') {
-                                                        attributeValue += currentCharacter()
+                                                    if (usingQuoteCharacter == null) {
+                                                        while (currentCharacter()?.let { it.isLetter() } == true) {
+                                                            attributeValue += currentCharacter()
+                                                            advanceCursor()
+                                                        }
+                                                    } else {
+                                                        while (currentCharacter() != usingQuoteCharacter && lastCharacter() != '\\') {
+                                                            attributeValue += currentCharacter()
+                                                            advanceCursor()
+                                                        }
                                                         advanceCursor()
                                                     }
-
-                                                    advanceCursor()
                                                     attributes[attributeName] = attributeValue
                                                 }
 
-                                                parseAttributeValue(usingQuoteCharacter = lastCharacter()!!)
+                                                parseAttributeValue(usingQuoteCharacter = attributeTerminator)
                                             } else {
                                                 attributes[attributeName] = "true"
                                             }
