@@ -1,7 +1,5 @@
 package ca.antonious.browser.libraries.javascript.lexer
 
-import kotlin.math.sin
-
 class Lexer (private val source: String) {
 
     companion object {
@@ -16,11 +14,23 @@ class Lexer (private val source: String) {
         )
 
         private val singleCharTokenMap = mapOf(
+            '.' to JavascriptTokenType.Dot,
             ',' to JavascriptTokenType.Comma,
+            ':' to JavascriptTokenType.Colon,
+            ';' to JavascriptTokenType.SemiColon,
+            '?' to JavascriptTokenType.QuestionMark,
             '(' to JavascriptTokenType.OpenParentheses,
             ')' to JavascriptTokenType.CloseParentheses,
             '{' to JavascriptTokenType.OpenCurlyBracket,
             '}' to JavascriptTokenType.CloseCurlyBracket,
+            '[' to JavascriptTokenType.OpenBracket,
+            ']' to JavascriptTokenType.CloseBracket,
+            '|' to JavascriptTokenType.Or,
+            '&' to JavascriptTokenType.And,
+            '~' to JavascriptTokenType.BitNot,
+            '^' to JavascriptTokenType.Xor,
+            '!' to JavascriptTokenType.Not,
+            '%' to JavascriptTokenType.Mod,
             '+' to JavascriptTokenType.Plus,
             '-' to JavascriptTokenType.Minus,
             '*' to JavascriptTokenType.Multiply,
