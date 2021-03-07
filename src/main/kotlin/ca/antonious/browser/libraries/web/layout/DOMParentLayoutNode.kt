@@ -30,9 +30,9 @@ class DOMParentLayoutNode(
 
     fun resolveFontSize(measuringTape: MeasuringTape): Float {
         return when (val size = resolvedStyle.fontSize) {
-            is CssSize.Pixel -> size.size * 2f
-            is CssSize.Em -> (parent?.resolveFontSize(measuringTape) ?: 30f) * size.size.toFloat()
-            is CssSize.Percent -> (parent?.resolveFontSize(measuringTape) ?: 30f) * size.size
+            is CssSize.Pixel -> size.size * 3f
+            is CssSize.Em -> (parent?.resolveFontSize(measuringTape) ?: 8f) * size.size.toFloat()
+            is CssSize.Percent -> (parent?.resolveFontSize(measuringTape) ?: 8f) * size.size
             is CssSize.Auto -> 8f
         }
     }
