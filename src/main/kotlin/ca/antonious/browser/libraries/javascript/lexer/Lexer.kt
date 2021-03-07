@@ -39,6 +39,21 @@ class Lexer (private val source: String) {
             '>' to JavascriptTokenType.GreaterThan,
             '=' to JavascriptTokenType.Assignment
         )
+
+        private val twoCharTokenMap = mapOf(
+            "|=" to JavascriptTokenType.OrAssign,
+            "&=" to JavascriptTokenType.AndAssign,
+            "^=" to JavascriptTokenType.XorAssign,
+            "%=" to JavascriptTokenType.ModAssign,
+            "+=" to JavascriptTokenType.PlusAssign,
+            "-=" to JavascriptTokenType.MinusAssign,
+            "*=" to JavascriptTokenType.MultiplyAssign,
+            "/=" to JavascriptTokenType.DivideAssign,
+            ">=" to JavascriptTokenType.GreaterThanOrEqual,
+            "<=" to JavascriptTokenType.LessThanOrEqual,
+            "&&" to JavascriptTokenType.AndAnd,
+            "||" to JavascriptTokenType.OrOr
+        )
     }
 
     private var cursor = 0
@@ -49,7 +64,7 @@ class Lexer (private val source: String) {
     private val tokens = mutableListOf<JavascriptToken>()
 
     fun lex(): List<JavascriptToken> {
-        while (!isAtEnd()) {
+        mainLoop@while (!isAtEnd()) {
             sourceColumnAtParse = sourceColumn
             val currentChar = getCurrentChar()
             when {
@@ -91,6 +106,15 @@ class Lexer (private val source: String) {
                     }
                 }
                 else -> {
+                    val tokenForNextTwoChar = twoCharTokenMap[getCurrentNChars(2)]
+
+                    if (tokenForNextTwoChar != null) {
+                        pushToken(tokenForNextTwoChar)
+                        advanceCursor()
+                        advanceCursor()
+                        continue@mainLoop
+                    }
+
                     val tokenForChar = singleCharTokenMap[currentChar]
                         ?: error("Don't know how to handle current character $currentChar")
                     pushToken(tokenForChar)
@@ -193,6 +217,14 @@ class Lexer (private val source: String) {
         }
 
         return source[cursor]
+    }
+
+    private fun getCurrentNChars(n: Int): CharSequence? {
+        if (cursor + n >= source.length) {
+            return null
+        }
+
+        return source.subSequence(cursor, cursor + n)
     }
 
     private fun peekNextChar(): Char? {
