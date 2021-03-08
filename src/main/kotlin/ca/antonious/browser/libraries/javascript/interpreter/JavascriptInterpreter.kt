@@ -146,6 +146,15 @@ class JavascriptInterpreter {
                     else -> JavascriptValue.Undefined
                 }
             }
+            is JavascriptExpression.IndexAccess -> {
+                val value = when (val value = interpret(statement.expression)) {
+                    is JavascriptValue.Object -> value.value
+                    else -> error("Cannot index ${value} since it's not an object.")
+                }
+
+                val property = interpret(statement.indexExpression)
+                return (value.getProperty(property.toString()) as? JavascriptValue) ?: JavascriptValue.Undefined
+            }
             is JavascriptExpression.Literal -> {
                 return statement.value
             }

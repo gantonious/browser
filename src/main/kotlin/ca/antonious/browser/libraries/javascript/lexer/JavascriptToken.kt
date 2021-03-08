@@ -29,6 +29,7 @@ sealed class JavascriptTokenType {
     object If : JavascriptTokenType()
     object Return : JavascriptTokenType()
     object Let : JavascriptTokenType()
+    object Const : JavascriptTokenType()
 
     data class String(val value: kotlin.String) : JavascriptTokenType()
     data class Number(val value: Double) : JavascriptTokenType()

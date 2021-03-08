@@ -18,6 +18,7 @@ sealed class JavascriptStatement {
 sealed class JavascriptExpression : JavascriptStatement() {
     data class FunctionCall(val expression: JavascriptExpression, val parameters: List<JavascriptExpression>) : JavascriptExpression()
     data class DotAccess(val propertyName: String, val expression: JavascriptExpression) : JavascriptExpression()
+    data class IndexAccess(val indexExpression: JavascriptExpression, val expression: JavascriptExpression) : JavascriptExpression()
     data class Reference(val name: String) : JavascriptExpression()
     data class Literal(val value: JavascriptValue) : JavascriptExpression()
     data class BinaryOperation(val operator: JavascriptTokenType.Operator, val lhs: JavascriptExpression, val rhs: JavascriptExpression): JavascriptExpression()

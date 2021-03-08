@@ -6,29 +6,21 @@ import ca.antonious.browser.libraries.javascript.parser.JavascriptParser
 
 fun main() {
     val rawProgram = """
-        function test2(var) {
-            if (var < 5) {
-                return 1
-            }
-            return 2
-        }
-        
-        function test(number) {
-            return 5*test2(number)          
-        }
-        
-        function whileTest(max) {
-            let counter = 0
-            while (counter < max) {
-                console.log(counter)
-                let counter = counter + 1 
-            }
-            
-            return test2(counter)
+        function trim() {
+        	const sizeInput = document.getElementById("size");
+        	const size = parseInt(sizeInput.value)
+        	const max = size - 1
+
+        	const maxID = "row" + max + "col" + max
+        	const maxSquare = document.getElementById(maxID)
+        	maxSquare.classList.remove("good-square")
+        	maxSquare.classList.remove("bad-square")
+        	maxSquare.classList.add("empty-square")
+        	const maxSpans = maxSquare.children
+        	const maxSpan = maxSpans[1]
+        	maxSpan.innerHTML = ""
         }
 
-        console.log("test1", "test2")
-        whileTest(getInput("Type number: "))
     """.trimIndent()
 
     val tokens = JavascriptLexer(rawProgram).lex()

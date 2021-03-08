@@ -52,6 +52,7 @@ class JavascriptParser(
             is JavascriptTokenType.If -> expectIfStatement()
             is JavascriptTokenType.Return -> expectReturnStatement()
             is JavascriptTokenType.Let -> expectLetStatement()
+            is JavascriptTokenType.Const -> expectConstStatement()
             else -> expectExpression()
         }
     }
@@ -144,6 +145,17 @@ class JavascriptParser(
         )
     }
 
+    private fun expectConstStatement(): JavascriptStatement.LetAssignment {
+        expectToken<JavascriptTokenType.Const>()
+        val name = expectToken<JavascriptTokenType.Identifier>().name
+        expectToken<JavascriptTokenType.Assignment>()
+
+        return JavascriptStatement.LetAssignment(
+            name = name,
+            expression = expectExpression()
+        )
+    }
+
     private fun expectExpression(): JavascriptExpression {
         return expectComparisonExpression()
     }
@@ -197,6 +209,7 @@ class JavascriptParser(
         loop@while (continueParsing) {
             expression = when (maybeGetCurrentToken()) {
                 is JavascriptTokenType.OpenParentheses -> expectFunctionCallOn(expression)
+                is JavascriptTokenType.OpenBracket -> expectIndexAccessOn(expression)
                 is JavascriptTokenType.Dot -> expectDotAccessOn(expression)
                 else -> {
                     continueParsing = false
@@ -226,6 +239,17 @@ class JavascriptParser(
         return JavascriptExpression.FunctionCall(
             expression = expression,
             parameters = arguments
+        )
+    }
+
+    private fun expectIndexAccessOn(expression: JavascriptExpression): JavascriptExpression.IndexAccess {
+        expectToken<JavascriptTokenType.OpenBracket>()
+        val index = expectExpression()
+        expectToken<JavascriptTokenType.CloseBracket>()
+
+        return JavascriptExpression.IndexAccess(
+            indexExpression = index,
+            expression = expression
         )
     }
 
@@ -260,7 +284,7 @@ class JavascriptParser(
                 advanceCursor()
                 JavascriptExpression.Reference(name = currentToken.name)
             }
-            else -> error(currentToken.toString())
+            else -> throwUnexpectedTokenFound()
         }
     }
 
