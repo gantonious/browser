@@ -80,13 +80,24 @@ class JavascriptLexer (private val source: String) {
                 }
                 currentChar == '"' -> {
                     advanceCursor()
-                    val doubleQuoteStart = cursor
+                    val stringStart = cursor
 
                     while (!isAtEnd() && getPreviousChar() != '\\' && getCurrentChar() != '"') {
                         advanceCursor()
                     }
 
-                    pushToken(JavascriptTokenType.String(source.substring(doubleQuoteStart, cursor)))
+                    pushToken(JavascriptTokenType.String(source.substring(stringStart, cursor)))
+                    advanceCursor()
+                }
+                currentChar == '\'' -> {
+                    advanceCursor()
+                    val stringStart = cursor
+
+                    while (!isAtEnd() && getPreviousChar() != '\\' && getCurrentChar() != '\'') {
+                        advanceCursor()
+                    }
+
+                    pushToken(JavascriptTokenType.String(source.substring(stringStart, cursor)))
                     advanceCursor()
                 }
                 currentChar.isDigit() -> pushNumber()
