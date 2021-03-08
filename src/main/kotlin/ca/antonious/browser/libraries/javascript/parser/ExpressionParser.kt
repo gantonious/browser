@@ -3,7 +3,6 @@ package ca.antonious.browser.libraries.javascript.parser
 import ca.antonious.browser.libraries.javascript.ast.JavascriptBooleanOperator
 import ca.antonious.browser.libraries.javascript.ast.JavascriptExpression
 import ca.antonious.browser.libraries.javascript.ast.JavascriptValue
-import kotlin.math.exp
 
 class ExpressionParser(expression: String) {
     private val scanner = StringScanner(expression)

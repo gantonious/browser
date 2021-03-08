@@ -1,15 +1,15 @@
-package ca.antonious.browser.libraries.javascript.ast
+package ca.antonious.browser.libraries.javascript.parser.v2
 
 import ca.antonious.browser.libraries.javascript.interpreter.JavascriptFunction
 import ca.antonious.browser.libraries.javascript.interpreter.JavascriptObject
 import ca.antonious.browser.libraries.javascript.lexer.JavascriptTokenType
 
 sealed class JavascriptNode {
-    data class Program(val body: List<JavascriptNode>) : JavascriptNode()
-    data class Function(val name: String, val parameterNames: List<String>, val body: List<JavascriptNode>) : JavascriptNode()
+    data class Block(val body: List<JavascriptNode>) : JavascriptNode()
+    data class Function(val name: String, val parameterNames: List<String>, val body: Block) : JavascriptNode()
     data class Return(val expression: JavascriptExpression) : JavascriptNode()
-    data class IfStatement(val condition: JavascriptExpression, val body: List<JavascriptNode>) : JavascriptNode()
-    data class WhileLoop(val condition: JavascriptExpression, val body: List<JavascriptNode>) : JavascriptNode()
+    data class IfStatement(val condition: JavascriptExpression, val body: Block) : JavascriptNode()
+    data class WhileLoop(val condition: JavascriptExpression, val body: Block) : JavascriptNode()
     data class LetAssignment(val name: String, val expression: JavascriptExpression) : JavascriptNode()
 }
 
@@ -18,14 +18,7 @@ sealed class JavascriptExpression : JavascriptNode() {
     data class DotAccess(val propertyName: String, val expression: JavascriptExpression) : JavascriptExpression()
     data class Reference(val name: String) : JavascriptExpression()
     data class Literal(val value: JavascriptValue) : JavascriptExpression()
-    data class BooleanOperation(val operator: JavascriptBooleanOperator, val lhs: JavascriptExpression, val rhs: JavascriptExpression): JavascriptExpression()
-}
-
-sealed class JavascriptBooleanOperator {
-    object Add : JavascriptBooleanOperator()
-    object Subtract : JavascriptBooleanOperator()
-    object Multiply : JavascriptBooleanOperator()
-    object LessThan : JavascriptBooleanOperator()
+    data class BinaryOperation(val operator: JavascriptTokenType, val lhs: JavascriptExpression, val rhs: JavascriptExpression): JavascriptExpression()
 }
 
 sealed class JavascriptValue {

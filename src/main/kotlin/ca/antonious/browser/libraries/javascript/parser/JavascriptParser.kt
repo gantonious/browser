@@ -1,9 +1,6 @@
 package ca.antonious.browser.libraries.javascript.parser
 
-import ca.antonious.browser.libraries.javascript.ast.JavascriptBooleanOperator
-import ca.antonious.browser.libraries.javascript.ast.JavascriptExpression
 import ca.antonious.browser.libraries.javascript.ast.JavascriptNode
-import ca.antonious.browser.libraries.javascript.ast.JavascriptValue
 
 class JavascriptParser {
     fun parse(rawJavascript: String): List<JavascriptNode> {
