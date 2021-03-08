@@ -83,7 +83,7 @@ class LexerTests {
                     sourceInfo = SourceInfo(1, 8)
                 ),
                 JavascriptToken(
-                    type = JavascriptTokenType.GreaterThan,
+                    type = JavascriptTokenType.Operator.GreaterThan,
                     sourceInfo = SourceInfo(1, 12)
                 ),
                 JavascriptToken(

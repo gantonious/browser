@@ -5,7 +5,7 @@ import ca.antonious.browser.libraries.css.CssParser
 import ca.antonious.browser.libraries.html.HtmlElement
 import ca.antonious.browser.libraries.html.HtmlParser
 import ca.antonious.browser.libraries.http.*
-import ca.antonious.browser.libraries.javascript.ast.JavascriptNode
+import ca.antonious.browser.libraries.javascript.ast.JavascriptStatement
 import ca.antonious.browser.libraries.javascript.ast.JavascriptValue
 import ca.antonious.browser.libraries.javascript.interpreter.JavascriptArray
 import ca.antonious.browser.libraries.javascript.interpreter.JavascriptInterpreter
@@ -120,8 +120,7 @@ class DOM {
 
                         if (src == null) {
                             val script = htmlElement.requireChildrenAsText().text
-                            val parsedScript = javascriptParser.parse(script)
-                            javascriptInterpreter.interpret(JavascriptNode.Program(parsedScript))
+                            javascriptInterpreter.interpret(script)
                         } else {
 //                            httpClient.execute(HttpRequest(resolveUrl(src), HttpMethod.Get)).onSuccess { response ->
 //                                javascriptInterpreter.interpret(JavascriptNode.Program(javascriptParser.parse(response.body)))

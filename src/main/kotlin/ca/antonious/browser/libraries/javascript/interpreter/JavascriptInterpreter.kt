@@ -1,9 +1,7 @@
 package ca.antonious.browser.libraries.javascript.interpreter
 
-import ca.antonious.browser.libraries.javascript.ast.JavascriptBooleanOperator
-import ca.antonious.browser.libraries.javascript.ast.JavascriptExpression
-import ca.antonious.browser.libraries.javascript.ast.JavascriptNode
-import ca.antonious.browser.libraries.javascript.ast.JavascriptValue
+import ca.antonious.browser.libraries.javascript.ast.*
+import ca.antonious.browser.libraries.javascript.lexer.JavascriptTokenType
 import ca.antonious.browser.libraries.javascript.parser.JavascriptParser
 
 class JavascriptInterpreter {
@@ -28,28 +26,32 @@ class JavascriptInterpreter {
     private var lastReturn: JavascriptValue? = null
 
     fun interpret(javascript: String): JavascriptValue {
-        val program = JavascriptNode.Program(JavascriptParser().parse(javascript))
+        val program = JavascriptProgram(JavascriptParser().parse(javascript))
         return interpret(program)
     }
 
-    fun interpret(node: JavascriptNode): JavascriptValue {
-        when (node) {
-            is JavascriptNode.Program -> {
-                return interpretChildren(node.body)
+    fun interpret(program: JavascriptProgram): JavascriptValue {
+        return interpretChildren(program.body)
+    }
+
+    private fun interpret(statement: JavascriptStatement): JavascriptValue {
+        when (statement) {
+            is JavascriptStatement.Block -> {
+                return interpretChildren(statement.body)
             }
-            is JavascriptNode.Function -> {
+            is JavascriptStatement.Function -> {
                 val value = JavascriptValue.Function(
-                    value = JavascriptFunction.UserDefined(functionNode = node)
+                    value = JavascriptFunction.UserDefined(functionStatement = statement)
                 )
-                currentScope.setProperty(key = node.name, value = value)
+                currentScope.setProperty(key = statement.name, value = value)
                 return JavascriptValue.Undefined
             }
-            is JavascriptNode.Return -> {
-                lastReturn = interpret(node.expression)
+            is JavascriptStatement.Return -> {
+                lastReturn = interpret(statement.expression)
                 return JavascriptValue.Undefined
             }
             is JavascriptExpression.FunctionCall -> {
-                val callableValue = interpret(node.expression)
+                val callableValue = interpret(statement.expression)
 
                 if (callableValue !is JavascriptValue.Function) {
                     error("Can't call non-function type '$callableValue'.")
@@ -57,12 +59,12 @@ class JavascriptInterpreter {
 
                 when (val function = callableValue.value) {
                     is JavascriptFunction.Native -> {
-                        return function.body.invoke(node.parameters.map { interpret(it) })
+                        return function.body.invoke(statement.parameters.map { interpret(it) })
                     }
                     is JavascriptFunction.UserDefined -> {
-                        enterFunction(function.functionNode, node.parameters)
+                        enterFunction(function.functionStatement, statement.parameters)
 
-                        for (child in function.functionNode.body) {
+                        for (child in function.functionStatement.body.body) {
                             interpret(child)
                             if (lastReturn != null) {
                                 break
@@ -76,26 +78,26 @@ class JavascriptInterpreter {
                     }
                 }
             }
-            is JavascriptNode.IfStatement -> {
-                val ifConditionValue = interpret(node.condition)
+            is JavascriptStatement.IfStatement -> {
+                val ifConditionValue = interpret(statement.condition)
                 if (ifConditionValue.isTruthy) {
-                    interpretChildren(node.body)
+                    interpret(statement.body)
                 }
                 return JavascriptValue.Undefined
             }
-            is JavascriptNode.LetAssignment -> {
-                currentScope.setProperty(node.name, interpret(node.expression))
+            is JavascriptStatement.LetAssignment -> {
+                currentScope.setProperty(statement.name, interpret(statement.expression))
                 return JavascriptValue.Undefined
             }
-            is JavascriptNode.WhileLoop -> {
-                while (interpret(node.condition).isTruthy) {
-                    interpretChildren(node.body)
+            is JavascriptStatement.WhileLoop -> {
+                while (interpret(statement.condition).isTruthy) {
+                    interpret(statement.body)
                 }
                 return JavascriptValue.Undefined
             }
-            is JavascriptExpression.BooleanOperation -> {
-                val lhsValue = interpret(node.lhs)
-                val rhsValue = interpret(node.rhs)
+            is JavascriptExpression.BinaryOperation -> {
+                val lhsValue = interpret(statement.lhs)
+                val rhsValue = interpret(statement.rhs)
 
                 if (lhsValue !is JavascriptValue.Number) {
                     error("Expected left hand side of operand '${lhsValue}' to be a number.")
@@ -105,56 +107,59 @@ class JavascriptInterpreter {
                     error("Expected right hand side of operand '${rhsValue}' to be a number.")
                 }
 
-                return when (node.operator) {
-                    is JavascriptBooleanOperator.Add -> {
+                return when (statement.operator) {
+                    is JavascriptTokenType.Operator.Plus -> {
                         JavascriptValue.Number(lhsValue.value + rhsValue.value)
                     }
-                    is JavascriptBooleanOperator.Subtract -> {
+                    is JavascriptTokenType.Operator.Minus -> {
                         JavascriptValue.Number(lhsValue.value - rhsValue.value)
                     }
-                    is JavascriptBooleanOperator.Multiply -> {
+                    is JavascriptTokenType.Operator.Multiply -> {
                         JavascriptValue.Number(lhsValue.value * rhsValue.value)
                     }
-                    is JavascriptBooleanOperator.LessThan -> {
+                    is JavascriptTokenType.Operator.LessThan -> {
                         JavascriptValue.Boolean(lhsValue.value < rhsValue.value)
+                    }
+                    else -> {
+                        error("${statement.operator} is unsupported for binary operations.")
                     }
                 }
             }
             is JavascriptExpression.Reference -> {
-                return when (val value = currentScope.getProperty(node.name)) {
+                return when (val value = currentScope.getProperty(statement.name)) {
                     is JavascriptValue -> value
-                    is JavascriptNode -> interpret(value)
+                    is JavascriptStatement -> interpret(value)
                     else -> JavascriptValue.Undefined
                 }
             }
             is JavascriptExpression.DotAccess -> {
-                val value = when (val value = interpret(node.expression)) {
+                val value = when (val value = interpret(statement.expression)) {
                     is JavascriptValue.Object -> value.value
-                    else -> error("Cannot access property '${node.propertyName}' on ${value} since it's not an object.")
+                    else -> error("Cannot access property '${statement.propertyName}' on ${value} since it's not an object.")
                 }
 
-                return when (val property = value.getProperty(node.propertyName)) {
+                return when (val property = value.getProperty(statement.propertyName)) {
                     is JavascriptValue -> property
-                    is JavascriptNode -> interpret(property)
+                    is JavascriptStatement -> interpret(property)
                     else -> JavascriptValue.Undefined
                 }
             }
             is JavascriptExpression.Literal -> {
-                return node.value
+                return statement.value
             }
         }
     }
 
-    private fun interpretChildren(nodes: List<JavascriptNode>): JavascriptValue {
+    private fun interpretChildren(statements: List<JavascriptStatement>): JavascriptValue {
         var result: JavascriptValue = JavascriptValue.Undefined
-        for (child in nodes) {
+        for (child in statements) {
             result = interpret(child)
         }
 
         return result
     }
 
-    private fun enterFunction(function: JavascriptNode.Function, passedParameters: List<JavascriptExpression>) {
+    private fun enterFunction(function: JavascriptStatement.Function, passedParameters: List<JavascriptExpression>) {
         currentScope = JavascriptObject(currentScope).apply {
             function.parameterNames.forEachIndexed { index, parameterName ->
                 setProperty(parameterName, interpret(passedParameters.getOrElse(index) {

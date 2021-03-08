@@ -1,8 +1,8 @@
 package ca.antonious.browser.libraries.javascript.parser
 
-import ca.antonious.browser.libraries.javascript.ast.JavascriptBooleanOperator
 import ca.antonious.browser.libraries.javascript.ast.JavascriptExpression
 import ca.antonious.browser.libraries.javascript.ast.JavascriptValue
+import ca.antonious.browser.libraries.javascript.lexer.JavascriptTokenType
 
 class ExpressionParser(expression: String) {
     private val scanner = StringScanner(expression)
@@ -20,8 +20,8 @@ class ExpressionParser(expression: String) {
         if (nextChar == '<') {
             scanner.moveForward()
             scanner.moveAfterWhitespace()
-            return JavascriptExpression.BooleanOperation(
-                operator = JavascriptBooleanOperator.LessThan,
+            return JavascriptExpression.BinaryOperation(
+                operator = JavascriptTokenType.Operator.LessThan,
                 lhs = lhs,
                 rhs = parseMultiplicationExpression()
             )
@@ -39,16 +39,16 @@ class ExpressionParser(expression: String) {
         if (nextChar == '+') {
             scanner.moveForward()
             scanner.moveAfterWhitespace()
-            return JavascriptExpression.BooleanOperation(
-                operator = JavascriptBooleanOperator.Add,
+            return JavascriptExpression.BinaryOperation(
+                operator = JavascriptTokenType.Operator.Plus,
                 lhs = lhs,
                 rhs = parseMultiplicationExpression()
             )
         } else if (nextChar == '-') {
             scanner.moveForward()
             scanner.moveAfterWhitespace()
-            return JavascriptExpression.BooleanOperation(
-                operator = JavascriptBooleanOperator.Subtract,
+            return JavascriptExpression.BinaryOperation(
+                operator = JavascriptTokenType.Operator.Minus,
                 lhs = lhs,
                 rhs = parseMultiplicationExpression()
             )
@@ -66,8 +66,8 @@ class ExpressionParser(expression: String) {
         if (nextChar == '*') {
             scanner.moveForward()
             scanner.moveAfterWhitespace()
-            return JavascriptExpression.BooleanOperation(
-                operator = JavascriptBooleanOperator.Multiply,
+            return JavascriptExpression.BinaryOperation(
+                operator = JavascriptTokenType.Operator.Multiply,
                 lhs = lhs,
                 rhs = parseFunctionCall()
             )

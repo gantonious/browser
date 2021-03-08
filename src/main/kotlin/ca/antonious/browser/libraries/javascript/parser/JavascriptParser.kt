@@ -1,11 +1,11 @@
 package ca.antonious.browser.libraries.javascript.parser
 
-import ca.antonious.browser.libraries.javascript.ast.JavascriptNode
+import ca.antonious.browser.libraries.javascript.ast.JavascriptStatement
 
 class JavascriptParser {
-    fun parse(rawJavascript: String): List<JavascriptNode> {
+    fun parse(rawJavascript: String): List<JavascriptStatement> {
         val scanner = StringScanner(rawJavascript)
-        val body = mutableListOf<JavascriptNode>()
+        val body = mutableListOf<JavascriptStatement>()
 
         while (!scanner.isAtEnd) {
             scanner.moveAfterWhitespace()
@@ -16,11 +16,11 @@ class JavascriptParser {
                     val params = scanner.scanUntil(char = ')')
                     scanner.scanUntil('{')
                     val block = scanner.scanUntil('}', balancedAgainst = '{')
-                    body += JavascriptNode.Function(name = name, body = parse(block), parameterNames = params.split(",").filter { it.isNotEmpty() }.map { it.trim() })
+                    body += JavascriptStatement.Function(name = name, body = JavascriptStatement.Block(parse(block)), parameterNames = params.split(",").filter { it.isNotEmpty() }.map { it.trim() })
                 }
                 "return" -> {
                     val rawReturnExpression = scanner.scanUntil { it == ';' || it == '\n' }
-                    body += JavascriptNode.Return(expression = ExpressionParser(rawReturnExpression).parse())
+                    body += JavascriptStatement.Return(expression = ExpressionParser(rawReturnExpression).parse())
                 }
                 "if" -> {
                     scanner.scanUntil(char = '(')
@@ -28,9 +28,9 @@ class JavascriptParser {
                     scanner.scanUntil('{')
                     val ifBody = scanner.scanUntil('}', balancedAgainst = '{')
 
-                    body += JavascriptNode.IfStatement(
+                    body += JavascriptStatement.IfStatement(
                             condition = ExpressionParser(expression).parse(),
-                            body = parse(ifBody)
+                            body = JavascriptStatement.Block(parse(ifBody))
                     )
                 }
                 "let" -> {
@@ -45,7 +45,7 @@ class JavascriptParser {
                     scanner.moveAfterWhitespace()
                     val variableExpression = scanner.scanUntil { it == ';' || it == '\n' }
 
-                    body += JavascriptNode.LetAssignment(
+                    body += JavascriptStatement.LetAssignment(
                             name = variableName,
                             expression = ExpressionParser(variableExpression).parse()
                     )
@@ -57,9 +57,9 @@ class JavascriptParser {
                     scanner.scanUntil('{')
                     val whileBody = scanner.scanUntil('}', balancedAgainst = '{')
 
-                    body += JavascriptNode.WhileLoop(
+                    body += JavascriptStatement.WhileLoop(
                             condition = ExpressionParser(condition).parse(),
-                            body = parse(whileBody)
+                            body = JavascriptStatement.Block(parse(whileBody))
                     )
                 }
                 else -> {

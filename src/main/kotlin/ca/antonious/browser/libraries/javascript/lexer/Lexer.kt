@@ -25,18 +25,18 @@ class Lexer (private val source: String) {
             '}' to JavascriptTokenType.CloseCurlyBracket,
             '[' to JavascriptTokenType.OpenBracket,
             ']' to JavascriptTokenType.CloseBracket,
-            '|' to JavascriptTokenType.Or,
-            '&' to JavascriptTokenType.And,
+            '|' to JavascriptTokenType.Operator.Or,
+            '&' to JavascriptTokenType.Operator.And,
             '~' to JavascriptTokenType.BitNot,
-            '^' to JavascriptTokenType.Xor,
+            '^' to JavascriptTokenType.Operator.Xor,
             '!' to JavascriptTokenType.Not,
-            '%' to JavascriptTokenType.Mod,
-            '+' to JavascriptTokenType.Plus,
-            '-' to JavascriptTokenType.Minus,
-            '*' to JavascriptTokenType.Multiply,
-            '/' to JavascriptTokenType.Divide,
-            '<' to JavascriptTokenType.LessThan,
-            '>' to JavascriptTokenType.GreaterThan,
+            '%' to JavascriptTokenType.Operator.Mod,
+            '+' to JavascriptTokenType.Operator.Plus,
+            '-' to JavascriptTokenType.Operator.Minus,
+            '*' to JavascriptTokenType.Operator.Multiply,
+            '/' to JavascriptTokenType.Operator.Divide,
+            '<' to JavascriptTokenType.Operator.LessThan,
+            '>' to JavascriptTokenType.Operator.GreaterThan,
             '=' to JavascriptTokenType.Assignment
         )
 
@@ -49,10 +49,10 @@ class Lexer (private val source: String) {
             "-=" to JavascriptTokenType.MinusAssign,
             "*=" to JavascriptTokenType.MultiplyAssign,
             "/=" to JavascriptTokenType.DivideAssign,
-            ">=" to JavascriptTokenType.GreaterThanOrEqual,
-            "<=" to JavascriptTokenType.LessThanOrEqual,
-            "&&" to JavascriptTokenType.AndAnd,
-            "||" to JavascriptTokenType.OrOr
+            ">=" to JavascriptTokenType.Operator.GreaterThanOrEqual,
+            "<=" to JavascriptTokenType.Operator.LessThanOrEqual,
+            "&&" to JavascriptTokenType.Operator.AndAnd,
+            "||" to JavascriptTokenType.Operator.OrOr
         )
     }
 

@@ -1,5 +1,9 @@
 package ca.antonious.browser.libraries.javascript.parser.v2
 
+import ca.antonious.browser.libraries.javascript.ast.JavascriptExpression
+import ca.antonious.browser.libraries.javascript.ast.JavascriptProgram
+import ca.antonious.browser.libraries.javascript.ast.JavascriptStatement
+import ca.antonious.browser.libraries.javascript.ast.JavascriptValue
 import ca.antonious.browser.libraries.javascript.lexer.JavascriptToken
 import ca.antonious.browser.libraries.javascript.lexer.JavascriptTokenType
 
@@ -7,19 +11,19 @@ class JavascriptParserV2(private val tokens: List<JavascriptToken>) {
 
     companion object {
         private val additiveTokens = setOf(
-            JavascriptTokenType.Plus,
-            JavascriptTokenType.Minus
+            JavascriptTokenType.Operator.Plus,
+            JavascriptTokenType.Operator.Minus
         )
 
         private val multiplicativeTokens = setOf(
-            JavascriptTokenType.Multiply,
-            JavascriptTokenType.Divide
+            JavascriptTokenType.Operator.Multiply,
+            JavascriptTokenType.Operator.Divide
         )
     }
     private var cursor = 0
 
     fun parse(): JavascriptProgram {
-        val statements = mutableListOf<JavascriptNode>()
+        val statements = mutableListOf<JavascriptStatement>()
 
         while (!isAtEnd()) {
             expectStatement()
@@ -28,7 +32,7 @@ class JavascriptParserV2(private val tokens: List<JavascriptToken>) {
         return JavascriptProgram(statements)
     }
 
-    private fun expectStatement(): JavascriptNode {
+    private fun expectStatement(): JavascriptStatement {
         maybeConsumeLineTerminator()
         return when (val currentToken = getCurrentToken()) {
             is JavascriptTokenType.Function -> expectFunctionDeclaration()
@@ -37,7 +41,7 @@ class JavascriptParserV2(private val tokens: List<JavascriptToken>) {
         }
     }
 
-    private fun expectFunctionDeclaration(): JavascriptNode.Function {
+    private fun expectFunctionDeclaration(): JavascriptStatement.Function {
         val functionName = expectToken<JavascriptTokenType.Identifier>()
         expectToken<JavascriptTokenType.OpenBracket>()
 
@@ -54,28 +58,28 @@ class JavascriptParserV2(private val tokens: List<JavascriptToken>) {
 
         expectToken<JavascriptTokenType.CloseBracket>()
 
-        return JavascriptNode.Function(
+        return JavascriptStatement.Function(
             name = functionName.name,
             parameterNames = parameterNames.map { it.name },
             body = expectBlock()
         )
     }
 
-    private fun expectWhileLoop(): JavascriptNode.WhileLoop {
+    private fun expectWhileLoop(): JavascriptStatement.WhileLoop {
         expectToken<JavascriptTokenType.OpenBracket>()
         val condition = expectExpression()
         expectToken<JavascriptTokenType.CloseBracket>()
 
         maybeConsumeLineTerminator()
 
-        return JavascriptNode.WhileLoop(
+        return JavascriptStatement.WhileLoop(
             condition = condition,
             body =  expectBlock()
         )
     }
 
-    private fun expectBlock(): JavascriptNode.Block {
-        val statements = mutableListOf<JavascriptNode>()
+    private fun expectBlock(): JavascriptStatement.Block {
+        val statements = mutableListOf<JavascriptStatement>()
 
         expectToken<JavascriptTokenType.OpenCurlyBracket>()
         maybeConsumeLineTerminator()
@@ -87,7 +91,7 @@ class JavascriptParserV2(private val tokens: List<JavascriptToken>) {
 
         expectToken<JavascriptTokenType.CloseCurlyBracket>()
 
-        return JavascriptNode.Block(statements)
+        return JavascriptStatement.Block(statements)
     }
 
     private fun expectExpression(): JavascriptExpression {
@@ -119,7 +123,7 @@ class JavascriptParserV2(private val tokens: List<JavascriptToken>) {
 
         while (getCurrentToken() in additiveTokens) {
             expression = JavascriptExpression.BinaryOperation(
-                operator = getCurrentToken().also { advanceCursor() },
+                operator = expectToken(),
                 lhs = expression,
                 rhs = expectMultiplicativeExpression()
             )
@@ -134,7 +138,7 @@ class JavascriptParserV2(private val tokens: List<JavascriptToken>) {
         while (getCurrentToken() in multiplicativeTokens) {
             advanceCursor()
             expression = JavascriptExpression.BinaryOperation(
-                operator = getCurrentToken().also { advanceCursor() },
+                operator = expectToken(),
                 lhs = expression,
                 rhs = expectSimpleExpression()
             )

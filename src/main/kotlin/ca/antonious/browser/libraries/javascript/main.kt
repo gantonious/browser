@@ -1,6 +1,6 @@
 package ca.antonious.browser.libraries.javascript
 
-import ca.antonious.browser.libraries.javascript.ast.JavascriptNode
+import ca.antonious.browser.libraries.javascript.ast.JavascriptStatement
 import ca.antonious.browser.libraries.javascript.interpreter.JavascriptInterpreter
 import ca.antonious.browser.libraries.javascript.parser.JavascriptParser
 
@@ -31,6 +31,5 @@ fun main() {
         whileTest(getInput("Type number: "))
     """.trimIndent()
 
-    val program = JavascriptNode.Program(body = JavascriptParser().parse(rawProgram))
-    println(JavascriptInterpreter().interpret(program))
+    println(JavascriptInterpreter().interpret(rawProgram))
 }

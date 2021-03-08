@@ -1,24 +1,26 @@
-package ca.antonious.browser.libraries.javascript.parser.v2
+package ca.antonious.browser.libraries.javascript.ast
 
 import ca.antonious.browser.libraries.javascript.interpreter.JavascriptFunction
 import ca.antonious.browser.libraries.javascript.interpreter.JavascriptObject
 import ca.antonious.browser.libraries.javascript.lexer.JavascriptTokenType
 
-sealed class JavascriptNode {
-    data class Block(val body: List<JavascriptNode>) : JavascriptNode()
-    data class Function(val name: String, val parameterNames: List<String>, val body: Block) : JavascriptNode()
-    data class Return(val expression: JavascriptExpression) : JavascriptNode()
-    data class IfStatement(val condition: JavascriptExpression, val body: Block) : JavascriptNode()
-    data class WhileLoop(val condition: JavascriptExpression, val body: Block) : JavascriptNode()
-    data class LetAssignment(val name: String, val expression: JavascriptExpression) : JavascriptNode()
+data class JavascriptProgram(val body: List<JavascriptStatement>)
+
+sealed class JavascriptStatement {
+    data class Block(val body: List<JavascriptStatement>) : JavascriptStatement()
+    data class Function(val name: String, val parameterNames: List<String>, val body: Block) : JavascriptStatement()
+    data class Return(val expression: JavascriptExpression) : JavascriptStatement()
+    data class IfStatement(val condition: JavascriptExpression, val body: Block) : JavascriptStatement()
+    data class WhileLoop(val condition: JavascriptExpression, val body: Block) : JavascriptStatement()
+    data class LetAssignment(val name: String, val expression: JavascriptExpression) : JavascriptStatement()
 }
 
-sealed class JavascriptExpression : JavascriptNode() {
+sealed class JavascriptExpression : JavascriptStatement() {
     data class FunctionCall(val expression: JavascriptExpression, val parameters: List<JavascriptExpression>) : JavascriptExpression()
     data class DotAccess(val propertyName: String, val expression: JavascriptExpression) : JavascriptExpression()
     data class Reference(val name: String) : JavascriptExpression()
     data class Literal(val value: JavascriptValue) : JavascriptExpression()
-    data class BinaryOperation(val operator: JavascriptTokenType, val lhs: JavascriptExpression, val rhs: JavascriptExpression): JavascriptExpression()
+    data class BinaryOperation(val operator: JavascriptTokenType.Operator, val lhs: JavascriptExpression, val rhs: JavascriptExpression): JavascriptExpression()
 }
 
 sealed class JavascriptValue {
