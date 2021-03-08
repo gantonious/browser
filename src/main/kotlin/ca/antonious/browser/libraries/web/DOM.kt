@@ -5,7 +5,6 @@ import ca.antonious.browser.libraries.css.CssParser
 import ca.antonious.browser.libraries.html.HtmlElement
 import ca.antonious.browser.libraries.html.HtmlParser
 import ca.antonious.browser.libraries.http.*
-import ca.antonious.browser.libraries.javascript.ast.JavascriptStatement
 import ca.antonious.browser.libraries.javascript.ast.JavascriptValue
 import ca.antonious.browser.libraries.javascript.interpreter.JavascriptArray
 import ca.antonious.browser.libraries.javascript.interpreter.JavascriptInterpreter
@@ -27,7 +26,6 @@ class DOM {
 
     private val htmlParser = HtmlParser()
     private val cssParser = CssParser()
-    private val javascriptParser = JavascriptParser()
 
     private val javascriptInterpreter = JavascriptInterpreter().apply {
         globalObject.setProperty(

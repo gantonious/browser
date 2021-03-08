@@ -3,7 +3,7 @@ package ca.antonious.browser.libraries.javascript.lexer
 import org.junit.Assert.assertEquals
 import org.junit.Test
 
-class LexerTests {
+class JavascriptLexerTests {
 
     @Test
     fun testEmptySource() {
@@ -127,6 +127,6 @@ class LexerTests {
     }
 
     private fun assert(source: String, produces: List<JavascriptToken>) {
-        assertEquals(produces.toPrettyList(), Lexer(source.trimIndent()).lex().toPrettyList())
+        assertEquals(produces.toPrettyList(), JavascriptLexer(source.trimIndent()).lex().toPrettyList())
     }
 }

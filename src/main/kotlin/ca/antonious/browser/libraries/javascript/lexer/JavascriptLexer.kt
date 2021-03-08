@@ -1,6 +1,6 @@
 package ca.antonious.browser.libraries.javascript.lexer
 
-class Lexer (private val source: String) {
+class JavascriptLexer (private val source: String) {
 
     companion object {
         private val keywordTokenMap = mapOf(
@@ -10,7 +10,8 @@ class Lexer (private val source: String) {
             "return" to JavascriptTokenType.Return,
             "true" to JavascriptTokenType.Boolean(true),
             "false" to JavascriptTokenType.Boolean(false),
-            "undefined" to JavascriptTokenType.Undefined
+            "undefined" to JavascriptTokenType.Undefined,
+            "let" to JavascriptTokenType.Let
         )
 
         private val singleCharTokenMap = mapOf(

@@ -1,6 +1,7 @@
 package ca.antonious.browser.libraries.javascript.interpreter
 
 import ca.antonious.browser.libraries.javascript.ast.*
+import ca.antonious.browser.libraries.javascript.lexer.JavascriptLexer
 import ca.antonious.browser.libraries.javascript.lexer.JavascriptTokenType
 import ca.antonious.browser.libraries.javascript.parser.JavascriptParser
 
@@ -26,7 +27,8 @@ class JavascriptInterpreter {
     private var lastReturn: JavascriptValue? = null
 
     fun interpret(javascript: String): JavascriptValue {
-        val program = JavascriptProgram(JavascriptParser().parse(javascript))
+        val tokens = JavascriptLexer(javascript).lex()
+        val program = JavascriptParser(tokens, javascript).parse()
         return interpret(program)
     }
 
