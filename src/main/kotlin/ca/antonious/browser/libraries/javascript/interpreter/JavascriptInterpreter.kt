@@ -91,6 +91,10 @@ class JavascriptInterpreter {
                 currentScope.setProperty(statement.name, interpret(statement.expression))
                 return JavascriptValue.Undefined
             }
+            is JavascriptStatement.ConstAssignment -> {
+                currentScope.setProperty(statement.name, interpret(statement.expression))
+                return JavascriptValue.Undefined
+            }
             is JavascriptStatement.WhileLoop -> {
                 while (interpret(statement.condition).isTruthy) {
                     interpret(statement.body)

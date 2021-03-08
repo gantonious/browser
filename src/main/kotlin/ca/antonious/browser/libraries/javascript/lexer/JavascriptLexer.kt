@@ -39,18 +39,18 @@ class JavascriptLexer (private val source: String) {
             '/' to JavascriptTokenType.Operator.Divide,
             '<' to JavascriptTokenType.Operator.LessThan,
             '>' to JavascriptTokenType.Operator.GreaterThan,
-            '=' to JavascriptTokenType.Assignment
+            '=' to JavascriptTokenType.Operator.Assignment
         )
 
         private val twoCharTokenMap = mapOf(
-            "|=" to JavascriptTokenType.OrAssign,
-            "&=" to JavascriptTokenType.AndAssign,
-            "^=" to JavascriptTokenType.XorAssign,
-            "%=" to JavascriptTokenType.ModAssign,
-            "+=" to JavascriptTokenType.PlusAssign,
-            "-=" to JavascriptTokenType.MinusAssign,
-            "*=" to JavascriptTokenType.MultiplyAssign,
-            "/=" to JavascriptTokenType.DivideAssign,
+            "|=" to JavascriptTokenType.Operator.OrAssign,
+            "&=" to JavascriptTokenType.Operator.AndAssign,
+            "^=" to JavascriptTokenType.Operator.XorAssign,
+            "%=" to JavascriptTokenType.Operator.ModAssign,
+            "+=" to JavascriptTokenType.Operator.PlusAssign,
+            "-=" to JavascriptTokenType.Operator.MinusAssign,
+            "*=" to JavascriptTokenType.Operator.MultiplyAssign,
+            "/=" to JavascriptTokenType.Operator.DivideAssign,
             ">=" to JavascriptTokenType.Operator.GreaterThanOrEqual,
             "<=" to JavascriptTokenType.Operator.LessThanOrEqual,
             "&&" to JavascriptTokenType.Operator.AndAnd,

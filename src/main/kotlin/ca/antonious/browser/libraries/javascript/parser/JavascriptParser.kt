@@ -31,6 +31,17 @@ class JavascriptParser(
             JavascriptTokenType.Operator.GreaterThan,
             JavascriptTokenType.Operator.GreaterThanOrEqual
         )
+
+        private val assignmentToken = setOf(
+            JavascriptTokenType.Operator.Assignment,
+            JavascriptTokenType.Operator.XorAssign,
+            JavascriptTokenType.Operator.MinusAssign,
+            JavascriptTokenType.Operator.MinusAssign,
+            JavascriptTokenType.Operator.PlusAssign,
+            JavascriptTokenType.Operator.MinusAssign,
+            JavascriptTokenType.Operator.MultiplyAssign,
+            JavascriptTokenType.Operator.DivideAssign
+        )
     }
     private var cursor = 0
 
@@ -137,7 +148,7 @@ class JavascriptParser(
     private fun expectLetStatement(): JavascriptStatement.LetAssignment {
         expectToken<JavascriptTokenType.Let>()
         val name = expectToken<JavascriptTokenType.Identifier>().name
-        expectToken<JavascriptTokenType.Assignment>()
+        expectToken<JavascriptTokenType.Operator.Assignment>()
 
         return JavascriptStatement.LetAssignment(
             name = name,
@@ -145,19 +156,33 @@ class JavascriptParser(
         )
     }
 
-    private fun expectConstStatement(): JavascriptStatement.LetAssignment {
+    private fun expectConstStatement(): JavascriptStatement.ConstAssignment {
         expectToken<JavascriptTokenType.Const>()
         val name = expectToken<JavascriptTokenType.Identifier>().name
-        expectToken<JavascriptTokenType.Assignment>()
+        expectToken<JavascriptTokenType.Operator.Assignment>()
 
-        return JavascriptStatement.LetAssignment(
+        return JavascriptStatement.ConstAssignment(
             name = name,
             expression = expectExpression()
         )
     }
 
     private fun expectExpression(): JavascriptExpression {
-        return expectComparisonExpression()
+        return expectAssignmentExpression()
+    }
+
+    private fun expectAssignmentExpression(): JavascriptExpression {
+        var expression = expectComparisonExpression()
+
+        while (maybeGetCurrentToken() in assignmentToken) {
+            expression = JavascriptExpression.BinaryOperation(
+                operator = expectToken(),
+                lhs = expression,
+                rhs = expectMultiplicativeExpression()
+            )
+        }
+
+        return expression
     }
 
     private fun expectComparisonExpression(): JavascriptExpression {

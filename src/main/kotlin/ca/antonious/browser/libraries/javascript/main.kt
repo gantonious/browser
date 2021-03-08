@@ -20,7 +20,6 @@ fun main() {
         	const maxSpan = maxSpans[1]
         	maxSpan.innerHTML = ""
         }
-
     """.trimIndent()
 
     val tokens = JavascriptLexer(rawProgram).lex()
