@@ -204,6 +204,11 @@ class JavascriptInterpreter {
                     is JavascriptTokenType.Operator.Equals -> {
                         JavascriptValue.Boolean(JavascriptValue.looselyEquals(interpret(statement.lhs), interpret(statement.rhs)))
                     }
+                    is JavascriptTokenType.Operator.Assignment -> {
+                        val valueToAssign = interpret(statement.rhs)
+                        // TODO: trigger assignment
+                        valueToAssign
+                    }
                     else -> {
                         error("${statement.operator} is unsupported for binary operations.")
                     }

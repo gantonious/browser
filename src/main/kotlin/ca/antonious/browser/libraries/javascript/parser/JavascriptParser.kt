@@ -7,6 +7,7 @@ import ca.antonious.browser.libraries.javascript.ast.JavascriptValue
 import ca.antonious.browser.libraries.javascript.interpreter.builtins.JavascriptRegex
 import ca.antonious.browser.libraries.javascript.lexer.JavascriptToken
 import ca.antonious.browser.libraries.javascript.lexer.JavascriptTokenType
+import java.util.*
 import kotlin.math.max
 
 class JavascriptParser(
@@ -260,9 +261,37 @@ class JavascriptParser(
     }
 
     private fun expectAssignmentExpression(): JavascriptExpression {
-        var expression = expectEqualityExpression()
+        var expression = expectLogicalOrExpression()
 
         while (maybeGetCurrentToken() in assignmentToken) {
+            expression = JavascriptExpression.BinaryOperation(
+                operator = expectToken(),
+                lhs = expression,
+                rhs = expectLogicalOrExpression()
+            )
+        }
+
+        return expression.convertToRightToLeftAssociativity()
+    }
+
+    private fun expectLogicalOrExpression(): JavascriptExpression {
+        var expression = expectLogicalAndExpression()
+
+        while (maybeGetCurrentToken() is JavascriptTokenType.Operator.OrOr) {
+            expression = JavascriptExpression.BinaryOperation(
+                operator = expectToken(),
+                lhs = expression,
+                rhs = expectLogicalAndExpression()
+            )
+        }
+
+        return expression
+    }
+
+    private fun expectLogicalAndExpression(): JavascriptExpression {
+        var expression = expectEqualityExpression()
+
+        while (maybeGetCurrentToken() is JavascriptTokenType.Operator.AndAnd) {
             expression = JavascriptExpression.BinaryOperation(
                 operator = expectToken(),
                 lhs = expression,
@@ -270,7 +299,7 @@ class JavascriptParser(
             )
         }
 
-        return expression.convertToRightToLeftAssociativity()
+        return expression
     }
 
     private fun expectEqualityExpression(): JavascriptExpression {
@@ -330,15 +359,23 @@ class JavascriptParser(
     }
 
     private fun expectPrefixExpression(): JavascriptExpression {
-        if (maybeGetCurrentToken() in prefixTokens) {
-            return JavascriptExpression.UnaryOperation(
-                operator = expectToken(),
-                expression = expectPostfixIncrementExpression(),
+        val prefixTokenStack = Stack<JavascriptTokenType>()
+
+        while (maybeGetCurrentToken() in prefixTokens) {
+            prefixTokenStack.push(expectToken())
+        }
+
+        var expression = expectPostfixIncrementExpression()
+
+        while (prefixTokenStack.isNotEmpty()) {
+            expression = JavascriptExpression.UnaryOperation(
+                operator = prefixTokenStack.pop(),
+                expression = expression,
                 isPrefix = true
             )
         }
 
-        return expectPostfixIncrementExpression()
+        return expression
     }
 
     private fun expectPostfixIncrementExpression(): JavascriptExpression {
