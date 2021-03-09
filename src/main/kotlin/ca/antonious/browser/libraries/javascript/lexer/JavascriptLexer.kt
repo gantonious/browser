@@ -223,7 +223,7 @@ class JavascriptLexer (private val source: String) {
                 }
 
                 val digitsString = source.substring(digitsStart, cursor)
-                pushToken(JavascriptTokenType.Number(digitsString.toInt(8).toDouble()))
+                pushToken(JavascriptTokenType.Number(digitsString.toInt(2).toDouble()))
             }
             else -> {
                 val digitsStart = cursor
