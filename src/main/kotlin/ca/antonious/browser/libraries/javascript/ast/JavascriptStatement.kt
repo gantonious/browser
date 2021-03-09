@@ -37,34 +37,90 @@ sealed class JavascriptExpression : JavascriptStatement() {
 
 sealed class JavascriptValue {
     abstract val isTruthy: kotlin.Boolean
+    abstract fun coerceToNumber(): Double
+    abstract fun isSameType(other: JavascriptValue): kotlin.Boolean
+
+    inline fun <reified T> valueAs(): T? {
+        if (this !is T) return null
+        return this
+    }
+
+    companion object {
+        fun looselyEquals(lhs: JavascriptValue, rhs: JavascriptValue): kotlin.Boolean {
+            if (lhs.isSameType(rhs)) {
+                return lhs == rhs
+            }
+
+            val booleanOperand = lhs.valueAs<Boolean>() ?: rhs.valueAs<Boolean>()
+            val stringOperand = lhs.valueAs<String>() ?: rhs.valueAs<String>()
+            val numberOperand = lhs.valueAs<Number>() ?: rhs.valueAs<Number>()
+            val objectOperand = lhs.valueAs<Object>() ?: rhs.valueAs<Object>()
+            val functionOperand = lhs.valueAs<Object>() ?: rhs.valueAs<Object>()
+            val undefinedOperand = lhs.valueAs<Undefined>() ?: rhs.valueAs<Undefined>()
+
+            return when {
+                undefinedOperand != null -> false
+                numberOperand != null && stringOperand != null -> numberOperand.value == stringOperand.coerceToNumber()
+                numberOperand != null && booleanOperand != null -> numberOperand.value == booleanOperand.coerceToNumber()
+                numberOperand != null && objectOperand != null -> false
+                numberOperand != null && objectOperand != null -> false
+                stringOperand != null && booleanOperand != null -> stringOperand.coerceToNumber() == booleanOperand.coerceToNumber()
+                stringOperand != null && objectOperand != null  -> false
+                stringOperand != null && functionOperand != null  -> false
+                booleanOperand != null && objectOperand != null -> false
+                booleanOperand != null && functionOperand != null -> false
+                objectOperand != null && functionOperand != null -> false
+                else -> error("Should never be reached")
+            }
+        }
+    }
 
     object Undefined : JavascriptValue() {
         override val isTruthy = false
         override fun toString() = "undefined"
+        override fun coerceToNumber() = Double.NaN
+        override fun isSameType(other: JavascriptValue) = other is Undefined
     }
 
     data class Boolean(val value: kotlin.Boolean) : JavascriptValue() {
         override val isTruthy = value
         override fun toString() = value.toString()
+        override fun isSameType(other: JavascriptValue) = other is Boolean
+
+        override fun coerceToNumber(): Double {
+            return if (value) {
+                1.0
+            } else {
+                0.0
+            }
+        }
     }
 
     data class Number(val value: Double) : JavascriptValue() {
         override val isTruthy = value != 0.0
         override fun toString() = value.toString()
+        override fun coerceToNumber() = value
+        override fun isSameType(other: JavascriptValue) = other is Number
     }
 
     data class String(val value: kotlin.String) : JavascriptValue() {
         override val isTruthy = value.isNotEmpty()
         override fun toString() = value
+        override fun coerceToNumber() = value.toDoubleOrNull() ?: Double.NaN
+        override fun isSameType(other: JavascriptValue) = other is String
     }
 
     data class Object(val value: JavascriptObject) : JavascriptValue() {
         override val isTruthy = true
         override fun toString() = value.toString()
+        override fun coerceToNumber() = Double.NaN
+        override fun isSameType(other: JavascriptValue) = other is Object
     }
 
     data class Function(val value: JavascriptFunction) : JavascriptValue() {
         override val isTruthy = true
         override fun toString() = value.toString()
+        override fun coerceToNumber() = Double.NaN
+        override fun isSameType(other: JavascriptValue) = other is Function
     }
 }

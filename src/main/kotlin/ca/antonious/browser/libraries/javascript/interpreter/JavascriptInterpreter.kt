@@ -142,29 +142,67 @@ class JavascriptInterpreter {
                 return JavascriptValue.Undefined
             }
             is JavascriptExpression.BinaryOperation -> {
-                val lhsValue = interpret(statement.lhs)
-                val rhsValue = interpret(statement.rhs)
-
-                if (lhsValue !is JavascriptValue.Number) {
-                    error("Expected left hand side of operand '${lhsValue}' to be a number.")
-                }
-
-                if (rhsValue !is JavascriptValue.Number) {
-                    error("Expected right hand side of operand '${rhsValue}' to be a number.")
-                }
-
                 return when (statement.operator) {
                     is JavascriptTokenType.Operator.Plus -> {
-                        JavascriptValue.Number(lhsValue.value + rhsValue.value)
+                        val lhsValue = interpret(statement.lhs)
+                        val rhsValue = interpret(statement.rhs)
+
+                        if (lhsValue is JavascriptValue.String|| rhsValue is JavascriptValue.String) {
+                            JavascriptValue.String(lhsValue.toString() + rhsValue.toString())
+                        } else {
+                            JavascriptValue.Number(lhsValue.coerceToNumber() + rhsValue.coerceToNumber())
+                        }
                     }
                     is JavascriptTokenType.Operator.Minus -> {
-                        JavascriptValue.Number(lhsValue.value - rhsValue.value)
+                        JavascriptValue.Number(interpret(statement.lhs).coerceToNumber() - interpret(statement.rhs).coerceToNumber())
                     }
                     is JavascriptTokenType.Operator.Multiply -> {
-                        JavascriptValue.Number(lhsValue.value * rhsValue.value)
+                        JavascriptValue.Number(interpret(statement.lhs).coerceToNumber() * interpret(statement.rhs).coerceToNumber())
+                    }
+                    is JavascriptTokenType.Operator.Xor -> {
+                        val result = (
+                            interpret(statement.lhs).coerceToNumber().toInt() xor
+                            interpret(statement.rhs).coerceToNumber().toInt()
+                        ).toDouble()
+
+                        JavascriptValue.Number(result)
+                    }
+                    is JavascriptTokenType.Operator.Mod -> {
+                        JavascriptValue.Number(interpret(statement.lhs).coerceToNumber() % interpret(statement.rhs).coerceToNumber())
+                    }
+                    is JavascriptTokenType.Operator.LessThanOrEqual -> {
+                        JavascriptValue.Boolean(interpret(statement.lhs).coerceToNumber() <= interpret(statement.rhs).coerceToNumber())
                     }
                     is JavascriptTokenType.Operator.LessThan -> {
-                        JavascriptValue.Boolean(lhsValue.value < rhsValue.value)
+                        JavascriptValue.Boolean(interpret(statement.lhs).coerceToNumber() < interpret(statement.rhs).coerceToNumber())
+                    }
+                    is JavascriptTokenType.Operator.GreaterThanOrEqual -> {
+                        JavascriptValue.Boolean(interpret(statement.lhs).coerceToNumber() >= interpret(statement.rhs).coerceToNumber())
+                    }
+                    is JavascriptTokenType.Operator.GreaterThan -> {
+                        JavascriptValue.Boolean(interpret(statement.lhs).coerceToNumber() > interpret(statement.rhs).coerceToNumber())
+                    }
+                    is JavascriptTokenType.Operator.OrOr -> {
+                        val lhsValue = interpret(statement.lhs)
+                        if (lhsValue.isTruthy) {
+                            lhsValue
+                        } else {
+                            interpret(statement.rhs)
+                        }
+                    }
+                    is JavascriptTokenType.Operator.AndAnd -> {
+                        val lhsValue = interpret(statement.lhs)
+                        if (lhsValue.isTruthy) {
+                            interpret(statement.rhs)
+                        } else {
+                            lhsValue
+                        }
+                    }
+                    is JavascriptTokenType.Operator.StrictEquals -> {
+                        JavascriptValue.Boolean(interpret(statement.lhs) == interpret(statement.rhs))
+                    }
+                    is JavascriptTokenType.Operator.Equals -> {
+                        JavascriptValue.Boolean(JavascriptValue.looselyEquals(interpret(statement.lhs), interpret(statement.rhs)))
                     }
                     else -> {
                         error("${statement.operator} is unsupported for binary operations.")
@@ -173,6 +211,9 @@ class JavascriptInterpreter {
             }
             is JavascriptExpression.UnaryOperation -> {
                 return when (statement.operator) {
+                    is JavascriptTokenType.Operator.Not -> {
+                        JavascriptValue.Boolean(!interpret(statement.expression).isTruthy)
+                    }
                     else -> {
                         error("${statement.operator} is unsupported for Uunary operations.")
                     }
