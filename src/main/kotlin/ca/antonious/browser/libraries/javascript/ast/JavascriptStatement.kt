@@ -10,7 +10,9 @@ sealed class JavascriptStatement {
     data class Block(val body: List<JavascriptStatement>) : JavascriptStatement()
     data class Function(val name: String, val parameterNames: List<String>, val body: Block) : JavascriptStatement()
     data class Return(val expression: JavascriptExpression) : JavascriptStatement()
-    data class IfStatement(val condition: JavascriptExpression, val body: Block) : JavascriptStatement()
+    data class IfStatement(val conditions: List<ConditionAndBlock>) : JavascriptStatement() {
+        data class ConditionAndBlock(val condition: JavascriptExpression, val body: Block)
+    }
     data class WhileLoop(val condition: JavascriptExpression, val body: Block) : JavascriptStatement()
     data class LetAssignment(val name: String, val expression: JavascriptExpression) : JavascriptStatement()
     data class ConstAssignment(val name: String, val expression: JavascriptExpression) : JavascriptStatement()

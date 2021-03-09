@@ -19,6 +19,7 @@ sealed class JavascriptTokenType {
     object While : JavascriptTokenType()
     object For : JavascriptTokenType()
     object If : JavascriptTokenType()
+    object Else : JavascriptTokenType()
     object Return : JavascriptTokenType()
     object Let : JavascriptTokenType()
     object Const : JavascriptTokenType()
@@ -54,6 +55,7 @@ sealed class JavascriptTokenType {
         object MultiplyAssign : Operator()
         object DivideAssign : Operator()
         object Assignment : Operator()
+        object StrictEquals : Operator()
     }
 }
 

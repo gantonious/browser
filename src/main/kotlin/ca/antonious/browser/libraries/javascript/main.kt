@@ -6,27 +6,20 @@ import ca.antonious.browser.libraries.javascript.parser.JavascriptParser
 
 fun main() {
     val rawProgram = """
-        function generate() {
-            const sizeInput = document.getElementById("size")
-            const size = parseInt(sizeInput.value)
-        
-            const boardDiv = document.getElementById("board")
-            boardDiv.innerHTML = ''
-        
-            let number = 1
-            let row
-            let col
-            for (row = 0; row < size; row++) {
-                let rowDiv = document.createElement("div")
-                boardDiv.appendChild(rowDiv)
-                for (col = 0; col < size; col++) {
-                    let colDiv = document.createElement("div")
-                    colDiv.id = "row" + row + "col" + col
-                    colDiv.className = "square good-square"
-                    colDiv.innerHTML = "<img><span>" + number++ + "</span>"
-                    rowDiv.appendChild(colDiv)
-                }
-            }
+        function shuffle() {
+        	let i;
+        	for (i = 0; i < 1000; i++) {
+        		const num = Math.floor(Math.random() * 4) + 1;
+        		if (num === 1) {
+        			move("up")
+        		} else if (num === 2) {
+        			move("left")
+        		} else if (num === 3) {
+        			move("down")
+        		} else if (num === 4) {
+        			move("right")
+        		}
+        	}
         }
     """.trimIndent()
 

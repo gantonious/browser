@@ -81,9 +81,11 @@ class JavascriptInterpreter {
                 }
             }
             is JavascriptStatement.IfStatement -> {
-                val ifConditionValue = interpret(statement.condition)
-                if (ifConditionValue.isTruthy) {
-                    interpret(statement.body)
+                val conditionToExecute = statement.conditions.firstOrNull {
+                    interpret(it.condition).isTruthy
+                }
+                if (conditionToExecute != null) {
+                    interpret(conditionToExecute.body)
                 }
                 return JavascriptValue.Undefined
             }

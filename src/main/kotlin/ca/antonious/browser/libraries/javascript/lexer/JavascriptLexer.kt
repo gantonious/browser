@@ -6,6 +6,7 @@ class JavascriptLexer (private val source: String) {
         private val keywordTokenMap = mapOf(
             "function" to JavascriptTokenType.Function,
             "if" to JavascriptTokenType.If,
+            "else" to JavascriptTokenType.Else,
             "while" to JavascriptTokenType.While,
             "for" to JavascriptTokenType.For,
             "return" to JavascriptTokenType.Return,
@@ -58,6 +59,10 @@ class JavascriptLexer (private val source: String) {
             "||" to JavascriptTokenType.Operator.OrOr,
             "++" to JavascriptTokenType.PlusPlus,
             "--" to JavascriptTokenType.MinusMinus
+        )
+
+        private val threeCharTokenMap = mapOf(
+            "===" to JavascriptTokenType.Operator.StrictEquals
         )
     }
 
@@ -122,6 +127,16 @@ class JavascriptLexer (private val source: String) {
                     }
                 }
                 else -> {
+                    val tokenForNextThreeChars = threeCharTokenMap[getCurrentNChars(3)]
+
+                    if (tokenForNextThreeChars != null) {
+                        pushToken(tokenForNextThreeChars)
+                        advanceCursor()
+                        advanceCursor()
+                        advanceCursor()
+                        continue@mainLoop
+                    }
+
                     val tokenForNextTwoChar = twoCharTokenMap[getCurrentNChars(2)]
 
                     if (tokenForNextTwoChar != null) {

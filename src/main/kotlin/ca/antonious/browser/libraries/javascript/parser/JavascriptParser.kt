@@ -47,6 +47,10 @@ class JavascriptParser(
             JavascriptTokenType.PlusPlus,
             JavascriptTokenType.MinusMinus
         )
+
+        private val equalityTokens = setOf(
+            JavascriptTokenType.Operator.StrictEquals
+        )
     }
     private var cursor = 0
 
@@ -75,15 +79,44 @@ class JavascriptParser(
     }
 
     private fun expectIfStatement(): JavascriptStatement.IfStatement {
+        val conditions = mutableListOf<JavascriptStatement.IfStatement.ConditionAndBlock>()
+
         expectToken<JavascriptTokenType.If>()
         expectToken<JavascriptTokenType.OpenParentheses>()
-        val condition = expectExpression()
+        val mainCondition = expectExpression()
         expectToken<JavascriptTokenType.CloseParentheses>()
 
-        return JavascriptStatement.IfStatement(
-            condition = condition,
+        conditions += JavascriptStatement.IfStatement.ConditionAndBlock(
+            condition = mainCondition,
             body = expectBlock()
         )
+
+        while (maybeGetCurrentToken() is JavascriptTokenType.Else) {
+            expectToken<JavascriptTokenType.Else>()
+
+            conditions += when (getCurrentToken()) {
+                JavascriptTokenType.If -> {
+                    expectToken<JavascriptTokenType.If>()
+                    expectToken<JavascriptTokenType.OpenParentheses>()
+                    val elseIfCondition = expectExpression()
+                    expectToken<JavascriptTokenType.CloseParentheses>()
+
+                    JavascriptStatement.IfStatement.ConditionAndBlock(
+                        condition = elseIfCondition,
+                        body = expectBlock()
+                    )
+                }
+                JavascriptTokenType.OpenCurlyBracket -> {
+                    JavascriptStatement.IfStatement.ConditionAndBlock(
+                        condition = JavascriptExpression.Literal(JavascriptValue.Boolean(true)),
+                        body = expectBlock()
+                    )
+                }
+                else -> throwUnexpectedTokenFound()
+            }
+        }
+
+        return JavascriptStatement.IfStatement(conditions = conditions)
     }
 
     private fun expectFunctionDeclaration(): JavascriptStatement.Function {
@@ -205,9 +238,23 @@ class JavascriptParser(
     }
 
     private fun expectAssignmentExpression(): JavascriptExpression {
-        var expression = expectComparisonExpression()
+        var expression = expectEqualityExpression()
 
         while (maybeGetCurrentToken() in assignmentToken) {
+            expression = JavascriptExpression.BinaryOperation(
+                operator = expectToken(),
+                lhs = expression,
+                rhs = expectEqualityExpression()
+            )
+        }
+
+        return expression
+    }
+
+    private fun expectEqualityExpression(): JavascriptExpression {
+        var expression = expectComparisonExpression()
+
+        while (maybeGetCurrentToken() in equalityTokens) {
             expression = JavascriptExpression.BinaryOperation(
                 operator = expectToken(),
                 lhs = expression,
