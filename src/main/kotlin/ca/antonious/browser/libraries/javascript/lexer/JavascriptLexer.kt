@@ -108,6 +108,28 @@ class JavascriptLexer (private val source: String) {
                     pushToken(JavascriptTokenType.String(source.substring(stringStart, cursor)))
                     advanceCursor()
                 }
+                currentChar == '/' -> {
+                    advanceCursor()
+                    val regexStart = cursor
+
+                    while (!isAtEnd() && getCurrentChar() != '/') {
+                        advanceCursor()
+                    }
+
+                    val regexEnd = cursor
+                    advanceCursor()
+
+                    while (!isAtEnd() && getCurrentChar().isLetter()) {
+                        advanceCursor()
+                    }
+
+                    pushToken(
+                        JavascriptTokenType.RegularExpression(
+                            regex = source.substring(regexStart, regexEnd),
+                            flags = source.substring(regexEnd + 1, cursor)
+                        )
+                    )
+                }
                 currentChar.isDigit() -> pushNumber()
                 currentChar.isValidIdentifierStart() -> {
                     val textStartPosition = cursor

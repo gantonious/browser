@@ -6,17 +6,7 @@ import ca.antonious.browser.libraries.javascript.parser.JavascriptParser
 
 fun main() {
     val rawProgram = """
-        window.onkeydown = function (event) {
-            if (event.code === "ArrowUp") {
-                move("up")
-            } else if (event.code === "ArrowLeft") {
-                move("left")
-            } else if (event.code === "ArrowDown") {
-                move("down")
-            } else if (event.code === "ArrowRight") {
-                move("right")
-            }
-        }
+        const pattern = /\d+/g;
 
     """.trimIndent()
 
