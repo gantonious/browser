@@ -14,6 +14,12 @@ sealed class JavascriptStatement {
     data class WhileLoop(val condition: JavascriptExpression, val body: Block) : JavascriptStatement()
     data class LetAssignment(val name: String, val expression: JavascriptExpression) : JavascriptStatement()
     data class ConstAssignment(val name: String, val expression: JavascriptExpression) : JavascriptStatement()
+    data class ForLoop(
+        val initializerExpression: JavascriptExpression,
+        val conditionExpression: JavascriptExpression,
+        val updaterExpression: JavascriptExpression,
+        val body: Block
+    ) : JavascriptStatement()
 }
 
 sealed class JavascriptExpression : JavascriptStatement() {
@@ -23,6 +29,7 @@ sealed class JavascriptExpression : JavascriptStatement() {
     data class Reference(val name: String) : JavascriptExpression()
     data class Literal(val value: JavascriptValue) : JavascriptExpression()
     data class BinaryOperation(val operator: JavascriptTokenType.Operator, val lhs: JavascriptExpression, val rhs: JavascriptExpression): JavascriptExpression()
+    data class UnaryOperation(val operator: JavascriptTokenType, val expression: JavascriptExpression, val isPrefix: Boolean): JavascriptExpression()
 }
 
 sealed class JavascriptValue {

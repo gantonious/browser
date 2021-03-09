@@ -7,6 +7,7 @@ class JavascriptLexer (private val source: String) {
             "function" to JavascriptTokenType.Function,
             "if" to JavascriptTokenType.If,
             "while" to JavascriptTokenType.While,
+            "for" to JavascriptTokenType.For,
             "return" to JavascriptTokenType.Return,
             "true" to JavascriptTokenType.Boolean(true),
             "false" to JavascriptTokenType.Boolean(false),
@@ -54,7 +55,9 @@ class JavascriptLexer (private val source: String) {
             ">=" to JavascriptTokenType.Operator.GreaterThanOrEqual,
             "<=" to JavascriptTokenType.Operator.LessThanOrEqual,
             "&&" to JavascriptTokenType.Operator.AndAnd,
-            "||" to JavascriptTokenType.Operator.OrOr
+            "||" to JavascriptTokenType.Operator.OrOr,
+            "++" to JavascriptTokenType.PlusPlus,
+            "--" to JavascriptTokenType.MinusMinus
         )
     }
 

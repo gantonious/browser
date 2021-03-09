@@ -17,10 +17,13 @@ sealed class JavascriptTokenType {
     object Not : JavascriptTokenType()
     object Function : JavascriptTokenType()
     object While : JavascriptTokenType()
+    object For : JavascriptTokenType()
     object If : JavascriptTokenType()
     object Return : JavascriptTokenType()
     object Let : JavascriptTokenType()
     object Const : JavascriptTokenType()
+    object PlusPlus : JavascriptTokenType()
+    object MinusMinus : JavascriptTokenType()
 
     data class String(val value: kotlin.String) : JavascriptTokenType()
     data class Number(val value: Double) : JavascriptTokenType()

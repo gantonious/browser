@@ -42,6 +42,11 @@ class JavascriptParser(
             JavascriptTokenType.Operator.MultiplyAssign,
             JavascriptTokenType.Operator.DivideAssign
         )
+
+        private val incrementTokens = setOf(
+            JavascriptTokenType.PlusPlus,
+            JavascriptTokenType.MinusMinus
+        )
     }
     private var cursor = 0
 
@@ -64,6 +69,7 @@ class JavascriptParser(
             is JavascriptTokenType.Return -> expectReturnStatement()
             is JavascriptTokenType.Let -> expectLetStatement()
             is JavascriptTokenType.Const -> expectConstStatement()
+            is JavascriptTokenType.For -> expectForLoop()
             else -> expectExpression()
         }
     }
@@ -129,6 +135,25 @@ class JavascriptParser(
         )
     }
 
+    private fun expectForLoop(): JavascriptStatement.ForLoop {
+        expectToken<JavascriptTokenType.For>()
+
+        expectToken<JavascriptTokenType.OpenParentheses>()
+        val initializerExpression = expectExpression()
+        expectToken<JavascriptTokenType.SemiColon>()
+        val conditionExpression = expectExpression()
+        expectToken<JavascriptTokenType.SemiColon>()
+        val updaterExpression = expectExpression()
+        expectToken<JavascriptTokenType.CloseParentheses>()
+
+        return JavascriptStatement.ForLoop(
+            initializerExpression = initializerExpression,
+            conditionExpression = conditionExpression,
+            updaterExpression = updaterExpression,
+            body = expectBlock()
+        )
+    }
+
     private fun expectBlock(): JavascriptStatement.Block {
         val statements = mutableListOf<JavascriptStatement>()
 
@@ -148,6 +173,14 @@ class JavascriptParser(
     private fun expectLetStatement(): JavascriptStatement.LetAssignment {
         expectToken<JavascriptTokenType.Let>()
         val name = expectToken<JavascriptTokenType.Identifier>().name
+
+        if (maybeGetCurrentToken() !is JavascriptTokenType.Operator.Assignment) {
+            return JavascriptStatement.LetAssignment(
+                name = name,
+                expression = JavascriptExpression.Literal(value = JavascriptValue.Undefined)
+            )
+        }
+
         expectToken<JavascriptTokenType.Operator.Assignment>()
 
         return JavascriptStatement.LetAssignment(
@@ -178,7 +211,7 @@ class JavascriptParser(
             expression = JavascriptExpression.BinaryOperation(
                 operator = expectToken(),
                 lhs = expression,
-                rhs = expectMultiplicativeExpression()
+                rhs = expectComparisonExpression()
             )
         }
 
@@ -214,13 +247,27 @@ class JavascriptParser(
     }
 
     private fun expectMultiplicativeExpression(): JavascriptExpression {
-        var expression = expectPostfixExpression()
+        var expression = expectPostfixIncrementExpression()
 
         while (maybeGetCurrentToken() in multiplicativeTokens) {
             expression = JavascriptExpression.BinaryOperation(
                 operator = expectToken(),
                 lhs = expression,
                 rhs = expectPostfixExpression()
+            )
+        }
+
+        return expression
+    }
+
+    private fun expectPostfixIncrementExpression(): JavascriptExpression {
+        val expression = expectPostfixExpression()
+
+        if (maybeGetCurrentToken() in incrementTokens) {
+            return JavascriptExpression.UnaryOperation(
+                operator = expectToken(),
+                expression = expression,
+                isPrefix = false
             )
         }
 

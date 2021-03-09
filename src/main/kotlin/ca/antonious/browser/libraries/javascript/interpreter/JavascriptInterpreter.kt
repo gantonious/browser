@@ -101,6 +101,16 @@ class JavascriptInterpreter {
                 }
                 return JavascriptValue.Undefined
             }
+            is JavascriptStatement.ForLoop -> {
+                interpret(statement.initializerExpression)
+
+                while (interpret(statement.conditionExpression).isTruthy) {
+                    interpret(statement.body)
+                    interpret(statement.updaterExpression)
+                }
+
+                return JavascriptValue.Undefined
+            }
             is JavascriptExpression.BinaryOperation -> {
                 val lhsValue = interpret(statement.lhs)
                 val rhsValue = interpret(statement.rhs)
@@ -130,6 +140,9 @@ class JavascriptInterpreter {
                         error("${statement.operator} is unsupported for binary operations.")
                     }
                 }
+            }
+            is JavascriptExpression.UnaryOperation -> {
+                return JavascriptValue.Undefined
             }
             is JavascriptExpression.Reference -> {
                 return when (val value = currentScope.getProperty(statement.name)) {
