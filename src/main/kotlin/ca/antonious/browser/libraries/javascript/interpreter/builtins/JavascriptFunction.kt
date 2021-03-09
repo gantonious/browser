@@ -1,12 +1,12 @@
-package ca.antonious.browser.libraries.javascript.interpreter
+package ca.antonious.browser.libraries.javascript.interpreter.builtins
 
 import ca.antonious.browser.libraries.javascript.ast.JavascriptStatement
 import ca.antonious.browser.libraries.javascript.ast.JavascriptValue
 
 sealed class JavascriptFunction {
-    data class UserDefined(val functionStatement: JavascriptStatement.Function) : JavascriptFunction() {
+    data class UserDefined(val parameterNames: List<String>, val body: JavascriptStatement.Block) : JavascriptFunction() {
         override fun toString(): String {
-            return "function ${functionStatement.name}(${functionStatement.parameterNames.joinToString { ", "}}) { ... }"
+            return "function (${parameterNames.joinToString { ", "}}) { ... }"
         }
     }
     class Native(val body: (List<JavascriptValue>) -> JavascriptValue) : JavascriptFunction() {

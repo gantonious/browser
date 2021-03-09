@@ -6,11 +6,10 @@ import ca.antonious.browser.libraries.html.HtmlElement
 import ca.antonious.browser.libraries.html.HtmlParser
 import ca.antonious.browser.libraries.http.*
 import ca.antonious.browser.libraries.javascript.ast.JavascriptValue
-import ca.antonious.browser.libraries.javascript.interpreter.JavascriptArray
+import ca.antonious.browser.libraries.javascript.interpreter.builtins.JavascriptArray
 import ca.antonious.browser.libraries.javascript.interpreter.JavascriptInterpreter
 import ca.antonious.browser.libraries.javascript.interpreter.JavascriptObject
 import ca.antonious.browser.libraries.javascript.interpreter.setNativeFunction
-import ca.antonious.browser.libraries.javascript.parser.JavascriptParser
 import ca.antonious.browser.libraries.layout.builtins.BlockNode
 import ca.antonious.browser.libraries.web.layout.DOMLayoutNode
 import ca.antonious.browser.libraries.web.layout.DOMParentLayoutNode

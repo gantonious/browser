@@ -1,16 +1,17 @@
 package ca.antonious.browser.libraries.javascript.interpreter
 
 import ca.antonious.browser.libraries.javascript.ast.JavascriptValue
+import ca.antonious.browser.libraries.javascript.interpreter.builtins.JavascriptFunction
 
-open class JavascriptObject(val parent: JavascriptObject? = null) {
+open class JavascriptObject {
 
-    private val properties = mutableMapOf<String, Any?>()
+    private val properties = mutableMapOf<String, JavascriptValue>()
 
-    fun getProperty(key: String): Any? {
-        return properties[key] ?: parent?.getProperty(key)
+    fun getProperty(key: String): JavascriptValue? {
+        return properties[key]
     }
 
-    fun setProperty(key: String, value: Any?) {
+    fun setProperty(key: String, value: JavascriptValue) {
         properties[key] = value
     }
 

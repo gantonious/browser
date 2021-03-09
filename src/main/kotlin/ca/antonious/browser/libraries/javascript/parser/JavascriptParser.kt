@@ -4,7 +4,7 @@ import ca.antonious.browser.libraries.javascript.ast.JavascriptExpression
 import ca.antonious.browser.libraries.javascript.ast.JavascriptProgram
 import ca.antonious.browser.libraries.javascript.ast.JavascriptStatement
 import ca.antonious.browser.libraries.javascript.ast.JavascriptValue
-import ca.antonious.browser.libraries.javascript.interpreter.JavascriptRegex
+import ca.antonious.browser.libraries.javascript.interpreter.builtins.JavascriptRegex
 import ca.antonious.browser.libraries.javascript.lexer.JavascriptToken
 import ca.antonious.browser.libraries.javascript.lexer.JavascriptTokenType
 import kotlin.math.max

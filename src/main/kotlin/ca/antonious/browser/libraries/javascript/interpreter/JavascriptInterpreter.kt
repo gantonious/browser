@@ -1,9 +1,11 @@
 package ca.antonious.browser.libraries.javascript.interpreter
 
 import ca.antonious.browser.libraries.javascript.ast.*
+import ca.antonious.browser.libraries.javascript.interpreter.builtins.JavascriptFunction
 import ca.antonious.browser.libraries.javascript.lexer.JavascriptLexer
 import ca.antonious.browser.libraries.javascript.lexer.JavascriptTokenType
 import ca.antonious.browser.libraries.javascript.parser.JavascriptParser
+import java.util.*
 
 class JavascriptInterpreter {
     val globalObject = JavascriptObject().apply {
@@ -23,8 +25,22 @@ class JavascriptInterpreter {
         }))
     }
 
-    private var currentScope = globalObject
+    private var stack = Stack<JavascriptStackFrame>().apply {
+        push(
+            JavascriptStackFrame(
+                scope = JavascriptScope(
+                    thisBinding = globalObject,
+                    scopeObject = JavascriptObject(),
+                    parentScope = null
+                )
+            )
+        )
+    }
+
     private var lastReturn: JavascriptValue? = null
+
+    private val currentScope: JavascriptScope
+        get() = stack.peek().scope
 
     fun interpret(javascript: String): JavascriptValue {
         val tokens = JavascriptLexer(javascript).lex()
@@ -43,7 +59,7 @@ class JavascriptInterpreter {
             }
             is JavascriptStatement.Function -> {
                 val value = JavascriptValue.Function(
-                    value = JavascriptFunction.UserDefined(functionStatement = statement)
+                    value = JavascriptFunction.UserDefined(statement.parameterNames, statement.body)
                 )
                 currentScope.setProperty(key = statement.name, value = value)
                 return JavascriptValue.Undefined
@@ -67,9 +83,9 @@ class JavascriptInterpreter {
                         return function.body.invoke(statement.parameters.map { interpret(it) })
                     }
                     is JavascriptFunction.UserDefined -> {
-                        enterFunction(function.functionStatement, statement.parameters)
+                        enterFunction(function.parameterNames, statement.parameters)
 
-                        for (child in function.functionStatement.body.body) {
+                        for (child in function.body.body) {
                             interpret(child)
                             if (lastReturn != null) {
                                 break
@@ -181,7 +197,7 @@ class JavascriptInterpreter {
                 return statement.value
             }
             is JavascriptExpression.AnonymousFunction -> {
-                return JavascriptValue.Undefined
+                return JavascriptValue.Function(JavascriptFunction.UserDefined(statement.parameterNames, statement.body))
             }
         }
     }
@@ -195,17 +211,23 @@ class JavascriptInterpreter {
         return result
     }
 
-    private fun enterFunction(function: JavascriptStatement.Function, passedParameters: List<JavascriptExpression>) {
-        currentScope = JavascriptObject(currentScope).apply {
-            function.parameterNames.forEachIndexed { index, parameterName ->
-                setProperty(parameterName, interpret(passedParameters.getOrElse(index) {
-                    JavascriptExpression.Literal(value = JavascriptValue.Undefined)
-                }))
-            }
-        }
+    private fun enterFunction(parameterNames: List<String>, passedParameters: List<JavascriptExpression>) {
+        val functionScope = JavascriptScope(
+            thisBinding = globalObject,
+            scopeObject = JavascriptObject().apply {
+                    parameterNames.forEachIndexed { index, parameterName ->
+                    setProperty(parameterName, interpret(passedParameters.getOrElse(index) {
+                        JavascriptExpression.Literal(value = JavascriptValue.Undefined)
+                    }))
+                }
+            },
+            parentScope = stack.peek().scope
+        )
+
+        stack.push(JavascriptStackFrame(functionScope))
     }
 
     private fun exitFunction() {
-        currentScope = currentScope.parent ?: globalObject
+        stack.pop()
     }
 }
