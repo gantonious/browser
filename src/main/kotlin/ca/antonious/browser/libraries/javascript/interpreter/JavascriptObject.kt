@@ -7,11 +7,11 @@ open class JavascriptObject {
 
     private val properties = mutableMapOf<String, JavascriptValue>()
 
-    fun getProperty(key: String): JavascriptValue? {
-        return properties[key]
+    open fun getProperty(key: String): JavascriptValue {
+        return properties[key] ?: JavascriptValue.Undefined
     }
 
-    fun setProperty(key: String, value: JavascriptValue) {
+    open fun setProperty(key: String, value: JavascriptValue) {
         properties[key] = value
     }
 

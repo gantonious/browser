@@ -22,6 +22,13 @@ class JavascriptArray(initialValues: List<JavascriptValue> = emptyList()) : Java
         }
     }
 
+    override fun getProperty(key: String): JavascriptValue {
+        return when (key) {
+            "length" -> JavascriptValue.Number(array.size.toDouble())
+            else -> JavascriptValue.Undefined
+        }
+    }
+
     override fun toString(): String {
         return array.toString()
     }

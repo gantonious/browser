@@ -168,14 +168,14 @@ class JavascriptInterpreter {
                 }
             }
             is JavascriptExpression.UnaryOperation -> {
-                return JavascriptValue.Undefined
+                return when (statement.operator) {
+                    else -> {
+                        error("${statement.operator} is unsupported for Uunary operations.")
+                    }
+                }
             }
             is JavascriptExpression.Reference -> {
-                return when (val value = currentScope.getProperty(statement.name)) {
-                    is JavascriptValue -> value
-                    is JavascriptStatement -> interpret(value)
-                    else -> JavascriptValue.Undefined
-                }
+                return currentScope.getProperty(statement.name)
             }
             is JavascriptExpression.DotAccess -> {
                 val value = when (val value = interpret(statement.expression)) {
@@ -183,20 +183,16 @@ class JavascriptInterpreter {
                     else -> error("Cannot access property '${statement.propertyName}' on ${value} since it's not an object.")
                 }
 
-                return when (val property = value.getProperty(statement.propertyName)) {
-                    is JavascriptValue -> property
-                    is JavascriptStatement -> interpret(property)
-                    else -> JavascriptValue.Undefined
-                }
+                return value.getProperty(statement.propertyName)
             }
             is JavascriptExpression.IndexAccess -> {
                 val value = when (val value = interpret(statement.expression)) {
                     is JavascriptValue.Object -> value.value
-                    else -> error("Cannot index ${value} since it's not an object.")
+                    else -> error("Cannot index $value since it's not an object.")
                 }
 
                 val property = interpret(statement.indexExpression)
-                return (value.getProperty(property.toString()) as? JavascriptValue) ?: JavascriptValue.Undefined
+                return value.getProperty(property.toString())
             }
             is JavascriptExpression.Literal -> {
                 return statement.value
