@@ -493,7 +493,7 @@ class JavascriptParser(
 
     private fun throwUnexpectedTokenFound(): Nothing {
         val sourceInfo = tokens[cursor].sourceInfo
-        val topLine = "Uncaught SyntaxError: Unexpected token '${getCurrentToken()}'"
+        val topLine = "Uncaught SyntaxError: Unexpected token"
         val errorLines = sourceLines.subList(max(0, sourceInfo.line - 3), sourceInfo.line + 1)
 
         val message = "$topLine\n${errorLines.joinToString("\n")}\n${" ".repeat(sourceInfo.column)}^"
