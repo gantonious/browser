@@ -49,13 +49,18 @@ class JavascriptInterpreter {
     }
 
     fun interpret(program: JavascriptProgram): JavascriptValue {
-        return interpretChildren(program.body)
+        return interpret(JavascriptStatement.Block(program.body))
     }
 
     private fun interpret(statement: JavascriptStatement): JavascriptValue {
         when (statement) {
             is JavascriptStatement.Block -> {
-                return interpretChildren(statement.body)
+                var result: JavascriptValue = JavascriptValue.Undefined
+                for (child in statement.body) {
+                    result = interpret(child)
+                }
+
+                return result
             }
             is JavascriptStatement.Function -> {
                 val value = JavascriptValue.Function(
@@ -200,15 +205,6 @@ class JavascriptInterpreter {
                 return JavascriptValue.Function(JavascriptFunction.UserDefined(statement.parameterNames, statement.body))
             }
         }
-    }
-
-    private fun interpretChildren(statements: List<JavascriptStatement>): JavascriptValue {
-        var result: JavascriptValue = JavascriptValue.Undefined
-        for (child in statements) {
-            result = interpret(child)
-        }
-
-        return result
     }
 
     private fun enterFunction(parameterNames: List<String>, passedParameters: List<JavascriptExpression>) {
