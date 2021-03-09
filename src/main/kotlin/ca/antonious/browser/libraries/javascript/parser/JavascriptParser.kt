@@ -4,7 +4,6 @@ import ca.antonious.browser.libraries.javascript.ast.JavascriptExpression
 import ca.antonious.browser.libraries.javascript.ast.JavascriptProgram
 import ca.antonious.browser.libraries.javascript.ast.JavascriptStatement
 import ca.antonious.browser.libraries.javascript.ast.JavascriptValue
-import ca.antonious.browser.libraries.javascript.interpreter.JavascriptInterpreter
 import ca.antonious.browser.libraries.javascript.interpreter.JavascriptRegex
 import ca.antonious.browser.libraries.javascript.lexer.JavascriptToken
 import ca.antonious.browser.libraries.javascript.lexer.JavascriptTokenType
@@ -63,6 +62,8 @@ class JavascriptParser(
             JavascriptTokenType.Operator.Equals,
             JavascriptTokenType.Operator.StrictEquals
         )
+
+        private val rightToLeftAssociativeOperators = assignmentToken
     }
     private var cursor = 0
 
@@ -269,7 +270,7 @@ class JavascriptParser(
             )
         }
 
-        return expression
+        return expression.convertToRightToLeftAssociativity()
     }
 
     private fun expectEqualityExpression(): JavascriptExpression {
@@ -532,6 +533,33 @@ class JavascriptParser(
         return cursor >= tokens.size
     }
 
+    private fun JavascriptExpression.convertToRightToLeftAssociativity(): JavascriptExpression {
+        if (this !is JavascriptExpression.BinaryOperation) {
+            return this
+        }
+
+        var currentExpression: JavascriptExpression.BinaryOperation = this
+
+        while (
+            currentExpression.operator in rightToLeftAssociativeOperators &&
+            currentExpression.lhs is JavascriptExpression.BinaryOperation
+        ) {
+            val lhsBinaryExpression = currentExpression.lhs as JavascriptExpression.BinaryOperation
+
+            currentExpression = JavascriptExpression.BinaryOperation(
+                operator = lhsBinaryExpression.operator,
+                lhs = lhsBinaryExpression.lhs,
+                rhs = JavascriptExpression.BinaryOperation(
+                    operator = currentExpression.operator,
+                    lhs = lhsBinaryExpression.rhs,
+                    rhs = currentExpression.rhs
+                )
+            )
+        }
+
+        return currentExpression
+    }
+
     class UnexpectedTokenException(message: String) : Exception(message)
-    class UnexpectedEndOfFileException() : Exception("Uncaught SyntaxError: Unexpected eof.")
+    class UnexpectedEndOfFileException : Exception("Uncaught SyntaxError: Unexpected eof.")
 }
