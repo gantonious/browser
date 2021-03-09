@@ -4,6 +4,8 @@ import ca.antonious.browser.libraries.javascript.ast.JavascriptExpression
 import ca.antonious.browser.libraries.javascript.ast.JavascriptProgram
 import ca.antonious.browser.libraries.javascript.ast.JavascriptStatement
 import ca.antonious.browser.libraries.javascript.ast.JavascriptValue
+import ca.antonious.browser.libraries.javascript.interpreter.JavascriptInterpreter
+import ca.antonious.browser.libraries.javascript.interpreter.JavascriptRegex
 import ca.antonious.browser.libraries.javascript.lexer.JavascriptToken
 import ca.antonious.browser.libraries.javascript.lexer.JavascriptTokenType
 import kotlin.math.max
@@ -48,7 +50,17 @@ class JavascriptParser(
             JavascriptTokenType.MinusMinus
         )
 
+        private val prefixTokens = setOf(
+            JavascriptTokenType.PlusPlus,
+            JavascriptTokenType.MinusMinus,
+            JavascriptTokenType.Operator.Not,
+            JavascriptTokenType.Operator.BitNot,
+            JavascriptTokenType.Operator.Plus,
+            JavascriptTokenType.Operator.Minus
+        )
+
         private val equalityTokens = setOf(
+            JavascriptTokenType.Operator.Equals,
             JavascriptTokenType.Operator.StrictEquals
         )
     }
@@ -148,9 +160,18 @@ class JavascriptParser(
     private fun expectReturnStatement(): JavascriptStatement.Return {
         expectToken<JavascriptTokenType.Return>()
 
-        return JavascriptStatement.Return(
-            expression = expectExpression()
-        )
+        return when (maybeGetCurrentToken()) {
+            is JavascriptTokenType.SemiColon -> {
+                advanceCursor()
+                JavascriptStatement.Return(expression = null)
+            }
+            is JavascriptTokenType.CloseCurlyBracket, null -> {
+                JavascriptStatement.Return(expression = null)
+            }
+            else -> {
+                JavascriptStatement.Return(expression = expectExpression())
+            }
+        }
     }
 
     private fun expectWhileLoop(): JavascriptStatement.WhileLoop {
@@ -294,17 +315,29 @@ class JavascriptParser(
     }
 
     private fun expectMultiplicativeExpression(): JavascriptExpression {
-        var expression = expectPostfixIncrementExpression()
+        var expression = expectPrefixExpression()
 
         while (maybeGetCurrentToken() in multiplicativeTokens) {
             expression = JavascriptExpression.BinaryOperation(
                 operator = expectToken(),
                 lhs = expression,
-                rhs = expectPostfixExpression()
+                rhs = expectPrefixExpression()
             )
         }
 
         return expression
+    }
+
+    private fun expectPrefixExpression(): JavascriptExpression {
+        if (maybeGetCurrentToken() in prefixTokens) {
+            return JavascriptExpression.UnaryOperation(
+                operator = expectToken(),
+                expression = expectPostfixIncrementExpression(),
+                isPrefix = true
+            )
+        }
+
+        return expectPostfixIncrementExpression()
     }
 
     private fun expectPostfixIncrementExpression(): JavascriptExpression {
@@ -383,6 +416,7 @@ class JavascriptParser(
 
     private fun expectSimpleExpression(): JavascriptExpression {
         return when (val currentToken = getCurrentToken()) {
+            is JavascriptTokenType.OpenParentheses -> expectGroupExpression()
             is JavascriptTokenType.Function -> expectAnonymousFunctionExpression()
             is JavascriptTokenType.Number -> {
                 advanceCursor()
@@ -404,8 +438,19 @@ class JavascriptParser(
                 advanceCursor()
                 JavascriptExpression.Reference(name = currentToken.name)
             }
+            is JavascriptTokenType.RegularExpression -> {
+                advanceCursor()
+                JavascriptExpression.Literal(value = JavascriptValue.Object(JavascriptRegex(currentToken.regex, currentToken.flags)))
+            }
             else -> throwUnexpectedTokenFound()
         }
+    }
+
+    private fun expectGroupExpression(): JavascriptExpression {
+        expectToken<JavascriptTokenType.OpenParentheses>()
+        val expression = expectExpression()
+        expectToken<JavascriptTokenType.CloseParentheses>()
+        return expression
     }
 
     private fun expectAnonymousFunctionExpression(): JavascriptExpression {

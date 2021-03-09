@@ -13,8 +13,7 @@ sealed class JavascriptTokenType {
     object CloseCurlyBracket : JavascriptTokenType()
     object OpenBracket : JavascriptTokenType()
     object CloseBracket : JavascriptTokenType()
-    object BitNot: JavascriptTokenType()
-    object Not : JavascriptTokenType()
+
     object Function : JavascriptTokenType()
     object While : JavascriptTokenType()
     object For : JavascriptTokenType()
@@ -56,7 +55,10 @@ sealed class JavascriptTokenType {
         object MultiplyAssign : Operator()
         object DivideAssign : Operator()
         object Assignment : Operator()
+        object Equals : Operator()
         object StrictEquals : Operator()
+        object BitNot: Operator()
+        object Not : Operator()
     }
 }
 

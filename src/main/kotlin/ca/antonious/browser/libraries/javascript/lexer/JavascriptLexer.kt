@@ -31,9 +31,9 @@ class JavascriptLexer (private val source: String) {
             ']' to JavascriptTokenType.CloseBracket,
             '|' to JavascriptTokenType.Operator.Or,
             '&' to JavascriptTokenType.Operator.And,
-            '~' to JavascriptTokenType.BitNot,
+            '~' to JavascriptTokenType.Operator.BitNot,
             '^' to JavascriptTokenType.Operator.Xor,
-            '!' to JavascriptTokenType.Not,
+            '!' to JavascriptTokenType.Operator.Not,
             '%' to JavascriptTokenType.Operator.Mod,
             '+' to JavascriptTokenType.Operator.Plus,
             '-' to JavascriptTokenType.Operator.Minus,
@@ -58,7 +58,8 @@ class JavascriptLexer (private val source: String) {
             "&&" to JavascriptTokenType.Operator.AndAnd,
             "||" to JavascriptTokenType.Operator.OrOr,
             "++" to JavascriptTokenType.PlusPlus,
-            "--" to JavascriptTokenType.MinusMinus
+            "--" to JavascriptTokenType.MinusMinus,
+            "==" to JavascriptTokenType.Operator.Equals
         )
 
         private val threeCharTokenMap = mapOf(

@@ -9,7 +9,7 @@ data class JavascriptProgram(val body: List<JavascriptStatement>)
 sealed class JavascriptStatement {
     data class Block(val body: List<JavascriptStatement>) : JavascriptStatement()
     data class Function(val name: String, val parameterNames: List<String>, val body: Block) : JavascriptStatement()
-    data class Return(val expression: JavascriptExpression) : JavascriptStatement()
+    data class Return(val expression: JavascriptExpression?) : JavascriptStatement()
     data class IfStatement(val conditions: List<ConditionAndBlock>) : JavascriptStatement() {
         data class ConditionAndBlock(val condition: JavascriptExpression, val body: Block)
     }

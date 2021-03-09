@@ -49,7 +49,10 @@ class JavascriptInterpreter {
                 return JavascriptValue.Undefined
             }
             is JavascriptStatement.Return -> {
-                lastReturn = interpret(statement.expression)
+                if (statement.expression != null) {
+                    lastReturn = interpret(statement.expression)
+                }
+
                 return JavascriptValue.Undefined
             }
             is JavascriptExpression.FunctionCall -> {
