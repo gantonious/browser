@@ -13,11 +13,17 @@ class JavascriptScope (
     }
 
     fun getProperty(key: String): JavascriptValue {
-        return (
-            scopeObject.getProperty(key) ?:
-            parentScope?.getProperty(key) ?:
-            thisBinding.getProperty(key)
-        ) as JavascriptValue
+        var returnValue = scopeObject.getProperty(key)
+
+        if (returnValue == JavascriptValue.Undefined) {
+            returnValue = parentScope?.getProperty(key) ?: JavascriptValue.Undefined
+        }
+
+        if (returnValue == JavascriptValue.Undefined) {
+            returnValue = thisBinding.getProperty(key)
+        }
+
+        return returnValue
     }
 
     fun setProperty(key: String, value: JavascriptValue) {

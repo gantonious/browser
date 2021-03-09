@@ -2,9 +2,14 @@ package ca.antonious.browser.libraries.javascript.interpreter.builtins
 
 import ca.antonious.browser.libraries.javascript.ast.JavascriptStatement
 import ca.antonious.browser.libraries.javascript.ast.JavascriptValue
+import ca.antonious.browser.libraries.javascript.interpreter.JavascriptScope
 
 sealed class JavascriptFunction {
-    data class UserDefined(val parameterNames: List<String>, val body: JavascriptStatement.Block) : JavascriptFunction() {
+    data class UserDefined(
+        val parameterNames: List<String>,
+        val body: JavascriptStatement.Block,
+        val parentScope: JavascriptScope
+    ) : JavascriptFunction() {
         override fun toString(): String {
             return "function (${parameterNames.joinToString { ", "}}) { ... }"
         }

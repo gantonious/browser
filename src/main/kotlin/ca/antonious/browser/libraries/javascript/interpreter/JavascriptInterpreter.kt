@@ -64,7 +64,11 @@ class JavascriptInterpreter {
             }
             is JavascriptStatement.Function -> {
                 val value = JavascriptValue.Function(
-                    value = JavascriptFunction.UserDefined(statement.parameterNames, statement.body)
+                    value = JavascriptFunction.UserDefined(
+                        parameterNames = statement.parameterNames,
+                        body = statement.body,
+                        parentScope = currentScope
+                    )
                 )
                 currentScope.setProperty(key = statement.name, value = value)
                 return JavascriptValue.Undefined
@@ -88,7 +92,7 @@ class JavascriptInterpreter {
                         return function.body.invoke(statement.parameters.map { interpret(it) })
                     }
                     is JavascriptFunction.UserDefined -> {
-                        enterFunction(function.parameterNames, statement.parameters)
+                        enterFunction(function, statement.parameters)
 
                         for (child in function.body.body) {
                             interpret(child)
@@ -198,22 +202,28 @@ class JavascriptInterpreter {
                 return statement.value
             }
             is JavascriptExpression.AnonymousFunction -> {
-                return JavascriptValue.Function(JavascriptFunction.UserDefined(statement.parameterNames, statement.body))
+                return JavascriptValue.Function(
+                    JavascriptFunction.UserDefined(
+                        parameterNames =  statement.parameterNames,
+                        body = statement.body,
+                        parentScope = currentScope
+                    )
+                )
             }
         }
     }
 
-    private fun enterFunction(parameterNames: List<String>, passedParameters: List<JavascriptExpression>) {
+    private fun enterFunction(function: JavascriptFunction.UserDefined, passedParameters: List<JavascriptExpression>) {
         val functionScope = JavascriptScope(
             thisBinding = globalObject,
             scopeObject = JavascriptObject().apply {
-                    parameterNames.forEachIndexed { index, parameterName ->
+                    function.parameterNames.forEachIndexed { index, parameterName ->
                     setProperty(parameterName, interpret(passedParameters.getOrElse(index) {
                         JavascriptExpression.Literal(value = JavascriptValue.Undefined)
                     }))
                 }
             },
-            parentScope = stack.peek().scope
+            parentScope = function.parentScope
         )
 
         stack.push(JavascriptStackFrame(functionScope))

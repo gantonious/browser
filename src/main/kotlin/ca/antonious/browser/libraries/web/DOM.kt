@@ -119,9 +119,9 @@ class DOM {
                             val script = htmlElement.requireChildrenAsText().text
                             javascriptInterpreter.interpret(script)
                         } else {
-//                            httpClient.execute(HttpRequest(resolveUrl(src), HttpMethod.Get)).onSuccess { response ->
-//                                javascriptInterpreter.interpret(JavascriptNode.Program(javascriptParser.parse(response.body)))
-//                            }
+                            httpClient.execute(HttpRequest(resolveUrl(src), HttpMethod.Get)).onSuccess { response ->
+                                javascriptInterpreter.interpret(response.body)
+                            }
                         }
                     }
                     "link" -> {
