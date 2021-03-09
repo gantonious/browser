@@ -177,6 +177,9 @@ class JavascriptInterpreter {
             is JavascriptExpression.Literal -> {
                 return statement.value
             }
+            is JavascriptExpression.AnonymousFunction -> {
+                return JavascriptValue.Undefined
+            }
         }
     }
 

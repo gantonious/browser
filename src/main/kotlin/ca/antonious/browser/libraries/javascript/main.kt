@@ -6,21 +6,18 @@ import ca.antonious.browser.libraries.javascript.parser.JavascriptParser
 
 fun main() {
     val rawProgram = """
-        function shuffle() {
-        	let i;
-        	for (i = 0; i < 1000; i++) {
-        		const num = Math.floor(Math.random() * 4) + 1;
-        		if (num === 1) {
-        			move("up")
-        		} else if (num === 2) {
-        			move("left")
-        		} else if (num === 3) {
-        			move("down")
-        		} else if (num === 4) {
-        			move("right")
-        		}
-        	}
+        window.onkeydown = function (event) {
+            if (event.code === "ArrowUp") {
+                move("up")
+            } else if (event.code === "ArrowLeft") {
+                move("left")
+            } else if (event.code === "ArrowDown") {
+                move("down")
+            } else if (event.code === "ArrowRight") {
+                move("right")
+            }
         }
+
     """.trimIndent()
 
     val tokens = JavascriptLexer(rawProgram).lex()

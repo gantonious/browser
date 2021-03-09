@@ -383,6 +383,7 @@ class JavascriptParser(
 
     private fun expectSimpleExpression(): JavascriptExpression {
         return when (val currentToken = getCurrentToken()) {
+            is JavascriptTokenType.Function -> expectAnonymousFunctionExpression()
             is JavascriptTokenType.Number -> {
                 advanceCursor()
                 JavascriptExpression.Literal(value = JavascriptValue.Number(currentToken.value))
@@ -405,6 +406,29 @@ class JavascriptParser(
             }
             else -> throwUnexpectedTokenFound()
         }
+    }
+
+    private fun expectAnonymousFunctionExpression(): JavascriptExpression {
+        expectToken<JavascriptTokenType.Function>()
+        expectToken<JavascriptTokenType.OpenParentheses>()
+
+        val parameterNames = mutableListOf<JavascriptTokenType.Identifier>()
+
+        if (getCurrentToken() !is JavascriptTokenType.CloseParentheses) {
+            parameterNames += expectToken<JavascriptTokenType.Identifier>()
+
+            while (getCurrentToken() !is JavascriptTokenType.CloseParentheses) {
+                expectToken<JavascriptTokenType.Comma>()
+                parameterNames += expectToken<JavascriptTokenType.Identifier>()
+            }
+        }
+
+        expectToken<JavascriptTokenType.CloseParentheses>()
+
+        return JavascriptExpression.AnonymousFunction(
+            parameterNames = parameterNames.map { it.name },
+            body = expectBlock()
+        )
     }
 
     private fun advanceCursor() {
