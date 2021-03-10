@@ -14,18 +14,18 @@ class JavascriptClassList(
             "add" -> JavascriptValue.Function(
                 JavascriptFunction.Native { args ->
                     val className = args.first().toString()
-                    val classList = domParentLayoutNode.htmlNode.attributes["class"]?.split("\\s*") ?: emptyList()
+                    val classList = domParentLayoutNode.htmlNode.attributes["class"]?.split(" ") ?: emptyList()
                     val updatedClassList = classList.toSet() + className
-                    domParentLayoutNode.htmlNode.attributes["class"] = updatedClassList.joinToString(separator = "").trim()
+                    domParentLayoutNode.htmlNode.attributes["class"] = updatedClassList.joinToString(separator = " ").trim()
                     JavascriptReference.Undefined
                 }
             )
             "remove" -> JavascriptValue.Function(
                 JavascriptFunction.Native { args ->
                     val className = args.first().toString()
-                    val classList = domParentLayoutNode.htmlNode.attributes["class"]?.split("\\s*") ?: emptyList()
+                    val classList = domParentLayoutNode.htmlNode.attributes["class"]?.split(" ") ?: emptyList()
                     val updatedClassList = classList.toSet() - className
-                    domParentLayoutNode.htmlNode.attributes["class"] = updatedClassList.joinToString(separator = "").trim()
+                    domParentLayoutNode.htmlNode.attributes["class"] = updatedClassList.joinToString(separator = " ").trim()
                     JavascriptReference.Undefined
                 }
             )

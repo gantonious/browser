@@ -17,7 +17,7 @@ sealed class CssSelector {
         override fun matches(domElement: DOMParentLayoutNode): Boolean {
             return when (domElement.htmlElement) {
                 is HtmlElement.Node -> {
-                    domElement.htmlElement.attributes.getOrDefault("class", "") == name
+                    name in domElement.htmlElement.attributes.getOrDefault("class", "").split(" ")
                 }
                 else -> false
             }

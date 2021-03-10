@@ -24,7 +24,7 @@ class JavascriptHtmlElement(
             }
             "className" -> {
                 val className = value.toString()
-                domParentLayoutNode.htmlNode.attributes["className"] = className
+                domParentLayoutNode.htmlNode.attributes["class"] = className
             }
             "innerHTML" -> {
                 val html = value.toString()
@@ -64,7 +64,11 @@ class JavascriptHtmlElement(
                 JavascriptValue.String(domParentLayoutNode.htmlNode.attributes["id"] ?: "")
             }
             "innerHtml" -> {
-                JavascriptValue.String("")
+                if (domParentLayoutNode.children.size == 1 && domParentLayoutNode.children.first() is DOMTextNode) {
+                    JavascriptValue.String((domParentLayoutNode.children.first() as DOMTextNode).htmlElement.requireAsText().text)
+                } else {
+                    JavascriptValue.String("")
+                }
             }
             "value" -> JavascriptValue.Number(4.0)
             "appendChild" -> JavascriptValue.Function(

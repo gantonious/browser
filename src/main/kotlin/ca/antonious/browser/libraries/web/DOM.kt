@@ -186,7 +186,7 @@ class DOM {
             when (node) {
                 is DOMParentLayoutNode -> {
                     val htmlNode = node.htmlElement as HtmlElement.Node
-                    if (htmlNode.attributes["class"] == className) {
+                    if (className in (htmlNode.attributes["class"] ?: "").split(" ")) {
                         matchingElements += node
                     }
 
