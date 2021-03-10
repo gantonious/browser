@@ -101,6 +101,8 @@ class JavascriptInterpreter {
             is JavascriptStatement.Return -> {
                 if (statement.expression != null) {
                     lastReturn = interpretAsReference(statement.expression)
+                } else {
+                    lastReturn = JavascriptReference.Undefined
                 }
 
                 return JavascriptReference.Undefined

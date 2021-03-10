@@ -16,7 +16,7 @@ class JavascriptClassList(
                     val className = args.first().toString()
                     val classList = domParentLayoutNode.htmlNode.attributes["class"]?.split("\\s*") ?: emptyList()
                     val updatedClassList = classList.toSet() + className
-                    domParentLayoutNode.htmlNode.attributes["class"] = updatedClassList.joinToString(separator = "")
+                    domParentLayoutNode.htmlNode.attributes["class"] = updatedClassList.joinToString(separator = "").trim()
                     JavascriptReference.Undefined
                 }
             )
@@ -25,7 +25,7 @@ class JavascriptClassList(
                     val className = args.first().toString()
                     val classList = domParentLayoutNode.htmlNode.attributes["class"]?.split("\\s*") ?: emptyList()
                     val updatedClassList = classList.toSet() - className
-                    domParentLayoutNode.htmlNode.attributes["class"] = updatedClassList.joinToString(separator = "")
+                    domParentLayoutNode.htmlNode.attributes["class"] = updatedClassList.joinToString(separator = "").trim()
                     JavascriptReference.Undefined
                 }
             )
