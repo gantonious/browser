@@ -230,6 +230,8 @@ class HtmlParser {
             }
         }
 
-        error("")
+        val tag = tagStack.pop()
+
+        return listOf(HtmlElement.Node(name = tag.name)) + tag.children
     }
 }

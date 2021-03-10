@@ -7,6 +7,7 @@ import ca.antonious.browser.libraries.javascript.interpreter.JavascriptObject
 import ca.antonious.browser.libraries.javascript.interpreter.JavascriptReference
 import ca.antonious.browser.libraries.javascript.interpreter.builtins.JavascriptArray
 import ca.antonious.browser.libraries.javascript.interpreter.builtins.JavascriptFunction
+import ca.antonious.browser.libraries.web.layout.DOMLayoutNode
 import ca.antonious.browser.libraries.web.layout.DOMParentLayoutNode
 import ca.antonious.browser.libraries.web.layout.DOMTextNode
 
@@ -27,32 +28,44 @@ class JavascriptHtmlElement(
             }
             "innerHTML" -> {
                 val html = value.toString()
-                val parsedHtml = if (html.isEmpty()) {
-                    emptyList()
-                } else {
+                val parsedHtml = try {
                     HtmlParser().parse(html)
+                } catch (ex: Exception) {
+                    emptyList<HtmlElement>()
                 }
-                val childrenNodes = parsedHtml.map {
-                    when (it) {
-                        is HtmlElement.Node -> DOMParentLayoutNode(
-                            parent = domParentLayoutNode,
-                            domEventHandler = domParentLayoutNode.domEventHandler,
-                            htmlNode = it
-                        )
-                        is HtmlElement.Text -> DOMTextNode(
-                            parent = domParentLayoutNode,
-                            htmlElement = it
-                        )
-                    }
-                }
-                domParentLayoutNode.children += childrenNodes
+
+                domParentLayoutNode.children += createDomNodes(parsedHtml)
                 domParentLayoutNode.htmlNode.children.addAll(parsedHtml)
+            }
+        }
+    }
+
+    private fun createDomNodes(htmlElements: List<HtmlElement>): List<DOMLayoutNode> {
+        return htmlElements.map {
+            when (it) {
+                is HtmlElement.Node -> DOMParentLayoutNode(
+                    parent = domParentLayoutNode,
+                    domEventHandler = domParentLayoutNode.domEventHandler,
+                    htmlNode = it
+                ).apply {
+                    setChildren(createDomNodes(it.children))
+                }
+                is HtmlElement.Text -> DOMTextNode(
+                    parent = domParentLayoutNode,
+                    htmlElement = it
+                )
             }
         }
     }
 
     override fun getProperty(key: String): JavascriptValue {
         return when (key) {
+            "id" -> {
+                JavascriptValue.String(domParentLayoutNode.htmlNode.attributes["id"] ?: "")
+            }
+            "innerHtml" -> {
+                JavascriptValue.String("")
+            }
             "value" -> JavascriptValue.Number(4.0)
             "appendChild" -> JavascriptValue.Function(
                 JavascriptFunction.Native { args ->

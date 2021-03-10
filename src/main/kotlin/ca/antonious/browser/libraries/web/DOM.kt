@@ -44,7 +44,7 @@ class DOM {
                     setNativeFunction("getElementsByClassName") {
                         val className = it.first() as JavascriptValue.String
                         val matchingNodes = findNodesWithClass(className.value, rootNode.children.map { it as DOMLayoutNode })
-                        JavascriptValue.Object(JavascriptArray(matchingNodes.map { it.toJavascriptObject() }))
+                        JavascriptValue.Object(JavascriptArray(matchingNodes.map { JavascriptValue.Object(JavascriptHtmlElement(it)) }))
                     }
 
                     setNativeFunction("getElementById") {
@@ -179,15 +179,15 @@ class DOM {
         }
     }
 
-    private fun findNodesWithClass(className: String, nodes: List<DOMLayoutNode>): List<HtmlElement.Node> {
-        val matchingElements = mutableListOf<HtmlElement.Node>()
+    private fun findNodesWithClass(className: String, nodes: List<DOMLayoutNode>): List<DOMParentLayoutNode> {
+        val matchingElements = mutableListOf<DOMParentLayoutNode>()
 
         for (node in nodes) {
             when (node) {
                 is DOMParentLayoutNode -> {
                     val htmlNode = node.htmlElement as HtmlElement.Node
                     if (htmlNode.attributes["class"] == className) {
-                        matchingElements += htmlNode
+                        matchingElements += node
                     }
 
                     matchingElements += findNodesWithClass(className, node.children)

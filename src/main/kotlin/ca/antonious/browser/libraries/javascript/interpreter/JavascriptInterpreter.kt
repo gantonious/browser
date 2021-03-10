@@ -1,7 +1,9 @@
 package ca.antonious.browser.libraries.javascript.interpreter
 
 import ca.antonious.browser.libraries.javascript.ast.*
+import ca.antonious.browser.libraries.javascript.interpreter.builtins.JavascriptArray
 import ca.antonious.browser.libraries.javascript.interpreter.builtins.JavascriptFunction
+import ca.antonious.browser.libraries.javascript.interpreter.builtins.JavascriptRegex
 import ca.antonious.browser.libraries.javascript.lexer.JavascriptLexer
 import ca.antonious.browser.libraries.javascript.lexer.JavascriptTokenType
 import ca.antonious.browser.libraries.javascript.parser.JavascriptParser
@@ -305,6 +307,23 @@ class JavascriptInterpreter {
             is JavascriptExpression.DotAccess -> {
                 val value = when (val value = interpret(statement.expression)) {
                     is JavascriptValue.Object -> value.value
+                    is JavascriptValue.String -> {
+                        when (statement.propertyName) {
+                            "match" -> {
+                                return JavascriptValue.Function(
+                                   value = JavascriptFunction.Native {
+                                       val regex = it.first().valueAs<JavascriptValue.Object>()?.value as JavascriptRegex
+                                       JavascriptValue.Object(
+                                           JavascriptArray(
+                                               Regex(regex.regex).findAll(value.value).map { JavascriptValue.String(it.value) }.toList()
+                                           )
+                                       ).toReference()
+                                   }
+                                ).toReference()
+                            }
+                            else -> error("")
+                        }
+                    }
                     else -> error("Cannot access property '${statement.propertyName}' on ${value} since it's not an object.")
                 }
 

@@ -26,7 +26,7 @@ class JavascriptArray(initialValues: List<JavascriptValue> = emptyList()) : Java
         return when (key) {
             "length" -> JavascriptValue.Number(array.size.toDouble())
             else -> {
-                val keyAsNumber = key.toIntOrNull()
+                val keyAsNumber = key.toDoubleOrNull()?.toInt()
 
                 if (keyAsNumber == null) {
                     JavascriptValue.Undefined
