@@ -229,6 +229,18 @@ class JavascriptInterpreter {
                     is JavascriptTokenType.Operator.Not -> {
                         JavascriptValue.Boolean(!interpret(statement.expression).isTruthy).toReference()
                     }
+                    is JavascriptTokenType.Operator.Minus -> {
+                        interpret(
+                            JavascriptExpression.BinaryOperation(
+                                operator = JavascriptTokenType.Operator.Multiply,
+                                lhs = statement.expression,
+                                rhs = JavascriptExpression.Literal(JavascriptValue.Number(-1.0))
+                            )
+                        ).toReference()
+                    }
+                    is JavascriptTokenType.Operator.Plus -> {
+                        JavascriptValue.Number(interpret(statement.expression).coerceToNumber()).toReference()
+                    }
                     is JavascriptTokenType.PlusPlus -> {
                         val reference = interpretAsReference(statement.expression)
                         val newValue = interpret(
