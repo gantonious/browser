@@ -31,10 +31,12 @@ class JavascriptHtmlElement(
                 val parsedHtml = try {
                     HtmlParser().parse(html)
                 } catch (ex: Exception) {
-                    emptyList<HtmlElement>()
+                    listOf(HtmlElement.Text(value.toString()))
                 }
 
+                domParentLayoutNode.children.clear()
                 domParentLayoutNode.children += createDomNodes(parsedHtml)
+                domParentLayoutNode.htmlNode.children.clear()
                 domParentLayoutNode.htmlNode.children.addAll(parsedHtml)
             }
         }
@@ -63,7 +65,7 @@ class JavascriptHtmlElement(
             "id" -> {
                 JavascriptValue.String(domParentLayoutNode.htmlNode.attributes["id"] ?: "")
             }
-            "innerHtml" -> {
+            "innerHTML" -> {
                 if (domParentLayoutNode.children.size == 1 && domParentLayoutNode.children.first() is DOMTextNode) {
                     JavascriptValue.String((domParentLayoutNode.children.first() as DOMTextNode).htmlElement.requireAsText().text)
                 } else {
