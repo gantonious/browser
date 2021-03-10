@@ -38,6 +38,10 @@ val Int.key: Key
             Input.Keys.PERIOD -> Key.dot
             Input.Keys.ENTER -> Key.enter
             Input.Keys.COLON -> Key.colon
+            Input.Keys.DOWN -> Key.ArrowDown
+            Input.Keys.UP -> Key.ArrowUp
+            Input.Keys.LEFT -> Key.ArrowLeft
+            Input.Keys.RIGHT -> Key.ArrowRight
             else -> Key.space
         }
     }

@@ -20,7 +20,11 @@ enum class Key {
     dash,
     underscore,
     forwardSlash,
-    enter;
+    enter,
+    ArrowDown,
+    ArrowUp,
+    ArrowLeft,
+    ArrowRight;
 
     val char: Char?
         get() {

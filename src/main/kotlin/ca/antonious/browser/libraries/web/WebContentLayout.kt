@@ -36,6 +36,9 @@ class WebContentLayout(url: String) : LayoutNode() {
     }
 
     override fun handleInputEvent(inputEvent: InputEvent) {
+        if (inputEvent is InputEvent.KeyDown) {
+            dom.handleKeyDown(inputEvent.key)
+        }
         navigationBar.handleInputEvent(inputEvent)
         dom.rootNode.handleInputEvent(
             when (inputEvent) {

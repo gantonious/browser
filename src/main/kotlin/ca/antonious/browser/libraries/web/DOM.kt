@@ -9,8 +9,11 @@ import ca.antonious.browser.libraries.javascript.ast.JavascriptValue
 import ca.antonious.browser.libraries.javascript.interpreter.builtins.JavascriptArray
 import ca.antonious.browser.libraries.javascript.interpreter.JavascriptInterpreter
 import ca.antonious.browser.libraries.javascript.interpreter.JavascriptObject
+import ca.antonious.browser.libraries.javascript.interpreter.builtins.JavascriptFunction
 import ca.antonious.browser.libraries.javascript.interpreter.setNativeFunction
+import ca.antonious.browser.libraries.javascript.interpreter.toReference
 import ca.antonious.browser.libraries.layout.builtins.BlockNode
+import ca.antonious.browser.libraries.layout.core.Key
 import ca.antonious.browser.libraries.web.javascript.JavascriptHtmlElement
 import ca.antonious.browser.libraries.web.layout.DOMLayoutNode
 import ca.antonious.browser.libraries.web.layout.DOMParentLayoutNode
@@ -28,6 +31,16 @@ class DOM {
     private val cssParser = CssParser()
 
     private val javascriptInterpreter = JavascriptInterpreter().apply {
+        globalObject.setProperty(
+            key = "createKeyDownEvent",
+            value = JavascriptValue.Function(
+                JavascriptFunction.Native {
+                    JavascriptValue.Object(JavascriptObject().apply {
+                        setProperty("code", it.first())
+                    }).toReference()
+                }
+            )
+        )
         globalObject.setProperty(
             key = "window",
             value = JavascriptValue.Object(
@@ -85,6 +98,10 @@ class DOM {
             val rawHtml = response.body
             replaceDocument(htmlParser.parse(rawHtml))
         }
+    }
+
+    fun handleKeyDown(key: Key) {
+        javascriptInterpreter.interpret("window.onkeydown(createKeyDownEvent('${key.name}'))")
     }
 
     private fun handleEvent(event: DOMEvent) {
