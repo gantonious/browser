@@ -11,6 +11,7 @@ import ca.antonious.browser.libraries.javascript.interpreter.JavascriptInterpret
 import ca.antonious.browser.libraries.javascript.interpreter.JavascriptObject
 import ca.antonious.browser.libraries.javascript.interpreter.setNativeFunction
 import ca.antonious.browser.libraries.layout.builtins.BlockNode
+import ca.antonious.browser.libraries.web.javascript.JavascriptHtmlElement
 import ca.antonious.browser.libraries.web.layout.DOMLayoutNode
 import ca.antonious.browser.libraries.web.layout.DOMParentLayoutNode
 import ca.antonious.browser.libraries.web.layout.DOMTextNode
@@ -44,6 +45,17 @@ class DOM {
                         val className = it.first() as JavascriptValue.String
                         val matchingNodes = findNodesWithClass(className.value, rootNode.children.map { it as DOMLayoutNode })
                         JavascriptValue.Object(JavascriptArray(matchingNodes.map { it.toJavascriptObject() }))
+                    }
+
+                    setNativeFunction("getElementById") {
+                        val id = it.first() as JavascriptValue.String
+                        val node = findNodeWithId(id.value, rootNode.children.map { it as DOMLayoutNode })
+
+                        if (node == null) {
+                            JavascriptValue.Undefined
+                        } else {
+                            JavascriptValue.Object(JavascriptHtmlElement(node))
+                        }
                     }
                 }
             )
@@ -121,6 +133,7 @@ class DOM {
                         } else {
                             httpClient.execute(HttpRequest(resolveUrl(src), HttpMethod.Get)).onSuccess { response ->
                                 javascriptInterpreter.interpret(response.body)
+                                javascriptInterpreter.interpret("window.onload()")
                             }
                         }
                     }
@@ -170,6 +183,26 @@ class DOM {
             }
         }
         return matchingElements
+    }
+
+    private fun findNodeWithId(id: String, nodes: List<DOMLayoutNode>): DOMParentLayoutNode? {
+        for (node in nodes) {
+            when (node) {
+                is DOMParentLayoutNode -> {
+                    val htmlNode = node.htmlElement as HtmlElement.Node
+                    if (htmlNode.attributes["id"] == id) {
+                        return node
+                    }
+
+                    val nodeInChildren = findNodeWithId(id, node.children)
+                    if (nodeInChildren != null) {
+                        return nodeInChildren
+                    }
+                }
+            }
+        }
+
+        return null
     }
 
     private fun HtmlElement.Node.toJavascriptObject(): JavascriptValue.Object {

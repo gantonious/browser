@@ -16,7 +16,7 @@ import kotlin.math.min
 
 class DOMParentLayoutNode(
     parent: DOMParentLayoutNode?,
-    htmlElement: HtmlElement,
+    htmlElement: HtmlElement.Node,
     private val domEventHandler: (DOMEvent) -> Unit
 ) : DOMLayoutNode(parent, htmlElement) {
 

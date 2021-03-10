@@ -17,6 +17,10 @@ class JavascriptInterpreter {
             JavascriptValue.Number((readLine() ?: "").toDouble())
         }
 
+        setNativeFunction("parseInt") {
+            JavascriptValue.Number(it.first().coerceToNumber().toInt().toDouble())
+        }
+
         setProperty("console", JavascriptValue.Object(JavascriptObject().apply {
             setNativeFunction("log") {
                 println(it.joinToString(separator = " "))
