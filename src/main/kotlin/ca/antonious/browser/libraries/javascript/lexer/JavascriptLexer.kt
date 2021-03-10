@@ -274,7 +274,7 @@ class JavascriptLexer (private val source: String) {
     }
 
     private fun getCurrentNChars(n: Int): CharSequence? {
-        if (cursor + n >= source.length) {
+        if (cursor + n > source.length) {
             return null
         }
 
