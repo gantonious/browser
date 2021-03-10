@@ -25,7 +25,15 @@ class JavascriptArray(initialValues: List<JavascriptValue> = emptyList()) : Java
     override fun getProperty(key: String): JavascriptValue {
         return when (key) {
             "length" -> JavascriptValue.Number(array.size.toDouble())
-            else -> JavascriptValue.Undefined
+            else -> {
+                val keyAsNumber = key.toIntOrNull()
+
+                if (keyAsNumber == null) {
+                    JavascriptValue.Undefined
+                } else {
+                    array[keyAsNumber]
+                }
+            }
         }
     }
 

@@ -1,7 +1,6 @@
 package ca.antonious.browser.libraries.web.layout
 
 import ca.antonious.browser.libraries.css.CssAlignment
-import ca.antonious.browser.libraries.css.CssAttribute
 import ca.antonious.browser.libraries.css.CssDisplay
 import ca.antonious.browser.libraries.css.CssSize
 import ca.antonious.browser.libraries.graphics.core.*
@@ -16,9 +15,9 @@ import kotlin.math.min
 
 class DOMParentLayoutNode(
     parent: DOMParentLayoutNode?,
-    htmlElement: HtmlElement.Node,
-    private val domEventHandler: (DOMEvent) -> Unit
-) : DOMLayoutNode(parent, htmlElement) {
+    val htmlNode: HtmlElement.Node,
+    val domEventHandler: (DOMEvent) -> Unit
+) : DOMLayoutNode(parent, htmlNode) {
 
     var resolvedStyle = ResolvedStyle()
     val children = mutableListOf<DOMLayoutNode>()

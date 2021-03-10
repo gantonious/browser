@@ -117,12 +117,12 @@ class HtmlParser {
 
                             while (matchingOpening.name != tagName) {
                                 if (matchingOpening.name in autoClosingTags) {
-                                    tagStack.peek().children += HtmlElement.Node(name = matchingOpening.name, attributes = matchingOpening.attributes)
+                                    tagStack.peek().children += HtmlElement.Node(name = matchingOpening.name, attributes = matchingOpening.attributes.toMutableMap())
                                     tagStack.peek().children += matchingOpening.children
                                     matchingOpening = tagStack.pop()
                                 } else {
                                     println("WARN: Couldn't find matching closing tag for '${matchingOpening.name}'")
-                                    val node = HtmlElement.Node(name = matchingOpening.name, attributes = matchingOpening.attributes, children = matchingOpening.children)
+                                    val node = HtmlElement.Node(name = matchingOpening.name, attributes = matchingOpening.attributes.toMutableMap(), children = matchingOpening.children)
 
                                     if (tagStack.isEmpty()) {
                                         return listOf(node)
@@ -133,7 +133,7 @@ class HtmlParser {
                                 }
                             }
 
-                            val parsedNode = HtmlElement.Node(name = matchingOpening.name, attributes = matchingOpening.attributes, children = matchingOpening.children)
+                            val parsedNode = HtmlElement.Node(name = matchingOpening.name, attributes = matchingOpening.attributes.toMutableMap(), children = matchingOpening.children)
 
                             if (tagStack.isEmpty()) {
                                 return listOf(parsedNode)

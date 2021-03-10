@@ -6,6 +6,7 @@ import ca.antonious.browser.libraries.javascript.lexer.JavascriptLexer
 import ca.antonious.browser.libraries.javascript.lexer.JavascriptTokenType
 import ca.antonious.browser.libraries.javascript.parser.JavascriptParser
 import java.util.*
+import kotlin.random.Random
 
 class JavascriptInterpreter {
     val globalObject = JavascriptObject().apply {
@@ -25,6 +26,16 @@ class JavascriptInterpreter {
             setNativeFunction("log") {
                 println(it.joinToString(separator = " "))
                 JavascriptValue.Undefined
+            }
+        }))
+
+        setProperty("Math", JavascriptValue.Object(JavascriptObject().apply {
+            setNativeFunction("floor") {
+                JavascriptValue.Number(it.first().coerceToNumber().toInt().toDouble())
+            }
+
+            setNativeFunction("random") {
+                JavascriptValue.Number(Random.nextDouble())
             }
         }))
     }

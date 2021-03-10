@@ -57,6 +57,18 @@ class DOM {
                             JavascriptValue.Object(JavascriptHtmlElement(node))
                         }
                     }
+
+                    setNativeFunction("createElement") {
+                        val tagName = it.first() as JavascriptValue.String
+                        val element = HtmlElement.Node(name = tagName.value)
+                        val layoutNode = DOMParentLayoutNode(
+                            parent = null,
+                            domEventHandler = ::handleEvent,
+                            htmlNode = element
+                        )
+
+                        JavascriptValue.Object(JavascriptHtmlElement(layoutNode))
+                    }
                 }
             )
         )
@@ -101,7 +113,7 @@ class DOM {
                     when (htmlElement.name) {
                         "head" -> processHead(htmlElement)
                         else -> {
-                            val layoutNode = DOMParentLayoutNode(parent = parent, htmlElement = htmlElement, domEventHandler = ::handleEvent)
+                            val layoutNode = DOMParentLayoutNode(parent = parent, htmlNode = htmlElement, domEventHandler = ::handleEvent)
                             layoutNode.setChildren(children = loadDocument(htmlElement.children, parent = layoutNode))
                             layoutTree += layoutNode
                         }

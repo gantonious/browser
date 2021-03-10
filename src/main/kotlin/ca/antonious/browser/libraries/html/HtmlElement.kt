@@ -3,8 +3,8 @@ package ca.antonious.browser.libraries.html
 sealed class HtmlElement {
     data class Node(
         val name: String,
-        val attributes: Map<String, String> = emptyMap(),
-        val children: List<HtmlElement> = emptyList()
+        var attributes: MutableMap<String, String> = mutableMapOf(),
+        var children: MutableList<HtmlElement> = mutableListOf()
     ) : HtmlElement() {
         fun requireChildrenAsText(): Text {
             return children.firstOrNull()?.let { it as Text } ?: Text("")
