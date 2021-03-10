@@ -98,7 +98,11 @@ sealed class JavascriptValue {
 
     data class Number(val value: Double) : JavascriptValue() {
         override val isTruthy = value != 0.0
-        override fun toString() = value.toString()
+        override fun toString() = if (value == value.toInt().toDouble()) {
+            value.toInt().toString()
+        } else {
+            value.toString()
+        }
         override fun coerceToNumber() = value
         override fun isSameType(other: JavascriptValue) = other is Number
     }
