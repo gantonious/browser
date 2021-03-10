@@ -72,14 +72,19 @@ class JavascriptParser(
         val statements = mutableListOf<JavascriptStatement>()
 
         while (!isAtEnd()) {
-            statements += expectStatement()
+            if (getCurrentToken() is JavascriptTokenType.SemiColon) {
+                advanceCursor()
+                continue
+            } else {
+                statements += expectStatement()
+            }
         }
 
         return JavascriptProgram(statements)
     }
 
     private fun expectStatement(): JavascriptStatement {
-        maybeConsumeLineTerminator()
+
         return when (getCurrentToken()) {
             is JavascriptTokenType.Function -> expectFunctionDeclaration()
             is JavascriptTokenType.While -> expectWhileLoop()
