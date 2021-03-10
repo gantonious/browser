@@ -166,7 +166,7 @@ class DOM {
         }
     }
 
-    private fun resolveStyles(layoutTree: List<DOMLayoutNode>) {
+    fun resolveStyles(layoutTree: List<DOMLayoutNode>) {
         for (layoutNode in layoutTree) {
             when (layoutNode) {
                 is DOMParentLayoutNode -> {

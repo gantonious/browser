@@ -8,6 +8,7 @@ import ca.antonious.browser.libraries.http.HttpRequest
 import ca.antonious.browser.libraries.layout.core.InputEvent
 import ca.antonious.browser.libraries.layout.core.LayoutConstraint
 import ca.antonious.browser.libraries.layout.core.LayoutNode
+import ca.antonious.browser.libraries.web.layout.DOMLayoutNode
 import ca.antonious.browser.libraries.web.ui.NavigationBar
 
 class WebContentLayout(url: String) : LayoutNode() {
@@ -24,6 +25,7 @@ class WebContentLayout(url: String) : LayoutNode() {
     }
 
     override fun measure(measuringTape: MeasuringTape, widthConstraint: LayoutConstraint, heightConstraint: LayoutConstraint): Size {
+        dom.resolveStyles(dom.rootNode.children.map { it as DOMLayoutNode })
         navigationBar.measure(measuringTape, widthConstraint, heightConstraint)
         return dom.rootNode.measure(measuringTape, widthConstraint, heightConstraint)
     }
