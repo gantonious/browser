@@ -229,6 +229,42 @@ class JavascriptInterpreter {
                     is JavascriptTokenType.Operator.Not -> {
                         JavascriptValue.Boolean(!interpret(statement.expression).isTruthy).toReference()
                     }
+                    is JavascriptTokenType.PlusPlus -> {
+                        val reference = interpretAsReference(statement.expression)
+                        val newValue = interpret(
+                            JavascriptExpression.BinaryOperation(
+                                operator = JavascriptTokenType.Operator.Plus,
+                                lhs = JavascriptExpression.Literal(reference.value),
+                                rhs = JavascriptExpression.Literal(JavascriptValue.Number(1.0))
+                            )
+                        )
+                        reference.setter?.invoke(newValue)
+                            ?: error("Uncaught SyntaxError: Invalid left-hand side in assignment")
+
+                        if (statement.isPrefix) {
+                            newValue.toReference()
+                        } else {
+                            reference.value.toReference()
+                        }
+                    }
+                    is JavascriptTokenType.MinusMinus -> {
+                        val reference = interpretAsReference(statement.expression)
+                        val newValue = interpret(
+                            JavascriptExpression.BinaryOperation(
+                                operator = JavascriptTokenType.Operator.Minus,
+                                lhs = JavascriptExpression.Literal(reference.value),
+                                rhs = JavascriptExpression.Literal(JavascriptValue.Number(1.0))
+                            )
+                        )
+                        reference.setter?.invoke(newValue)
+                            ?: error("Uncaught SyntaxError: Invalid left-hand side in assignment")
+
+                        if (statement.isPrefix) {
+                            newValue.toReference()
+                        } else {
+                            reference.value.toReference()
+                        }
+                    }
                     else -> {
                         error("${statement.operator} is unsupported for Uunary operations.")
                     }
