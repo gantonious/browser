@@ -37,7 +37,7 @@ class JavascriptInterpreter {
         )
     }
 
-    private var lastReturn: JavascriptValue? = null
+    private var lastReturn: JavascriptReference? = null
 
     private val currentScope: JavascriptScope
         get() = stack.peek().scope
@@ -52,12 +52,20 @@ class JavascriptInterpreter {
         return interpret(JavascriptStatement.Block(program.body))
     }
 
+
+
     private fun interpret(statement: JavascriptStatement): JavascriptValue {
+        return interpretAsReference(statement).value
+
+    }
+
+    private fun interpretAsReference(statement: JavascriptStatement): JavascriptReference {
+
         when (statement) {
             is JavascriptStatement.Block -> {
-                var result: JavascriptValue = JavascriptValue.Undefined
+                var result: JavascriptReference = JavascriptReference.Undefined
                 for (child in statement.body) {
-                    result = interpret(child)
+                    result = interpretAsReference(child)
                 }
 
                 return result
@@ -71,14 +79,14 @@ class JavascriptInterpreter {
                     )
                 )
                 currentScope.setProperty(key = statement.name, value = value)
-                return JavascriptValue.Undefined
+                return JavascriptReference.Undefined
             }
             is JavascriptStatement.Return -> {
                 if (statement.expression != null) {
-                    lastReturn = interpret(statement.expression)
+                    lastReturn = interpretAsReference(statement.expression)
                 }
 
-                return JavascriptValue.Undefined
+                return JavascriptReference.Undefined
             }
             is JavascriptExpression.FunctionCall -> {
                 val callableValue = interpret(statement.expression)
@@ -102,7 +110,7 @@ class JavascriptInterpreter {
                         }
 
                         exitFunction()
-                        return (lastReturn ?: JavascriptValue.Undefined).also {
+                        return (lastReturn ?: JavascriptReference.Undefined).also {
                             lastReturn = null
                         }
                     }
@@ -115,21 +123,21 @@ class JavascriptInterpreter {
                 if (conditionToExecute != null) {
                     interpret(conditionToExecute.body)
                 }
-                return JavascriptValue.Undefined
+                return JavascriptReference.Undefined
             }
             is JavascriptStatement.LetAssignment -> {
                 currentScope.setProperty(statement.name, interpret(statement.expression))
-                return JavascriptValue.Undefined
+                return JavascriptReference.Undefined
             }
             is JavascriptStatement.ConstAssignment -> {
                 currentScope.setProperty(statement.name, interpret(statement.expression))
-                return JavascriptValue.Undefined
+                return JavascriptReference.Undefined
             }
             is JavascriptStatement.WhileLoop -> {
                 while (interpret(statement.condition).isTruthy) {
                     interpret(statement.body)
                 }
-                return JavascriptValue.Undefined
+                return JavascriptReference.Undefined
             }
             is JavascriptStatement.ForLoop -> {
                 interpret(statement.initializerExpression)
@@ -139,75 +147,77 @@ class JavascriptInterpreter {
                     interpret(statement.updaterExpression)
                 }
 
-                return JavascriptValue.Undefined
+                return JavascriptReference.Undefined
             }
             is JavascriptExpression.BinaryOperation -> {
                 return when (statement.operator) {
                     is JavascriptTokenType.Operator.Plus -> {
-                        val lhsValue = interpret(statement.lhs)
-                        val rhsValue = interpret(statement.rhs)
+                        val lhsValue = interpretAsReference(statement.lhs).value
+                        val rhsValue = interpretAsReference(statement.rhs).value
 
-                        if (lhsValue is JavascriptValue.String|| rhsValue is JavascriptValue.String) {
-                            JavascriptValue.String(lhsValue.toString() + rhsValue.toString())
+                        if (lhsValue is JavascriptValue.String || rhsValue is JavascriptValue.String) {
+                            JavascriptValue.String(lhsValue.toString() + rhsValue.toString()).toReference()
                         } else {
-                            JavascriptValue.Number(lhsValue.coerceToNumber() + rhsValue.coerceToNumber())
+                            JavascriptValue.Number(lhsValue.coerceToNumber() + rhsValue.coerceToNumber()).toReference()
                         }
                     }
                     is JavascriptTokenType.Operator.Minus -> {
-                        JavascriptValue.Number(interpret(statement.lhs).coerceToNumber() - interpret(statement.rhs).coerceToNumber())
+                        JavascriptValue.Number(interpret(statement.lhs).coerceToNumber() - interpret(statement.rhs).coerceToNumber()).toReference()
                     }
                     is JavascriptTokenType.Operator.Multiply -> {
-                        JavascriptValue.Number(interpret(statement.lhs).coerceToNumber() * interpret(statement.rhs).coerceToNumber())
+                        JavascriptValue.Number(interpret(statement.lhs).coerceToNumber() * interpret(statement.rhs).coerceToNumber()).toReference()
                     }
                     is JavascriptTokenType.Operator.Xor -> {
                         val result = (
                             interpret(statement.lhs).coerceToNumber().toInt() xor
-                            interpret(statement.rhs).coerceToNumber().toInt()
-                        ).toDouble()
+                                interpret(statement.rhs).coerceToNumber().toInt()
+                            ).toDouble()
 
-                        JavascriptValue.Number(result)
+                        JavascriptValue.Number(result).toReference()
                     }
                     is JavascriptTokenType.Operator.Mod -> {
-                        JavascriptValue.Number(interpret(statement.lhs).coerceToNumber() % interpret(statement.rhs).coerceToNumber())
+                        JavascriptValue.Number(interpret(statement.lhs).coerceToNumber() % interpret(statement.rhs).coerceToNumber()).toReference()
                     }
                     is JavascriptTokenType.Operator.LessThanOrEqual -> {
-                        JavascriptValue.Boolean(interpret(statement.lhs).coerceToNumber() <= interpret(statement.rhs).coerceToNumber())
+                        JavascriptValue.Boolean(interpret(statement.lhs).coerceToNumber() <= interpret(statement.rhs).coerceToNumber()).toReference()
                     }
                     is JavascriptTokenType.Operator.LessThan -> {
-                        JavascriptValue.Boolean(interpret(statement.lhs).coerceToNumber() < interpret(statement.rhs).coerceToNumber())
+                        JavascriptValue.Boolean(interpret(statement.lhs).coerceToNumber() < interpret(statement.rhs).coerceToNumber()).toReference()
                     }
                     is JavascriptTokenType.Operator.GreaterThanOrEqual -> {
-                        JavascriptValue.Boolean(interpret(statement.lhs).coerceToNumber() >= interpret(statement.rhs).coerceToNumber())
+                        JavascriptValue.Boolean(interpret(statement.lhs).coerceToNumber() >= interpret(statement.rhs).coerceToNumber()).toReference()
                     }
                     is JavascriptTokenType.Operator.GreaterThan -> {
-                        JavascriptValue.Boolean(interpret(statement.lhs).coerceToNumber() > interpret(statement.rhs).coerceToNumber())
+                        JavascriptValue.Boolean(interpret(statement.lhs).coerceToNumber() > interpret(statement.rhs).coerceToNumber()).toReference()
                     }
                     is JavascriptTokenType.Operator.OrOr -> {
                         val lhsValue = interpret(statement.lhs)
                         if (lhsValue.isTruthy) {
-                            lhsValue
+                            lhsValue.toReference()
                         } else {
-                            interpret(statement.rhs)
+                            interpret(statement.rhs).toReference()
                         }
                     }
                     is JavascriptTokenType.Operator.AndAnd -> {
                         val lhsValue = interpret(statement.lhs)
                         if (lhsValue.isTruthy) {
-                            interpret(statement.rhs)
+                            interpret(statement.rhs).toReference()
                         } else {
-                            lhsValue
+                            lhsValue.toReference()
                         }
                     }
                     is JavascriptTokenType.Operator.StrictEquals -> {
-                        JavascriptValue.Boolean(interpret(statement.lhs) == interpret(statement.rhs))
+                        JavascriptValue.Boolean(interpret(statement.lhs) == interpret(statement.rhs)).toReference()
                     }
                     is JavascriptTokenType.Operator.Equals -> {
-                        JavascriptValue.Boolean(JavascriptValue.looselyEquals(interpret(statement.lhs), interpret(statement.rhs)))
+                        JavascriptValue.Boolean(JavascriptValue.looselyEquals(interpret(statement.lhs), interpret(statement.rhs))).toReference()
                     }
                     is JavascriptTokenType.Operator.Assignment -> {
                         val valueToAssign = interpret(statement.rhs)
-                        // TODO: trigger assignment
-                        valueToAssign
+                        interpretAsReference(statement.lhs).setter?.invoke(valueToAssign)
+                            ?: error("Uncaught SyntaxError: Invalid left-hand side in assignment")
+
+                        valueToAssign.toReference()
                     }
                     else -> {
                         error("${statement.operator} is unsupported for binary operations.")
@@ -217,7 +227,7 @@ class JavascriptInterpreter {
             is JavascriptExpression.UnaryOperation -> {
                 return when (statement.operator) {
                     is JavascriptTokenType.Operator.Not -> {
-                        JavascriptValue.Boolean(!interpret(statement.expression).isTruthy)
+                        JavascriptValue.Boolean(!interpret(statement.expression).isTruthy).toReference()
                     }
                     else -> {
                         error("${statement.operator} is unsupported for Uunary operations.")
@@ -225,7 +235,9 @@ class JavascriptInterpreter {
                 }
             }
             is JavascriptExpression.Reference -> {
-                return currentScope.getProperty(statement.name)
+                return currentScope.getProperty(statement.name).toReference {
+                    currentScope.setProperty(statement.name, it)
+                }
             }
             is JavascriptExpression.DotAccess -> {
                 val value = when (val value = interpret(statement.expression)) {
@@ -233,7 +245,9 @@ class JavascriptInterpreter {
                     else -> error("Cannot access property '${statement.propertyName}' on ${value} since it's not an object.")
                 }
 
-                return value.getProperty(statement.propertyName)
+                return value.getProperty(statement.propertyName).toReference {
+                    value.setProperty(statement.propertyName, it)
+                }
             }
             is JavascriptExpression.IndexAccess -> {
                 val value = when (val value = interpret(statement.expression)) {
@@ -242,19 +256,21 @@ class JavascriptInterpreter {
                 }
 
                 val property = interpret(statement.indexExpression)
-                return value.getProperty(property.toString())
+                return value.getProperty(property.toString()).toReference {
+                    value.setProperty(property.toString(), it)
+                }
             }
             is JavascriptExpression.Literal -> {
-                return statement.value
+                return statement.value.toReference()
             }
             is JavascriptExpression.AnonymousFunction -> {
                 return JavascriptValue.Function(
                     JavascriptFunction.UserDefined(
-                        parameterNames =  statement.parameterNames,
+                        parameterNames = statement.parameterNames,
                         body = statement.body,
                         parentScope = currentScope
                     )
-                )
+                ).toReference()
             }
         }
     }

@@ -579,7 +579,8 @@ class JavascriptParser(
 
         while (
             currentExpression.operator in rightToLeftAssociativeOperators &&
-            currentExpression.lhs is JavascriptExpression.BinaryOperation
+            currentExpression.lhs is JavascriptExpression.BinaryOperation &&
+            currentExpression.operator == (currentExpression.lhs as JavascriptExpression.BinaryOperation).operator
         ) {
             val lhsBinaryExpression = currentExpression.lhs as JavascriptExpression.BinaryOperation
 

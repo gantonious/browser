@@ -2,6 +2,7 @@ package ca.antonious.browser.libraries.javascript.interpreter.builtins
 
 import ca.antonious.browser.libraries.javascript.ast.JavascriptStatement
 import ca.antonious.browser.libraries.javascript.ast.JavascriptValue
+import ca.antonious.browser.libraries.javascript.interpreter.JavascriptReference
 import ca.antonious.browser.libraries.javascript.interpreter.JavascriptScope
 
 sealed class JavascriptFunction {
@@ -14,7 +15,7 @@ sealed class JavascriptFunction {
             return "function (${parameterNames.joinToString { ", "}}) { ... }"
         }
     }
-    class Native(val body: (List<JavascriptValue>) -> JavascriptValue) : JavascriptFunction() {
+    class Native(val body: (List<JavascriptValue>) -> JavascriptReference) : JavascriptFunction() {
         override fun toString() = "NativeFunction@${hashCode().toString(16)}"
     }
 }

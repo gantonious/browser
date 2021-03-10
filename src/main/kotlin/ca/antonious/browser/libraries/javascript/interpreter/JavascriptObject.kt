@@ -21,5 +21,10 @@ open class JavascriptObject {
 }
 
 fun JavascriptObject.setNativeFunction(name: String, body: (List<JavascriptValue>) -> JavascriptValue) {
-    setProperty(name, JavascriptValue.Function(value = JavascriptFunction.Native(body)))
+    setProperty(
+        key = name,
+        value = JavascriptValue.Function(
+            value = JavascriptFunction.Native { body(it).toReference() }
+        )
+    )
 }
