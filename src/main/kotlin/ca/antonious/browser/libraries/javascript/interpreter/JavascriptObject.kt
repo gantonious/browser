@@ -5,7 +5,7 @@ import ca.antonious.browser.libraries.javascript.interpreter.builtins.Javascript
 
 open class JavascriptObject {
 
-    private val properties = mutableMapOf<String, JavascriptValue>()
+    protected val properties = mutableMapOf<String, JavascriptValue>()
 
     open fun getProperty(key: String): JavascriptValue {
         return properties[key] ?: JavascriptValue.Undefined
