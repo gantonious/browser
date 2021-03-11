@@ -77,7 +77,6 @@ class JavascriptInterpreter {
     }
 
     private fun interpretAsReference(statement: JavascriptStatement): JavascriptReference {
-
         when (statement) {
             is JavascriptStatement.Block -> {
                 var result: JavascriptReference = JavascriptReference.Undefined
@@ -186,6 +185,9 @@ class JavascriptInterpreter {
                     is JavascriptTokenType.Operator.Multiply -> {
                         JavascriptValue.Number(interpret(statement.lhs).coerceToNumber() * interpret(statement.rhs).coerceToNumber()).toReference()
                     }
+                    is JavascriptTokenType.Operator.Divide -> {
+                        JavascriptValue.Number(interpret(statement.lhs).coerceToNumber() / interpret(statement.rhs).coerceToNumber()).toReference()
+                    }
                     is JavascriptTokenType.Operator.Xor -> {
                         val result = (
                             interpret(statement.lhs).coerceToNumber().toInt() xor
@@ -238,6 +240,12 @@ class JavascriptInterpreter {
 
                         valueToAssign.toReference()
                     }
+                    is JavascriptTokenType.Operator.PlusAssign -> interpretOperatorAssignAsReference(JavascriptTokenType.Operator.Plus, statement)
+                    is JavascriptTokenType.Operator.MinusAssign -> interpretOperatorAssignAsReference(JavascriptTokenType.Operator.Minus, statement)
+                    is JavascriptTokenType.Operator.MultiplyAssign -> interpretOperatorAssignAsReference(JavascriptTokenType.Operator.Multiply, statement)
+                    is JavascriptTokenType.Operator.DivideAssign -> interpretOperatorAssignAsReference(JavascriptTokenType.Operator.Divide, statement)
+                    is JavascriptTokenType.Operator.XorAssign -> interpretOperatorAssignAsReference(JavascriptTokenType.Operator.Xor, statement)
+                    is JavascriptTokenType.Operator.ModAssign -> interpretOperatorAssignAsReference(JavascriptTokenType.Operator.Mod, statement)
                     else -> {
                         error("${statement.operator} is unsupported for binary operations.")
                     }
@@ -371,6 +379,26 @@ class JavascriptInterpreter {
                 ).toReference()
             }
         }
+    }
+
+    private fun interpretOperatorAssignAsReference(
+        newOperator: JavascriptTokenType.Operator,
+        binaryExpression: JavascriptExpression.BinaryOperation
+    ): JavascriptReference {
+        val reference = interpretAsReference(binaryExpression.lhs)
+
+        val valueToAssign = interpret(
+            JavascriptExpression.BinaryOperation(
+                operator = newOperator,
+                lhs = JavascriptExpression.Literal(reference.value),
+                rhs = binaryExpression.rhs
+            )
+        )
+
+        reference.setter?.invoke(valueToAssign)
+            ?: error("Uncaught SyntaxError: Invalid left-hand side in assignment")
+
+        return valueToAssign.toReference()
     }
 
     private fun enterFunction(function: JavascriptFunction.UserDefined, passedParameters: List<JavascriptExpression>) {
