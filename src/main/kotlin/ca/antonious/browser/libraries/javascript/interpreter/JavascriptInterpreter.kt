@@ -347,6 +347,15 @@ class JavascriptInterpreter {
             is JavascriptExpression.Literal -> {
                 return statement.value.toReference()
             }
+            is JavascriptExpression.ObjectLiteral ->{
+                return JavascriptValue.Object(
+                    JavascriptObject().apply {
+                        statement.fields.forEach {
+                            setProperty(it.name, interpret(it.rhs))
+                        }
+                    }
+                ).toReference()
+            }
             is JavascriptExpression.AnonymousFunction -> {
                 return JavascriptValue.Function(
                     JavascriptFunction.UserDefined(

@@ -460,6 +460,7 @@ class JavascriptParser(
     private fun expectSimpleExpression(): JavascriptExpression {
         return when (val currentToken = getCurrentToken()) {
             is JavascriptTokenType.OpenParentheses -> expectGroupExpression()
+            is JavascriptTokenType.OpenCurlyBracket -> expectObjectLiteral()
             is JavascriptTokenType.Function -> expectAnonymousFunctionExpression()
             is JavascriptTokenType.Number -> {
                 advanceCursor()
@@ -484,6 +485,57 @@ class JavascriptParser(
             is JavascriptTokenType.RegularExpression -> {
                 advanceCursor()
                 JavascriptExpression.Literal(value = JavascriptValue.Object(JavascriptRegex(currentToken.regex, currentToken.flags)))
+            }
+            else -> throwUnexpectedTokenFound()
+        }
+    }
+
+    private fun expectObjectLiteral(): JavascriptExpression {
+        val fields = mutableListOf<JavascriptExpression.ObjectLiteral.Field>()
+        expectToken<JavascriptTokenType.OpenCurlyBracket>()
+
+        if (getCurrentToken() !is JavascriptTokenType.CloseCurlyBracket) {
+            fields += expectObjectField()
+
+            while (getCurrentToken() !is JavascriptTokenType.CloseCurlyBracket) {
+                expectToken<JavascriptTokenType.Comma>()
+                fields += expectObjectField()
+            }
+        }
+
+        expectToken<JavascriptTokenType.CloseCurlyBracket>()
+
+        return JavascriptExpression.ObjectLiteral(fields)
+    }
+
+    private fun expectObjectField(): JavascriptExpression.ObjectLiteral.Field {
+        return JavascriptExpression.ObjectLiteral.Field(
+            name = expectObjectKey().also { expectToken<JavascriptTokenType.Colon>() },
+            rhs = expectExpression()
+        )
+    }
+
+    private fun expectObjectKey(): String {
+        return when (val currentToken = getCurrentToken()) {
+            is JavascriptTokenType.Number -> {
+                advanceCursor()
+                JavascriptValue.Number(currentToken.value).toString()
+            }
+            is JavascriptTokenType.String -> {
+                advanceCursor()
+                JavascriptValue.String(currentToken.value).toString()
+            }
+            is JavascriptTokenType.Boolean -> {
+                advanceCursor()
+                JavascriptValue.Boolean(currentToken.value).toString()
+            }
+            is JavascriptTokenType.Undefined -> {
+                advanceCursor()
+                JavascriptValue.Undefined.toString()
+            }
+            is JavascriptTokenType.Identifier -> {
+                advanceCursor()
+                currentToken.name
             }
             else -> throwUnexpectedTokenFound()
         }
