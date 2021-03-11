@@ -461,6 +461,7 @@ class JavascriptParser(
         return when (val currentToken = getCurrentToken()) {
             is JavascriptTokenType.OpenParentheses -> expectGroupExpression()
             is JavascriptTokenType.OpenCurlyBracket -> expectObjectLiteral()
+            is JavascriptTokenType.OpenBracket -> expectArrayLiteral()
             is JavascriptTokenType.Function -> expectAnonymousFunctionExpression()
             is JavascriptTokenType.Number -> {
                 advanceCursor()
@@ -488,6 +489,25 @@ class JavascriptParser(
             }
             else -> throwUnexpectedTokenFound()
         }
+    }
+
+    private fun expectArrayLiteral(): JavascriptExpression {
+        val values = mutableListOf<JavascriptExpression>()
+
+        expectToken<JavascriptTokenType.OpenBracket>()
+
+        if (getCurrentToken() !is JavascriptTokenType.CloseBracket) {
+            values += expectExpression()
+
+            while (getCurrentToken() !is JavascriptTokenType.CloseBracket) {
+                expectToken<JavascriptTokenType.Comma>()
+                values += expectExpression()
+            }
+        }
+
+        expectToken<JavascriptTokenType.CloseBracket>()
+
+        return JavascriptExpression.ArrayLiteral(values)
     }
 
     private fun expectObjectLiteral(): JavascriptExpression {
