@@ -98,6 +98,7 @@ class JavascriptParser(
             is JavascriptTokenType.For -> expectForLoop()
             is JavascriptTokenType.Do -> expectDoWhileLoop()
             is JavascriptTokenType.Identifier -> expectLabeledStatement()
+            is JavascriptTokenType.OpenCurlyBracket -> expectBlock()
             else -> expectExpression()
         }
     }
