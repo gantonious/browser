@@ -101,16 +101,16 @@ class JavascriptParser(
     }
 
     private fun expectIfStatement(): JavascriptStatement.IfStatement {
-        val conditions = mutableListOf<JavascriptStatement.IfStatement.ConditionAndBlock>()
+        val conditions = mutableListOf<JavascriptStatement.IfStatement.ConditionAndStatement>()
 
         expectToken<JavascriptTokenType.If>()
         expectToken<JavascriptTokenType.OpenParentheses>()
         val mainCondition = expectExpression()
         expectToken<JavascriptTokenType.CloseParentheses>()
 
-        conditions += JavascriptStatement.IfStatement.ConditionAndBlock(
+        conditions += JavascriptStatement.IfStatement.ConditionAndStatement(
             condition = mainCondition,
-            body = expectBlock()
+            body = expectBlockOrStatement()
         )
 
         while (maybeGetCurrentToken() is JavascriptTokenType.Else) {
@@ -123,18 +123,17 @@ class JavascriptParser(
                     val elseIfCondition = expectExpression()
                     expectToken<JavascriptTokenType.CloseParentheses>()
 
-                    JavascriptStatement.IfStatement.ConditionAndBlock(
+                    JavascriptStatement.IfStatement.ConditionAndStatement(
                         condition = elseIfCondition,
-                        body = expectBlock()
+                        body = expectBlockOrStatement()
                     )
                 }
-                JavascriptTokenType.OpenCurlyBracket -> {
-                    JavascriptStatement.IfStatement.ConditionAndBlock(
+                else -> {
+                    JavascriptStatement.IfStatement.ConditionAndStatement(
                         condition = JavascriptExpression.Literal(JavascriptValue.Boolean(true)),
-                        body = expectBlock()
+                        body = expectBlockOrStatement()
                     )
                 }
-                else -> throwUnexpectedTokenFound()
             }
         }
 
@@ -218,15 +217,15 @@ class JavascriptParser(
             initializerStatement = initializerStatement,
             conditionExpression = conditionExpression,
             updaterExpression = updaterExpression,
-            body = expectBlockOrExpression()
+            body = expectBlockOrStatement()
         )
     }
 
-    private fun expectBlockOrExpression(): JavascriptStatement {
+    private fun expectBlockOrStatement(): JavascriptStatement {
         return if (getCurrentToken() is JavascriptTokenType.OpenCurlyBracket) {
             expectBlock()
         } else {
-            expectExpression()
+            expectStatement().also { maybeConsumeLineTerminator() }
         }
     }
 
