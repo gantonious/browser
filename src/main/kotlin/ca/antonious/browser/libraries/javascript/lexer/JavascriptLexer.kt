@@ -15,6 +15,7 @@ class JavascriptLexer (private val source: String) {
             "undefined" to JavascriptTokenType.Undefined,
             "let" to JavascriptTokenType.Let,
             "const" to JavascriptTokenType.Const,
+            "var" to JavascriptTokenType.Var,
             "new" to JavascriptTokenType.New
         )
 

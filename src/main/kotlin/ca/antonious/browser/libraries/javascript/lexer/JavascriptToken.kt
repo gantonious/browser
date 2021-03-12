@@ -22,6 +22,7 @@ sealed class JavascriptTokenType {
     object Return : JavascriptTokenType()
     object Let : JavascriptTokenType()
     object Const : JavascriptTokenType()
+    object Var : JavascriptTokenType()
     object PlusPlus : JavascriptTokenType()
     object MinusMinus : JavascriptTokenType()
     object New : JavascriptTokenType()

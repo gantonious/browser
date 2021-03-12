@@ -90,6 +90,7 @@ class JavascriptParser(
             is JavascriptTokenType.While -> expectWhileLoop()
             is JavascriptTokenType.If -> expectIfStatement()
             is JavascriptTokenType.Return -> expectReturnStatement()
+            is JavascriptTokenType.Var -> expectVarStatement()
             is JavascriptTokenType.Let -> expectLetStatement()
             is JavascriptTokenType.Const -> expectConstStatement()
             is JavascriptTokenType.For -> expectForLoop()
@@ -229,6 +230,25 @@ class JavascriptParser(
         expectToken<JavascriptTokenType.CloseCurlyBracket>()
 
         return JavascriptStatement.Block(statements)
+    }
+
+    private fun expectVarStatement(): JavascriptStatement.VarAssignment {
+        expectToken<JavascriptTokenType.Var>()
+        val name = expectToken<JavascriptTokenType.Identifier>().name
+
+        if (maybeGetCurrentToken() !is JavascriptTokenType.Operator.Assignment) {
+            return JavascriptStatement.VarAssignment(
+                name = name,
+                expression = JavascriptExpression.Literal(value = JavascriptValue.Undefined)
+            )
+        }
+
+        expectToken<JavascriptTokenType.Operator.Assignment>()
+
+        return JavascriptStatement.VarAssignment(
+            name = name,
+            expression = expectExpression()
+        )
     }
 
     private fun expectLetStatement(): JavascriptStatement.LetAssignment {
