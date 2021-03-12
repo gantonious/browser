@@ -8,6 +8,7 @@ import ca.antonious.browser.libraries.javascript.interpreter.builtins.Javascript
 import ca.antonious.browser.libraries.javascript.lexer.JavascriptToken
 import ca.antonious.browser.libraries.javascript.lexer.JavascriptTokenType
 import java.util.*
+import kotlin.math.exp
 import kotlin.math.max
 
 class JavascriptParser(
@@ -307,7 +308,22 @@ class JavascriptParser(
     }
 
     private fun expectExpression(): JavascriptExpression {
-        return expectAssignmentExpression()
+        return expectTernaryExpression()
+    }
+
+    private fun expectTernaryExpression(): JavascriptExpression {
+        val expression = expectAssignmentExpression()
+
+        if (maybeGetCurrentToken() is JavascriptTokenType.QuestionMark) {
+            expectToken<JavascriptTokenType.QuestionMark>()
+            return JavascriptExpression.TernaryOperation(
+                condition = expression,
+                ifTruthy = expectAssignmentExpression().also { expectToken<JavascriptTokenType.Colon>() },
+                ifNot = expectAssignmentExpression()
+            )
+        }
+
+        return expression
     }
 
     private fun expectAssignmentExpression(): JavascriptExpression {

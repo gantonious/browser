@@ -175,6 +175,13 @@ class JavascriptInterpreter {
 
                 return JavascriptReference.Undefined
             }
+            is JavascriptExpression.TernaryOperation -> {
+                return if (interpret(statement.condition).isTruthy) {
+                    interpret(statement.ifTruthy)
+                } else {
+                    interpret(statement.ifNot)
+                }.toReference()
+            }
             is JavascriptExpression.BinaryOperation -> {
                 return when (statement.operator) {
                     is JavascriptTokenType.Operator.Plus -> {

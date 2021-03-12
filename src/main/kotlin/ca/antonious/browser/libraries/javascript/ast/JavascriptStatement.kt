@@ -38,6 +38,7 @@ sealed class JavascriptExpression : JavascriptStatement() {
     }
     data class ArrayLiteral(val items: List<JavascriptExpression>) : JavascriptExpression()
     data class Literal(val value: JavascriptValue) : JavascriptExpression()
+    data class TernaryOperation(val condition: JavascriptExpression, val ifTruthy: JavascriptExpression, val ifNot: JavascriptExpression) : JavascriptExpression()
     data class BinaryOperation(val operator: JavascriptTokenType.Operator, val lhs: JavascriptExpression, val rhs: JavascriptExpression): JavascriptExpression()
     data class UnaryOperation(val operator: JavascriptTokenType, val expression: JavascriptExpression, val isPrefix: Boolean): JavascriptExpression()
     data class AnonymousFunction(val parameterNames: List<String>, val body: Block) : JavascriptExpression()
