@@ -15,6 +15,7 @@ sealed class JavascriptTokenType {
     object CloseBracket : JavascriptTokenType()
 
     object Function : JavascriptTokenType()
+    object Do : JavascriptTokenType()
     object While : JavascriptTokenType()
     object For : JavascriptTokenType()
     object If : JavascriptTokenType()

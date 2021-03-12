@@ -96,6 +96,7 @@ class JavascriptParser(
             is JavascriptTokenType.Let -> expectLetStatement()
             is JavascriptTokenType.Const -> expectConstStatement()
             is JavascriptTokenType.For -> expectForLoop()
+            is JavascriptTokenType.Do -> expectDoWhileLoop()
             else -> expectExpression()
         }
     }
@@ -196,6 +197,17 @@ class JavascriptParser(
             condition = condition,
             body =  expectBlock()
         )
+    }
+
+    private fun expectDoWhileLoop(): JavascriptStatement {
+        expectToken<JavascriptTokenType.Do>()
+        val body = expectBlockOrStatement()
+        expectToken<JavascriptTokenType.While>()
+        expectToken<JavascriptTokenType.OpenParentheses>()
+        val condition = expectExpression()
+        expectToken<JavascriptTokenType.CloseParentheses>()
+
+        return JavascriptStatement.DoWhileLoop(body = body, condition = condition)
     }
 
     private fun expectForLoop(): JavascriptStatement.ForLoop {

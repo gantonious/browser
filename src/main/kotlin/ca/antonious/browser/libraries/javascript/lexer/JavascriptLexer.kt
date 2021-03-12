@@ -16,7 +16,8 @@ class JavascriptLexer (private val source: String) {
             "let" to JavascriptTokenType.Let,
             "const" to JavascriptTokenType.Const,
             "var" to JavascriptTokenType.Var,
-            "new" to JavascriptTokenType.New
+            "new" to JavascriptTokenType.New,
+            "do" to JavascriptTokenType.Do
         )
 
         private val singleCharTokenMap = mapOf(

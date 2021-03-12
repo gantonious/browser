@@ -158,6 +158,13 @@ class JavascriptInterpreter {
                 }
                 return JavascriptReference.Undefined
             }
+            is JavascriptStatement.DoWhileLoop -> {
+                do {
+                    interpret(statement.body)
+                } while (interpret(statement.condition).isTruthy)
+
+                return JavascriptReference.Undefined
+            }
             is JavascriptStatement.ForLoop -> {
                 interpret(statement.initializerStatement)
 
