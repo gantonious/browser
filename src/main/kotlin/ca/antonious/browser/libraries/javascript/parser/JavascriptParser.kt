@@ -201,19 +201,31 @@ class JavascriptParser(
         expectToken<JavascriptTokenType.For>()
 
         expectToken<JavascriptTokenType.OpenParentheses>()
-        val initializerExpression = expectExpression()
+        val initializerStatement = expectStatement()
         expectToken<JavascriptTokenType.SemiColon>()
         val conditionExpression = expectExpression()
         expectToken<JavascriptTokenType.SemiColon>()
-        val updaterExpression = expectExpression()
+        val updaterExpression = if (getCurrentToken() is JavascriptTokenType.CloseParentheses) {
+            null
+        } else {
+            expectExpression()
+        }
         expectToken<JavascriptTokenType.CloseParentheses>()
 
         return JavascriptStatement.ForLoop(
-            initializerExpression = initializerExpression,
+            initializerStatement = initializerStatement,
             conditionExpression = conditionExpression,
             updaterExpression = updaterExpression,
-            body = expectBlock()
+            body = expectBlockOrExpression()
         )
+    }
+
+    private fun expectBlockOrExpression(): JavascriptStatement {
+        return if (getCurrentToken() is JavascriptTokenType.OpenCurlyBracket) {
+            expectBlock()
+        } else {
+            expectExpression()
+        }
     }
 
     private fun expectBlock(): JavascriptStatement.Block {

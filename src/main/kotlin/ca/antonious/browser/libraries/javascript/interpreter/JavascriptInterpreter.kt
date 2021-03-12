@@ -159,11 +159,11 @@ class JavascriptInterpreter {
                 return JavascriptReference.Undefined
             }
             is JavascriptStatement.ForLoop -> {
-                interpret(statement.initializerExpression)
+                interpret(statement.initializerStatement)
 
                 while (interpret(statement.conditionExpression).isTruthy) {
                     interpret(statement.body)
-                    interpret(statement.updaterExpression)
+                    statement.updaterExpression?.let { interpret(it) }
                 }
 
                 return JavascriptReference.Undefined
