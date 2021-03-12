@@ -87,7 +87,6 @@ class JavascriptParser(
     }
 
     private fun expectStatement(): JavascriptStatement {
-
         return when (getCurrentToken()) {
             is JavascriptTokenType.Function -> expectFunctionDeclaration()
             is JavascriptTokenType.While -> expectWhileLoop()
@@ -98,7 +97,18 @@ class JavascriptParser(
             is JavascriptTokenType.Const -> expectConstStatement()
             is JavascriptTokenType.For -> expectForLoop()
             is JavascriptTokenType.Do -> expectDoWhileLoop()
+            is JavascriptTokenType.Identifier -> expectLabeledStatement()
             else -> expectExpression()
+        }
+    }
+
+    private fun expectLabeledStatement(): JavascriptStatement {
+        return if (maybeGetNextToken() is JavascriptTokenType.Colon) {
+            val label = expectToken<JavascriptTokenType.Identifier>()
+            expectToken<JavascriptTokenType.Colon>()
+            return JavascriptStatement.LabeledStatement(label = label.name, statement = expectStatement())
+        } else {
+            expectExpression()
         }
     }
 
@@ -733,6 +743,13 @@ class JavascriptParser(
             return null
         }
         return tokens[cursor].type
+    }
+
+    private fun maybeGetNextToken(): JavascriptTokenType? {
+        if (cursor + 1 >= tokens.size) {
+            return null
+        }
+        return tokens[cursor + 1].type
     }
 
     private fun isAtEnd(): Boolean {

@@ -7,6 +7,7 @@ import ca.antonious.browser.libraries.javascript.lexer.JavascriptTokenType
 data class JavascriptProgram(val body: List<JavascriptStatement>)
 
 sealed class JavascriptStatement {
+    data class LabeledStatement(val label: String, val statement: JavascriptStatement) : JavascriptStatement()
     data class Block(val body: List<JavascriptStatement>) : JavascriptStatement()
     data class Function(val name: String, val parameterNames: List<String>, val body: Block) : JavascriptStatement()
     data class Return(val expression: JavascriptExpression?) : JavascriptStatement()

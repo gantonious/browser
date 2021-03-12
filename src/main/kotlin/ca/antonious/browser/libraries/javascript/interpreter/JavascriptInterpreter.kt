@@ -75,6 +75,9 @@ class JavascriptInterpreter {
 
     private fun interpretAsReference(statement: JavascriptStatement): JavascriptReference {
         when (statement) {
+            is JavascriptStatement.LabeledStatement -> {
+                return interpretAsReference(statement.statement)
+            }
             is JavascriptStatement.Block -> {
                 var result: JavascriptReference = JavascriptReference.Undefined
                 for (child in statement.body) {
