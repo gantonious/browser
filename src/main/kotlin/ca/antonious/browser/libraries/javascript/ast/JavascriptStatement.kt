@@ -26,6 +26,7 @@ sealed class JavascriptStatement {
 }
 
 sealed class JavascriptExpression : JavascriptStatement() {
+    data class Group(val expression: List<JavascriptExpression>) : JavascriptExpression()
     data class NewCall(val function: FunctionCall) : JavascriptExpression()
     data class FunctionCall(val expression: JavascriptExpression, val parameters: List<JavascriptExpression>) : JavascriptExpression()
     data class DotAccess(val propertyName: String, val expression: JavascriptExpression) : JavascriptExpression()

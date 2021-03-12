@@ -619,10 +619,18 @@ class JavascriptParser(
     }
 
     private fun expectGroupExpression(): JavascriptExpression {
+        val expressions = mutableListOf<JavascriptExpression>()
         expectToken<JavascriptTokenType.OpenParentheses>()
-        val expression = expectExpression()
+        if (getCurrentToken() !is JavascriptTokenType.CloseParentheses) {
+            expressions += expectExpression()
+
+            while (getCurrentToken() !is JavascriptTokenType.CloseParentheses) {
+                expectToken<JavascriptTokenType.Comma>()
+                expressions += expectExpression()
+            }
+        }
         expectToken<JavascriptTokenType.CloseParentheses>()
-        return expression
+        return JavascriptExpression.Group(expressions)
     }
 
     private fun expectAnonymousFunctionExpression(): JavascriptExpression {

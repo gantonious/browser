@@ -413,6 +413,9 @@ class JavascriptInterpreter {
                     }
                 }
             }
+            is JavascriptExpression.Group -> {
+                return statement.expression.map { interpret(it) }.last().toReference()
+            }
         }
     }
 
