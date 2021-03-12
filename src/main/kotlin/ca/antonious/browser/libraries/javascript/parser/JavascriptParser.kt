@@ -319,7 +319,25 @@ class JavascriptParser(
     }
 
     private fun expectExpression(): JavascriptExpression {
+        return expectCommaExpression()
+    }
+
+    private fun expectSubExpression(): JavascriptExpression {
         return expectTernaryExpression()
+    }
+
+    private fun expectCommaExpression(): JavascriptExpression {
+        var expression = expectTernaryExpression()
+
+        while (maybeGetCurrentToken() is JavascriptTokenType.Comma) {
+            expression = JavascriptExpression.BinaryOperation(
+                operator = expectToken(),
+                lhs = expression,
+                rhs = expectTernaryExpression()
+            )
+        }
+
+        return expression
     }
 
     private fun expectTernaryExpression(): JavascriptExpression {
@@ -516,11 +534,11 @@ class JavascriptParser(
         val arguments = mutableListOf<JavascriptExpression>()
 
         if (getCurrentToken() !is JavascriptTokenType.CloseParentheses) {
-            arguments += expectExpression()
+            arguments += expectSubExpression()
 
             while (getCurrentToken() !is JavascriptTokenType.CloseParentheses) {
                 expectToken<JavascriptTokenType.Comma>()
-                arguments += expectExpression()
+                arguments += expectSubExpression()
             }
         }
 
@@ -534,7 +552,7 @@ class JavascriptParser(
 
     private fun expectIndexAccessOn(expression: JavascriptExpression): JavascriptExpression.IndexAccess {
         expectToken<JavascriptTokenType.OpenBracket>()
-        val index = expectExpression()
+        val index = expectSubExpression()
         expectToken<JavascriptTokenType.CloseBracket>()
 
         return JavascriptExpression.IndexAccess(
@@ -592,11 +610,11 @@ class JavascriptParser(
         expectToken<JavascriptTokenType.OpenBracket>()
 
         if (getCurrentToken() !is JavascriptTokenType.CloseBracket) {
-            values += expectExpression()
+            values += expectSubExpression()
 
             while (getCurrentToken() !is JavascriptTokenType.CloseBracket) {
                 expectToken<JavascriptTokenType.Comma>()
-                values += expectExpression()
+                values += expectSubExpression()
             }
         }
 
@@ -626,7 +644,7 @@ class JavascriptParser(
     private fun expectObjectField(): JavascriptExpression.ObjectLiteral.Field {
         return JavascriptExpression.ObjectLiteral.Field(
             name = expectObjectKey().also { expectToken<JavascriptTokenType.Colon>() },
-            rhs = expectExpression()
+            rhs = expectSubExpression()
         )
     }
 
@@ -657,18 +675,10 @@ class JavascriptParser(
     }
 
     private fun expectGroupExpression(): JavascriptExpression {
-        val expressions = mutableListOf<JavascriptExpression>()
         expectToken<JavascriptTokenType.OpenParentheses>()
-        if (getCurrentToken() !is JavascriptTokenType.CloseParentheses) {
-            expressions += expectExpression()
-
-            while (getCurrentToken() !is JavascriptTokenType.CloseParentheses) {
-                expectToken<JavascriptTokenType.Comma>()
-                expressions += expectExpression()
-            }
-        }
+        val expression = expectExpression()
         expectToken<JavascriptTokenType.CloseParentheses>()
-        return JavascriptExpression.Group(expressions)
+        return expression
     }
 
     private fun expectAnonymousFunctionExpression(): JavascriptExpression {

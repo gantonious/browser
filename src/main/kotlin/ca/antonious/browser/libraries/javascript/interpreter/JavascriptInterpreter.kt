@@ -270,6 +270,10 @@ class JavascriptInterpreter {
                     is JavascriptTokenType.Operator.DivideAssign -> interpretOperatorAssignAsReference(JavascriptTokenType.Operator.Divide, statement)
                     is JavascriptTokenType.Operator.XorAssign -> interpretOperatorAssignAsReference(JavascriptTokenType.Operator.Xor, statement)
                     is JavascriptTokenType.Operator.ModAssign -> interpretOperatorAssignAsReference(JavascriptTokenType.Operator.Mod, statement)
+                    is JavascriptTokenType.Comma -> {
+                        interpret(statement.lhs)
+                        interpretAsReference(statement.rhs)
+                    }
                     else -> {
                         error("${statement.operator} is unsupported for binary operations.")
                     }
@@ -429,9 +433,6 @@ class JavascriptInterpreter {
                         return JavascriptValue.Object(objectThis).toReference()
                     }
                 }
-            }
-            is JavascriptExpression.Group -> {
-                return statement.expression.map { interpret(it) }.last().toReference()
             }
         }
     }
