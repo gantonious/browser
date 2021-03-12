@@ -69,11 +69,8 @@ class JavascriptInterpreter {
         return interpret(JavascriptStatement.Block(program.body))
     }
 
-
-
     private fun interpret(statement: JavascriptStatement): JavascriptValue {
         return interpretAsReference(statement).value
-
     }
 
     private fun interpretAsReference(statement: JavascriptStatement): JavascriptReference {
@@ -378,6 +375,34 @@ class JavascriptInterpreter {
                     )
                 ).toReference()
             }
+            is JavascriptExpression.NewCall -> {
+                val callableValue = interpret(statement.function.expression)
+
+                if (callableValue !is JavascriptValue.Function) {
+                    error("Can't call non-function type '$callableValue'.")
+                }
+
+                when (val function = callableValue.value) {
+                    is JavascriptFunction.Native -> {
+                        error("Cannot new a native function")
+                    }
+                    is JavascriptFunction.UserDefined -> {
+                        val objectThis = JavascriptObject()
+                        enterFunction(function, statement.function.parameters, thisBinding = objectThis)
+
+                        for (child in function.body.body) {
+                            interpret(child)
+                            if (lastReturn != null) {
+                                lastReturn = null
+                                break
+                            }
+                        }
+
+                        exitFunction()
+                        return JavascriptValue.Object(objectThis).toReference()
+                    }
+                }
+            }
         }
     }
 
@@ -401,9 +426,13 @@ class JavascriptInterpreter {
         return valueToAssign.toReference()
     }
 
-    private fun enterFunction(function: JavascriptFunction.UserDefined, passedParameters: List<JavascriptExpression>) {
+    private fun enterFunction(
+        function: JavascriptFunction.UserDefined,
+        passedParameters: List<JavascriptExpression>,
+        thisBinding: JavascriptObject? = null
+    ) {
         val functionScope = JavascriptScope(
-            thisBinding = globalObject,
+            thisBinding = thisBinding ?: function.parentScope.thisBinding,
             scopeObject = JavascriptObject().apply {
                     function.parameterNames.forEachIndexed { index, parameterName ->
                     setProperty(parameterName, interpret(passedParameters.getOrElse(index) {

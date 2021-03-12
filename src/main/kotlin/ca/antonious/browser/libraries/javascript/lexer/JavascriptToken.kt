@@ -24,6 +24,7 @@ sealed class JavascriptTokenType {
     object Const : JavascriptTokenType()
     object PlusPlus : JavascriptTokenType()
     object MinusMinus : JavascriptTokenType()
+    object New : JavascriptTokenType()
 
     data class RegularExpression(val regex: kotlin.String, val flags: kotlin.String) : JavascriptTokenType()
     data class String(val value: kotlin.String) : JavascriptTokenType()

@@ -398,7 +398,12 @@ class JavascriptParser(
     }
 
     private fun expectPostfixExpression(): JavascriptExpression {
-        var expression = expectSimpleExpression()
+        var expression = if (getCurrentToken() is JavascriptTokenType.New) {
+            expectNewWithArguments()
+        } else {
+            expectSimpleExpression()
+        }
+
         var continueParsing = true
 
         loop@while (continueParsing) {
@@ -414,6 +419,14 @@ class JavascriptParser(
         }
 
         return expression
+    }
+
+    private fun expectNewWithArguments() : JavascriptExpression.NewCall {
+        expectToken<JavascriptTokenType.New>()
+        val identifier = expectToken<JavascriptTokenType.Identifier>()
+        return JavascriptExpression.NewCall(
+            function = expectFunctionCallOn(JavascriptExpression.Reference(identifier.name))
+        )
     }
 
     private fun expectFunctionCallOn(expression: JavascriptExpression): JavascriptExpression.FunctionCall {
