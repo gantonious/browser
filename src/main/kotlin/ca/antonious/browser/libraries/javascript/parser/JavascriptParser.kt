@@ -61,7 +61,9 @@ class JavascriptParser(
 
         private val equalityTokens = setOf(
             JavascriptTokenType.Operator.Equals,
-            JavascriptTokenType.Operator.StrictEquals
+            JavascriptTokenType.Operator.NotEquals,
+            JavascriptTokenType.Operator.StrictEquals,
+            JavascriptTokenType.Operator.StrictNotEquals
         )
 
         private val rightToLeftAssociativeOperators = assignmentToken

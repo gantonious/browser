@@ -231,8 +231,14 @@ class JavascriptInterpreter {
                     is JavascriptTokenType.Operator.StrictEquals -> {
                         JavascriptValue.Boolean(interpret(statement.lhs) == interpret(statement.rhs)).toReference()
                     }
+                    is JavascriptTokenType.Operator.StrictNotEquals -> {
+                        JavascriptValue.Boolean(interpret(statement.lhs) != interpret(statement.rhs)).toReference()
+                    }
                     is JavascriptTokenType.Operator.Equals -> {
                         JavascriptValue.Boolean(JavascriptValue.looselyEquals(interpret(statement.lhs), interpret(statement.rhs))).toReference()
+                    }
+                    is JavascriptTokenType.Operator.NotEquals -> {
+                        JavascriptValue.Boolean(!JavascriptValue.looselyEquals(interpret(statement.lhs), interpret(statement.rhs))).toReference()
                     }
                     is JavascriptTokenType.Operator.Assignment -> {
                         val valueToAssign = interpret(statement.rhs)

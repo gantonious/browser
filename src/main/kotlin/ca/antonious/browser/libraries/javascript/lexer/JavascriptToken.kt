@@ -58,7 +58,9 @@ sealed class JavascriptTokenType {
         object DivideAssign : Operator()
         object Assignment : Operator()
         object Equals : Operator()
+        object NotEquals : Operator()
         object StrictEquals : Operator()
+        object StrictNotEquals : Operator()
         object BitNot: Operator()
         object Not : Operator()
     }

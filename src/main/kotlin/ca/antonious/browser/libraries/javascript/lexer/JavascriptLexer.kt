@@ -61,11 +61,13 @@ class JavascriptLexer (private val source: String) {
             "||" to JavascriptTokenType.Operator.OrOr,
             "++" to JavascriptTokenType.PlusPlus,
             "--" to JavascriptTokenType.MinusMinus,
-            "==" to JavascriptTokenType.Operator.Equals
+            "==" to JavascriptTokenType.Operator.Equals,
+            "!=" to JavascriptTokenType.Operator.NotEquals
         )
 
         private val threeCharTokenMap = mapOf(
-            "===" to JavascriptTokenType.Operator.StrictEquals
+            "===" to JavascriptTokenType.Operator.StrictEquals,
+            "!==" to JavascriptTokenType.Operator.StrictNotEquals
         )
     }
 
