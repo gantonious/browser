@@ -54,10 +54,12 @@ class JavascriptInterpreter {
         )
     }
 
+    private var controlFlowInterruption: ControlFlowInterruption? = null
     private var lastReturn: JavascriptReference? = null
 
     private val currentScope: JavascriptScope
         get() = stack.peek().scope
+
 
     fun interpret(javascript: String): JavascriptValue {
         val tokens = JavascriptLexer(javascript).lex()
@@ -82,6 +84,9 @@ class JavascriptInterpreter {
                 var result: JavascriptReference = JavascriptReference.Undefined
                 for (child in statement.body) {
                     result = interpretAsReference(child)
+                    if (hasControlFlowInterrupted()) {
+                        break
+                    }
                 }
 
                 return result
@@ -98,11 +103,13 @@ class JavascriptInterpreter {
                 return JavascriptReference.Undefined
             }
             is JavascriptStatement.Return -> {
-                if (statement.expression != null) {
-                    lastReturn = interpretAsReference(statement.expression)
+                val value = if (statement.expression != null) {
+                    interpret(statement.expression)
                 } else {
-                    lastReturn = JavascriptReference.Undefined
+                    JavascriptValue.Undefined
                 }
+
+                interruptControlFlowWith(ControlFlowInterruption.Return(value))
 
                 return JavascriptReference.Undefined
             }
@@ -125,15 +132,14 @@ class JavascriptInterpreter {
 
                                 for (child in function.body.body) {
                                     interpret(child)
-                                    if (lastReturn != null) {
+                                    if (hasControlFlowInterrupted()) {
                                         break
                                     }
                                 }
 
                                 exitFunction()
-                                return (lastReturn ?: JavascriptReference.Undefined).also {
-                                    lastReturn = null
-                                }
+
+                                return (maybeConsumeControlFlowInterrupt<ControlFlowInterruption.Return>()?.value ?: JavascriptValue.Undefined).toReference()
                             }
                         }
                     }
@@ -153,15 +159,14 @@ class JavascriptInterpreter {
 
                                 for (child in function.body.body) {
                                     interpret(child)
-                                    if (lastReturn != null) {
+                                    if (hasControlFlowInterrupted()) {
                                         break
                                     }
                                 }
 
                                 exitFunction()
-                                return (lastReturn ?: JavascriptReference.Undefined).also {
-                                    lastReturn = null
-                                }
+
+                                return (maybeConsumeControlFlowInterrupt<ControlFlowInterruption.Return>()?.value ?: JavascriptValue.Undefined).toReference()
                             }
                         }
                     }
@@ -189,7 +194,7 @@ class JavascriptInterpreter {
                 return JavascriptReference.Undefined
             }
             is JavascriptStatement.WhileLoop -> {
-                while (interpret(statement.condition).isTruthy) {
+                while (!hasControlFlowInterrupted() && interpret(statement.condition).isTruthy) {
                     interpret(statement.body)
                 }
                 return JavascriptReference.Undefined
@@ -197,14 +202,14 @@ class JavascriptInterpreter {
             is JavascriptStatement.DoWhileLoop -> {
                 do {
                     interpret(statement.body)
-                } while (interpret(statement.condition).isTruthy)
+                } while (!hasControlFlowInterrupted() && interpret(statement.condition).isTruthy)
 
                 return JavascriptReference.Undefined
             }
             is JavascriptStatement.ForLoop -> {
                 interpret(statement.initializerStatement)
 
-                while (interpret(statement.conditionExpression).isTruthy) {
+                while (!hasControlFlowInterrupted() && interpret(statement.conditionExpression).isTruthy) {
                     interpret(statement.body)
                     statement.updaterExpression?.let { interpret(it) }
                 }
@@ -512,5 +517,33 @@ class JavascriptInterpreter {
 
     private fun exitFunction() {
         stack.pop()
+    }
+
+
+    private fun interruptControlFlowWith(interruption: ControlFlowInterruption) {
+        controlFlowInterruption = interruption
+    }
+
+    private inline fun <reified T : ControlFlowInterruption> maybeConsumeControlFlowInterrupt(): T? {
+        if (controlFlowInterruption !is T) {
+            return null
+        }
+        return (controlFlowInterruption as T).also { controlFlowInterruption = null }
+    }
+
+    private inline fun <reified T : ControlFlowInterruption> consumeControlFlowInterrupt(): T {
+        return (controlFlowInterruption as T).also { controlFlowInterruption = null }
+    }
+
+    private fun hasControlFlowInterrupted(): Boolean {
+        return controlFlowInterruption != null
+    }
+
+    private inline fun <reified T : ControlFlowInterruption> hasControlFlowInterruptedDueTo(): Boolean {
+        return controlFlowInterruption is T
+    }
+
+    sealed class ControlFlowInterruption {
+        data class Return(val value: JavascriptValue) : ControlFlowInterruption()
     }
 }
