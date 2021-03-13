@@ -9,9 +9,7 @@ import ca.antonious.browser.libraries.javascript.ast.JavascriptValue
 import ca.antonious.browser.libraries.javascript.interpreter.builtins.JavascriptArray
 import ca.antonious.browser.libraries.javascript.interpreter.JavascriptInterpreter
 import ca.antonious.browser.libraries.javascript.interpreter.JavascriptObject
-import ca.antonious.browser.libraries.javascript.interpreter.builtins.JavascriptFunction
-import ca.antonious.browser.libraries.javascript.interpreter.setNativeFunction
-import ca.antonious.browser.libraries.javascript.interpreter.toReference
+import ca.antonious.browser.libraries.javascript.interpreter.builtins.setNonEnumerableNativeFunction
 import ca.antonious.browser.libraries.layout.builtins.BlockNode
 import ca.antonious.browser.libraries.layout.core.Key
 import ca.antonious.browser.libraries.web.javascript.JavascriptHtmlElement
@@ -32,20 +30,10 @@ class DOM {
 
     private val javascriptInterpreter = JavascriptInterpreter().apply {
         globalObject.setProperty(
-            key = "createKeyDownEvent",
-            value = JavascriptValue.Function(
-                JavascriptFunction.Native {
-                    JavascriptValue.Object(JavascriptObject().apply {
-                        setProperty("code", it.first())
-                    }).toReference()
-                }
-            )
-        )
-        globalObject.setProperty(
             key = "window",
             value = JavascriptValue.Object(
                 JavascriptObject().apply {
-                    setNativeFunction("onload") { JavascriptValue.Undefined }
+                    setNonEnumerableNativeFunction("onload") { JavascriptValue.Undefined }
                 }
             )
         )
@@ -54,14 +42,14 @@ class DOM {
             key = "document",
             value = JavascriptValue.Object(
                 JavascriptObject().apply {
-                    setNativeFunction("getElementsByClassName") {
-                        val className = it.first() as JavascriptValue.String
+                    setNonEnumerableNativeFunction("getElementsByClassName") { executionContext ->
+                        val className = executionContext.arguments.first() as JavascriptValue.String
                         val matchingNodes = findNodesWithClass(className.value, rootNode.children.map { it as DOMLayoutNode })
                         JavascriptValue.Object(JavascriptArray(matchingNodes.map { JavascriptValue.Object(JavascriptHtmlElement(it)) }))
                     }
 
-                    setNativeFunction("getElementById") {
-                        val id = it.first() as JavascriptValue.String
+                    setNonEnumerableNativeFunction("getElementById") { executionContext ->
+                        val id = executionContext.arguments.first() as JavascriptValue.String
                         val node = findNodeWithId(id.value, rootNode.children.map { it as DOMLayoutNode })
 
                         if (node == null) {
@@ -71,8 +59,8 @@ class DOM {
                         }
                     }
 
-                    setNativeFunction("createElement") {
-                        val tagName = it.first() as JavascriptValue.String
+                    setNonEnumerableNativeFunction("createElement") { executionContext->
+                        val tagName = executionContext.arguments.first() as JavascriptValue.String
                         val element = HtmlElement.Node(name = tagName.value)
                         val layoutNode = DOMParentLayoutNode(
                             parent = null,
@@ -101,7 +89,7 @@ class DOM {
     }
 
     fun handleKeyDown(key: Key) {
-        javascriptInterpreter.interpret("window.onkeydown(createKeyDownEvent('${key.name}'))")
+        javascriptInterpreter.interpret("window.onkeydown({ code: '${key.name}' })")
     }
 
     private fun handleEvent(event: DOMEvent) {

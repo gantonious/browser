@@ -2,9 +2,6 @@ package ca.antonious.browser.libraries.javascript.interpreter.builtins
 
 import ca.antonious.browser.libraries.javascript.ast.JavascriptValue
 import ca.antonious.browser.libraries.javascript.interpreter.JavascriptObject
-import ca.antonious.browser.libraries.javascript.interpreter.JavascriptReference
-import ca.antonious.browser.libraries.javascript.interpreter.setNativeFunction
-import ca.antonious.browser.libraries.javascript.interpreter.toReference
 
 class JavascriptArray(initialValues: List<JavascriptValue> = emptyList()) : JavascriptObject() {
     private val array = initialValues.toMutableList()
@@ -12,18 +9,18 @@ class JavascriptArray(initialValues: List<JavascriptValue> = emptyList()) : Java
     override fun getProperty(key: String): JavascriptValue {
         return when (key) {
             "length" -> JavascriptValue.Number(array.size.toDouble())
-            "push" -> JavascriptValue.Function(
-                value = JavascriptFunction.Native {
-                    array.add(it.first())
-                    JavascriptReference.Undefined
+            "push" -> JavascriptValue.Object(
+                value = NativeFunction { executionContext ->
+                    array.add(executionContext.arguments.first())
+                    JavascriptValue.Undefined
                 }
             )
-            "pop" -> JavascriptValue.Function(
-                value = JavascriptFunction.Native {
+            "pop" -> JavascriptValue.Object(
+                value = NativeFunction {
                     if (array.isEmpty()) {
-                        JavascriptReference.Undefined
+                        JavascriptValue.Undefined
                     } else {
-                        array.removeAt(array.size - 1).toReference()
+                        array.removeAt(array.size - 1)
                     }
                 }
             )

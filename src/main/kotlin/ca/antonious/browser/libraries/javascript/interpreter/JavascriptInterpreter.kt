@@ -1,9 +1,7 @@
 package ca.antonious.browser.libraries.javascript.interpreter
 
 import ca.antonious.browser.libraries.javascript.ast.*
-import ca.antonious.browser.libraries.javascript.interpreter.builtins.JavascriptArray
-import ca.antonious.browser.libraries.javascript.interpreter.builtins.JavascriptFunction
-import ca.antonious.browser.libraries.javascript.interpreter.builtins.JavascriptRegex
+import ca.antonious.browser.libraries.javascript.interpreter.builtins.*
 import ca.antonious.browser.libraries.javascript.lexer.JavascriptLexer
 import ca.antonious.browser.libraries.javascript.lexer.JavascriptTokenType
 import ca.antonious.browser.libraries.javascript.parser.JavascriptParser
@@ -12,31 +10,31 @@ import kotlin.random.Random
 
 class JavascriptInterpreter {
     val globalObject = JavascriptObject().apply {
-        setNativeFunction("getInput") {
-            val inputText = it.firstOrNull() as? JavascriptValue.String
+        setNonEnumerableNativeFunction("getInput") { executionContext ->
+            val inputText = executionContext.arguments.firstOrNull() as? JavascriptValue.String
             if (inputText != null) {
                 print(inputText.value)
             }
             JavascriptValue.Number((readLine() ?: "").toDouble())
         }
 
-        setNativeFunction("parseInt") {
-            JavascriptValue.Number(it.first().coerceToNumber().toInt().toDouble())
+        setNonEnumerableNativeFunction("parseInt") { executionContext ->
+            JavascriptValue.Number(executionContext.arguments.first().coerceToNumber().toInt().toDouble())
         }
 
         setProperty("console", JavascriptValue.Object(JavascriptObject().apply {
-            setNativeFunction("log") {
-                println(it.joinToString(separator = " "))
+            setNonEnumerableNativeFunction("log") { executionContext ->
+                println(executionContext.arguments.joinToString(separator = " "))
                 JavascriptValue.Undefined
             }
         }))
 
         setProperty("Math", JavascriptValue.Object(JavascriptObject().apply {
-            setNativeFunction("floor") {
-                JavascriptValue.Number(it.first().coerceToNumber().toInt().toDouble())
+            setNonEnumerableNativeFunction("floor") { executionContext ->
+                JavascriptValue.Number(executionContext.arguments.first().coerceToNumber().toInt().toDouble())
             }
 
-            setNativeFunction("random") {
+            setNonEnumerableNativeFunction("random") {
                 JavascriptValue.Number(Random.nextDouble())
             }
         }))
@@ -92,8 +90,8 @@ class JavascriptInterpreter {
                 return result
             }
             is JavascriptStatement.Function -> {
-                val value = JavascriptValue.Function(
-                    value = JavascriptFunction.UserDefined(
+                val value = JavascriptValue.Object(
+                    value = JavascriptFunction(
                         parameterNames = statement.parameterNames,
                         body = statement.body,
                         parentScope = currentScope
@@ -114,63 +112,42 @@ class JavascriptInterpreter {
                 return JavascriptReference.Undefined
             }
             is JavascriptExpression.FunctionCall -> {
-                when (statement.expression) {
+                val (valueToCall, thisBinding) = when (statement.expression) {
                     is JavascriptExpression.DotAccess -> {
                         val objectToInvoke = (interpret(statement.expression.expression) as JavascriptValue.Object).value
-                        val callableValue = objectToInvoke.getProperty(statement.expression.propertyName)
-
-                        if (callableValue !is JavascriptValue.Function) {
-                            error("Can't call non-function type '$callableValue'.")
-                        }
-
-                        when (val function = callableValue.value) {
-                            is JavascriptFunction.Native -> {
-                                return function.body.invoke(statement.parameters.map { interpret(it) })
-                            }
-                            is JavascriptFunction.UserDefined -> {
-                                enterFunction(function, statement.parameters, thisBinding = objectToInvoke)
-
-                                for (child in function.body.body) {
-                                    interpret(child)
-                                    if (hasControlFlowInterrupted()) {
-                                        break
-                                    }
-                                }
-
-                                exitFunction()
-
-                                return (maybeConsumeControlFlowInterrupt<ControlFlowInterruption.Return>()?.value ?: JavascriptValue.Undefined).toReference()
-                            }
-                        }
+                        objectToInvoke.getProperty(statement.expression.propertyName) to objectToInvoke
                     }
                     else -> {
-                        val callableValue = interpret(statement.expression)
-
-                        if (callableValue !is JavascriptValue.Function) {
-                            error("Can't call non-function type '$callableValue'.")
-                        }
-
-                        when (val function = callableValue.value) {
-                            is JavascriptFunction.Native -> {
-                                return function.body.invoke(statement.parameters.map { interpret(it) })
-                            }
-                            is JavascriptFunction.UserDefined -> {
-                                enterFunction(function, statement.parameters)
-
-                                for (child in function.body.body) {
-                                    interpret(child)
-                                    if (hasControlFlowInterrupted()) {
-                                        break
-                                    }
-                                }
-
-                                exitFunction()
-
-                                return (maybeConsumeControlFlowInterrupt<ControlFlowInterruption.Return>()?.value ?: JavascriptValue.Undefined).toReference()
-                            }
-                        }
+                        interpret(statement.expression) to currentScope.thisBinding
                     }
                 }
+
+                return when (val objectToCall = (valueToCall as JavascriptValue.Object).value) {
+                    is JavascriptFunction -> {
+                        enterFunction(
+                            parameterNames = objectToCall.parameterNames,
+                            passedParameters = statement.parameters,
+                            parentScope = objectToCall.parentScope,
+                            thisBinding = thisBinding
+                        )
+
+                        interpret(objectToCall.body)
+
+                        exitFunction()
+
+                        (maybeConsumeControlFlowInterrupt<ControlFlowInterruption.Return>()?.value ?: JavascriptValue.Undefined)
+                    }
+                    is NativeFunction -> {
+                        val nativeExecutionContext = NativeExecutionContext(
+                            arguments = statement.parameters.map { interpret(it) },
+                            thisBinding = thisBinding,
+                            interpreter = this
+                        )
+
+                        objectToCall.body.invoke(nativeExecutionContext)
+                    }
+                    else -> error("TypeError: $objectToCall is not a function")
+                }.toReference()
             }
             is JavascriptStatement.IfStatement -> {
                 val conditionToExecute = statement.conditions.firstOrNull {
@@ -383,23 +360,6 @@ class JavascriptInterpreter {
             is JavascriptExpression.DotAccess -> {
                 val value = when (val value = interpret(statement.expression)) {
                     is JavascriptValue.Object -> value.value
-                    is JavascriptValue.String -> {
-                        when (statement.propertyName) {
-                            "match" -> {
-                                return JavascriptValue.Function(
-                                   value = JavascriptFunction.Native {
-                                       val regex = it.first().valueAs<JavascriptValue.Object>()?.value as JavascriptRegex
-                                       JavascriptValue.Object(
-                                           JavascriptArray(
-                                               Regex(regex.regex).findAll(value.value).map { JavascriptValue.String(it.value) }.toList()
-                                           )
-                                       ).toReference()
-                                   }
-                                ).toReference()
-                            }
-                            else -> error("")
-                        }
-                    }
                     else -> error("Cannot access property '${statement.propertyName}' on ${value} since it's not an object.")
                 }
 
@@ -436,41 +396,34 @@ class JavascriptInterpreter {
                 ).toReference()
             }
             is JavascriptExpression.AnonymousFunction -> {
-                return JavascriptValue.Function(
-                    JavascriptFunction.UserDefined(
-                        parameterNames = statement.parameterNames,
+                return JavascriptValue.Object(
+                    JavascriptFunction(
+                       parameterNames = statement.parameterNames,
                         body = statement.body,
                         parentScope = currentScope
                     )
                 ).toReference()
             }
             is JavascriptExpression.NewCall -> {
-                val callableValue = interpret(statement.function.expression)
+                val constructor = (interpret(statement.function.expression) as JavascriptValue.Object).value
 
-                if (callableValue !is JavascriptValue.Function) {
-                    error("Can't call non-function type '$callableValue'.")
+                if (constructor !is JavascriptFunction) {
+                    error("TypeError: $constructor is not a constructor")
                 }
 
-                when (val function = callableValue.value) {
-                    is JavascriptFunction.Native -> {
-                        error("Cannot new a native function")
-                    }
-                    is JavascriptFunction.UserDefined -> {
-                        val objectThis = JavascriptObject()
-                        enterFunction(function, statement.function.parameters, thisBinding = objectThis)
+                val objectThis = JavascriptObject()
 
-                        for (child in function.body.body) {
-                            interpret(child)
-                            if (lastReturn != null) {
-                                lastReturn = null
-                                break
-                            }
-                        }
+                enterFunction(
+                    parameterNames = constructor.parameterNames,
+                    passedParameters = statement.function.parameters,
+                    parentScope = constructor.parentScope,
+                    thisBinding = objectThis
+                )
 
-                        exitFunction()
-                        return JavascriptValue.Object(objectThis).toReference()
-                    }
-                }
+                interpret(constructor.body)
+
+                exitFunction()
+                return JavascriptValue.Object(objectThis).toReference()
             }
         }
     }
@@ -496,20 +449,21 @@ class JavascriptInterpreter {
     }
 
     private fun enterFunction(
-        function: JavascriptFunction.UserDefined,
+        parameterNames: List<String>,
         passedParameters: List<JavascriptExpression>,
+        parentScope: JavascriptScope,
         thisBinding: JavascriptObject? = null
     ) {
         val functionScope = JavascriptScope(
-            thisBinding = thisBinding ?: function.parentScope.thisBinding,
+            thisBinding = thisBinding ?: parentScope.thisBinding,
             scopeObject = JavascriptObject().apply {
-                    function.parameterNames.forEachIndexed { index, parameterName ->
+                    parameterNames.forEachIndexed { index, parameterName ->
                     setProperty(parameterName, interpret(passedParameters.getOrElse(index) {
                         JavascriptExpression.Literal(value = JavascriptValue.Undefined)
                     }))
                 }
             },
-            parentScope = function.parentScope
+            parentScope = parentScope
         )
 
         stack.push(JavascriptStackFrame(functionScope))
@@ -518,7 +472,6 @@ class JavascriptInterpreter {
     private fun exitFunction() {
         stack.pop()
     }
-
 
     private fun interruptControlFlowWith(interruption: ControlFlowInterruption) {
         controlFlowInterruption = interruption

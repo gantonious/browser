@@ -5,26 +5,22 @@ import ca.antonious.browser.libraries.javascript.interpreter.builtins.Javascript
 
 open class JavascriptObject {
 
+    private val nonEnumerableProperties = mutableMapOf<String, JavascriptValue>()
     protected val properties = mutableMapOf<String, JavascriptValue>()
 
     open fun getProperty(key: String): JavascriptValue {
-        return properties[key] ?: JavascriptValue.Undefined
+        return properties[key] ?: nonEnumerableProperties[key] ?: JavascriptValue.Undefined
     }
 
     open fun setProperty(key: String, value: JavascriptValue) {
         properties[key] = value
     }
 
+    open fun setNonEnumerableProperty(key: String, value: JavascriptValue) {
+        nonEnumerableProperties[key] = value
+    }
+
     override fun toString(): String {
         return "Object {${properties.entries.joinToString(separator = ", ") { "${it.key}: ${it.value}" }}}"
     }
-}
-
-fun JavascriptObject.setNativeFunction(name: String, body: (List<JavascriptValue>) -> JavascriptValue) {
-    setProperty(
-        key = name,
-        value = JavascriptValue.Function(
-            value = JavascriptFunction.Native { body(it).toReference() }
-        )
-    )
 }

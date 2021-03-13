@@ -64,7 +64,6 @@ sealed class JavascriptValue {
             val stringOperand = lhs.valueAs<String>() ?: rhs.valueAs<String>()
             val numberOperand = lhs.valueAs<Number>() ?: rhs.valueAs<Number>()
             val objectOperand = lhs.valueAs<Object>() ?: rhs.valueAs<Object>()
-            val functionOperand = lhs.valueAs<Object>() ?: rhs.valueAs<Object>()
             val undefinedOperand = lhs.valueAs<Undefined>() ?: rhs.valueAs<Undefined>()
 
             return when {
@@ -75,10 +74,7 @@ sealed class JavascriptValue {
                 numberOperand != null && objectOperand != null -> false
                 stringOperand != null && booleanOperand != null -> stringOperand.coerceToNumber() == booleanOperand.coerceToNumber()
                 stringOperand != null && objectOperand != null  -> false
-                stringOperand != null && functionOperand != null  -> false
                 booleanOperand != null && objectOperand != null -> false
-                booleanOperand != null && functionOperand != null -> false
-                objectOperand != null && functionOperand != null -> false
                 else -> error("Should never be reached")
             }
         }
@@ -128,12 +124,5 @@ sealed class JavascriptValue {
         override fun toString() = value.toString()
         override fun coerceToNumber() = Double.NaN
         override fun isSameType(other: JavascriptValue) = other is Object
-    }
-
-    data class Function(val value: JavascriptFunction) : JavascriptValue() {
-        override val isTruthy = true
-        override fun toString() = value.toString()
-        override fun coerceToNumber() = Double.NaN
-        override fun isSameType(other: JavascriptValue) = other is Function
     }
 }
