@@ -1,22 +1,30 @@
 package ca.antonious.browser.libraries.javascript.interpreter
 
 import ca.antonious.browser.libraries.javascript.ast.JavascriptValue
-import ca.antonious.browser.libraries.javascript.interpreter.builtins.JavascriptFunction
+import ca.antonious.browser.libraries.javascript.interpreter.builtins.ObjectPrototype
 
-open class JavascriptObject {
+open class JavascriptObject(
+    val prototype: JavascriptObject? = ObjectPrototype
+) {
 
     private val nonEnumerableProperties = mutableMapOf<String, JavascriptValue>()
     protected val properties = mutableMapOf<String, JavascriptValue>()
 
+    init {
+        if (prototype != null) {
+            setNonEnumerableProperty("__proto__", JavascriptValue.Object(prototype))
+        }
+    }
+
     open fun getProperty(key: String): JavascriptValue {
-        return properties[key] ?: nonEnumerableProperties[key] ?: JavascriptValue.Undefined
+        return properties[key] ?: nonEnumerableProperties[key] ?: prototype?.getProperty(key) ?: JavascriptValue.Undefined
     }
 
     open fun setProperty(key: String, value: JavascriptValue) {
         properties[key] = value
     }
 
-    open fun setNonEnumerableProperty(key: String, value: JavascriptValue) {
+    fun setNonEnumerableProperty(key: String, value: JavascriptValue) {
         nonEnumerableProperties[key] = value
     }
 

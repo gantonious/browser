@@ -411,7 +411,7 @@ class JavascriptInterpreter {
                     error("TypeError: $constructor is not a constructor")
                 }
 
-                val objectThis = JavascriptObject()
+                val objectThis = JavascriptObject(prototype = constructor.functionPrototype)
 
                 enterFunction(
                     parameterNames = constructor.parameterNames,
