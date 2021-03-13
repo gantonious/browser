@@ -107,29 +107,62 @@ class JavascriptInterpreter {
                 return JavascriptReference.Undefined
             }
             is JavascriptExpression.FunctionCall -> {
-                val callableValue = interpret(statement.expression)
+                when (statement.expression) {
+                    is JavascriptExpression.DotAccess -> {
+                        val objectToInvoke = (interpret(statement.expression.expression) as JavascriptValue.Object).value
+                        val callableValue = objectToInvoke.getProperty(statement.expression.propertyName)
 
-                if (callableValue !is JavascriptValue.Function) {
-                    error("Can't call non-function type '$callableValue'.")
-                }
-
-                when (val function = callableValue.value) {
-                    is JavascriptFunction.Native -> {
-                        return function.body.invoke(statement.parameters.map { interpret(it) })
-                    }
-                    is JavascriptFunction.UserDefined -> {
-                        enterFunction(function, statement.parameters)
-
-                        for (child in function.body.body) {
-                            interpret(child)
-                            if (lastReturn != null) {
-                                break
-                            }
+                        if (callableValue !is JavascriptValue.Function) {
+                            error("Can't call non-function type '$callableValue'.")
                         }
 
-                        exitFunction()
-                        return (lastReturn ?: JavascriptReference.Undefined).also {
-                            lastReturn = null
+                        when (val function = callableValue.value) {
+                            is JavascriptFunction.Native -> {
+                                return function.body.invoke(statement.parameters.map { interpret(it) })
+                            }
+                            is JavascriptFunction.UserDefined -> {
+                                enterFunction(function, statement.parameters, thisBinding = objectToInvoke)
+
+                                for (child in function.body.body) {
+                                    interpret(child)
+                                    if (lastReturn != null) {
+                                        break
+                                    }
+                                }
+
+                                exitFunction()
+                                return (lastReturn ?: JavascriptReference.Undefined).also {
+                                    lastReturn = null
+                                }
+                            }
+                        }
+                    }
+                    else -> {
+                        val callableValue = interpret(statement.expression)
+
+                        if (callableValue !is JavascriptValue.Function) {
+                            error("Can't call non-function type '$callableValue'.")
+                        }
+
+                        when (val function = callableValue.value) {
+                            is JavascriptFunction.Native -> {
+                                return function.body.invoke(statement.parameters.map { interpret(it) })
+                            }
+                            is JavascriptFunction.UserDefined -> {
+                                enterFunction(function, statement.parameters)
+
+                                for (child in function.body.body) {
+                                    interpret(child)
+                                    if (lastReturn != null) {
+                                        break
+                                    }
+                                }
+
+                                exitFunction()
+                                return (lastReturn ?: JavascriptReference.Undefined).also {
+                                    lastReturn = null
+                                }
+                            }
                         }
                     }
                 }
