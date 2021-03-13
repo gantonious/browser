@@ -5,6 +5,7 @@ import ca.antonious.browser.libraries.javascript.interpreter.builtins.*
 import ca.antonious.browser.libraries.javascript.lexer.JavascriptLexer
 import ca.antonious.browser.libraries.javascript.lexer.JavascriptTokenType
 import ca.antonious.browser.libraries.javascript.parser.JavascriptParser
+import java.beans.Expression
 import java.util.*
 import kotlin.random.Random
 
@@ -151,7 +152,7 @@ class JavascriptInterpreter {
             }
             is JavascriptStatement.IfStatement -> {
                 val conditionToExecute = statement.conditions.firstOrNull {
-                    interpret(it.condition).isTruthy
+                    interpretPrimitiveValueOf(it.condition).isTruthy
                 }
                 if (conditionToExecute != null) {
                     interpret(conditionToExecute.body)
@@ -171,7 +172,7 @@ class JavascriptInterpreter {
                 return JavascriptReference.Undefined
             }
             is JavascriptStatement.WhileLoop -> {
-                while (!hasControlFlowInterrupted() && interpret(statement.condition).isTruthy) {
+                while (!hasControlFlowInterrupted() && interpretPrimitiveValueOf(statement.condition).isTruthy) {
                     interpret(statement.body)
                 }
                 return JavascriptReference.Undefined
@@ -179,14 +180,14 @@ class JavascriptInterpreter {
             is JavascriptStatement.DoWhileLoop -> {
                 do {
                     interpret(statement.body)
-                } while (!hasControlFlowInterrupted() && interpret(statement.condition).isTruthy)
+                } while (!hasControlFlowInterrupted() && interpretPrimitiveValueOf(statement.condition).isTruthy)
 
                 return JavascriptReference.Undefined
             }
             is JavascriptStatement.ForLoop -> {
                 interpret(statement.initializerStatement)
 
-                while (!hasControlFlowInterrupted() && interpret(statement.conditionExpression).isTruthy) {
+                while (!hasControlFlowInterrupted() && interpretPrimitiveValueOf(statement.conditionExpression).isTruthy) {
                     interpret(statement.body)
                     statement.updaterExpression?.let { interpret(it) }
                 }
@@ -194,7 +195,7 @@ class JavascriptInterpreter {
                 return JavascriptReference.Undefined
             }
             is JavascriptExpression.TernaryOperation -> {
-                return if (interpret(statement.condition).isTruthy) {
+                return if (interpretPrimitiveValueOf(statement.condition).isTruthy) {
                     interpret(statement.ifTruthy)
                 } else {
                     interpret(statement.ifNot)
@@ -203,8 +204,8 @@ class JavascriptInterpreter {
             is JavascriptExpression.BinaryOperation -> {
                 return when (statement.operator) {
                     is JavascriptTokenType.Operator.Plus -> {
-                        val lhsValue = interpretAsReference(statement.lhs).value
-                        val rhsValue = interpretAsReference(statement.rhs).value
+                        val lhsValue = interpretPrimitiveValueOf(statement.lhs)
+                        val rhsValue = interpretPrimitiveValueOf(statement.rhs)
 
                         if (lhsValue is JavascriptValue.String || rhsValue is JavascriptValue.String) {
                             JavascriptValue.String(lhsValue.toString() + rhsValue.toString()).toReference()
@@ -213,49 +214,73 @@ class JavascriptInterpreter {
                         }
                     }
                     is JavascriptTokenType.Operator.Minus -> {
-                        JavascriptValue.Number(interpret(statement.lhs).coerceToNumber() - interpret(statement.rhs).coerceToNumber()).toReference()
+                        JavascriptValue.Number(
+                            interpretPrimitiveValueOf(statement.lhs).coerceToNumber() -
+                            interpretPrimitiveValueOf(statement.rhs).coerceToNumber()
+                        ).toReference()
                     }
                     is JavascriptTokenType.Operator.Multiply -> {
-                        JavascriptValue.Number(interpret(statement.lhs).coerceToNumber() * interpret(statement.rhs).coerceToNumber()).toReference()
+                        JavascriptValue.Number(
+                            interpretPrimitiveValueOf(statement.lhs).coerceToNumber() *
+                            interpretPrimitiveValueOf(statement.rhs).coerceToNumber()
+                        ).toReference()
                     }
                     is JavascriptTokenType.Operator.Divide -> {
-                        JavascriptValue.Number(interpret(statement.lhs).coerceToNumber() / interpret(statement.rhs).coerceToNumber()).toReference()
+                        JavascriptValue.Number(
+                            interpretPrimitiveValueOf(statement.lhs).coerceToNumber() /
+                            interpretPrimitiveValueOf(statement.rhs).coerceToNumber()
+                        ).toReference()
                     }
                     is JavascriptTokenType.Operator.Xor -> {
                         val result = (
-                            interpret(statement.lhs).coerceToNumber().toInt() xor
-                                interpret(statement.rhs).coerceToNumber().toInt()
-                            ).toDouble()
+                            interpretPrimitiveValueOf(statement.lhs).coerceToNumber().toInt() xor
+                            interpretPrimitiveValueOf(statement.rhs).coerceToNumber().toInt()
+                        ).toDouble()
 
                         JavascriptValue.Number(result).toReference()
                     }
                     is JavascriptTokenType.Operator.Mod -> {
-                        JavascriptValue.Number(interpret(statement.lhs).coerceToNumber() % interpret(statement.rhs).coerceToNumber()).toReference()
+                        JavascriptValue.Number(
+                            interpretPrimitiveValueOf(statement.lhs).coerceToNumber() %
+                            interpretPrimitiveValueOf(statement.rhs).coerceToNumber()
+                        ).toReference()
                     }
                     is JavascriptTokenType.Operator.LessThanOrEqual -> {
-                        JavascriptValue.Boolean(interpret(statement.lhs).coerceToNumber() <= interpret(statement.rhs).coerceToNumber()).toReference()
+                        JavascriptValue.Boolean(
+                        interpretPrimitiveValueOf(statement.lhs).coerceToNumber() <=
+                            interpretPrimitiveValueOf(statement.rhs).coerceToNumber()
+                        ).toReference()
                     }
                     is JavascriptTokenType.Operator.LessThan -> {
-                        JavascriptValue.Boolean(interpret(statement.lhs).coerceToNumber() < interpret(statement.rhs).coerceToNumber()).toReference()
+                        JavascriptValue.Boolean(
+                            interpretPrimitiveValueOf(statement.lhs).coerceToNumber() <
+                            interpretPrimitiveValueOf(statement.rhs).coerceToNumber()
+                        ).toReference()
                     }
                     is JavascriptTokenType.Operator.GreaterThanOrEqual -> {
-                        JavascriptValue.Boolean(interpret(statement.lhs).coerceToNumber() >= interpret(statement.rhs).coerceToNumber()).toReference()
+                        JavascriptValue.Boolean(
+                            interpretPrimitiveValueOf(statement.lhs).coerceToNumber() >=
+                            interpretPrimitiveValueOf(statement.rhs).coerceToNumber()
+                        ).toReference()
                     }
                     is JavascriptTokenType.Operator.GreaterThan -> {
-                        JavascriptValue.Boolean(interpret(statement.lhs).coerceToNumber() > interpret(statement.rhs).coerceToNumber()).toReference()
+                        JavascriptValue.Boolean(
+                            interpretPrimitiveValueOf(statement.lhs).coerceToNumber() >
+                            interpretPrimitiveValueOf(statement.rhs).coerceToNumber()
+                        ).toReference()
                     }
                     is JavascriptTokenType.Operator.OrOr -> {
-                        val lhsValue = interpret(statement.lhs)
+                        val lhsValue = interpretPrimitiveValueOf(statement.lhs)
                         if (lhsValue.isTruthy) {
                             lhsValue.toReference()
                         } else {
-                            interpret(statement.rhs).toReference()
+                            interpretPrimitiveValueOf(statement.rhs).toReference()
                         }
                     }
                     is JavascriptTokenType.Operator.AndAnd -> {
-                        val lhsValue = interpret(statement.lhs)
+                        val lhsValue = interpretPrimitiveValueOf(statement.lhs)
                         if (lhsValue.isTruthy) {
-                            interpret(statement.rhs).toReference()
+                            interpretPrimitiveValueOf(statement.rhs).toReference()
                         } else {
                             lhsValue.toReference()
                         }
@@ -267,10 +292,20 @@ class JavascriptInterpreter {
                         JavascriptValue.Boolean(interpret(statement.lhs) != interpret(statement.rhs)).toReference()
                     }
                     is JavascriptTokenType.Operator.Equals -> {
-                        JavascriptValue.Boolean(JavascriptValue.looselyEquals(interpret(statement.lhs), interpret(statement.rhs))).toReference()
+                        JavascriptValue.Boolean(
+                            JavascriptValue.looselyEquals(
+                                interpretPrimitiveValueOf(statement.lhs),
+                                interpretPrimitiveValueOf(statement.rhs)
+                            )
+                        ).toReference()
                     }
                     is JavascriptTokenType.Operator.NotEquals -> {
-                        JavascriptValue.Boolean(!JavascriptValue.looselyEquals(interpret(statement.lhs), interpret(statement.rhs))).toReference()
+                        JavascriptValue.Boolean(
+                            !JavascriptValue.looselyEquals(
+                                interpretPrimitiveValueOf(statement.lhs),
+                                interpretPrimitiveValueOf(statement.rhs)
+                            )
+                        ).toReference()
                     }
                     is JavascriptTokenType.Operator.Assignment -> {
                         val valueToAssign = interpret(statement.rhs)
@@ -428,6 +463,23 @@ class JavascriptInterpreter {
         }
     }
 
+    private fun interpretPrimitiveValueOf(expression: JavascriptExpression): JavascriptValue {
+        return when (val value = interpret(expression)) {
+            is JavascriptValue.Object -> {
+                interpret(
+                    JavascriptExpression.FunctionCall(
+                        expression = JavascriptExpression.DotAccess(
+                            expression = JavascriptExpression.Literal(value),
+                            propertyName = "valueOf"
+                        ),
+                        parameters = emptyList()
+                    )
+                )
+            }
+            else -> value
+        }
+    }
+
     private fun interpretOperatorAssignAsReference(
         newOperator: JavascriptTokenType.Operator,
         binaryExpression: JavascriptExpression.BinaryOperation
@@ -437,7 +489,7 @@ class JavascriptInterpreter {
         val valueToAssign = interpret(
             JavascriptExpression.BinaryOperation(
                 operator = newOperator,
-                lhs = JavascriptExpression.Literal(reference.value),
+                lhs = JavascriptExpression.Literal(interpretPrimitiveValueOf(JavascriptExpression.Literal(reference.value))),
                 rhs = binaryExpression.rhs
             )
         )
