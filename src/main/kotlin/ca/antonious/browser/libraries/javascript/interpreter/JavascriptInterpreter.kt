@@ -11,6 +11,7 @@ import kotlin.random.Random
 
 class JavascriptInterpreter {
     val globalObject = JavascriptObject().apply {
+        setProperty("Object", JavascriptValue.Object(ObjectObject()))
         setProperty("String", JavascriptValue.Object(StringConstructor()))
 
         setNonEnumerableNativeFunction("getInput") { executionContext ->

@@ -7,8 +7,8 @@ open class JavascriptObject(
     val prototype: JavascriptObject? = ObjectPrototype
 ) {
 
-    private val nonEnumerableProperties = mutableMapOf<String, JavascriptValue>()
-    protected val properties = mutableMapOf<String, JavascriptValue>()
+    val nonEnumerableProperties = mutableMapOf<String, JavascriptValue>()
+    val properties = mutableMapOf<String, JavascriptValue>()
 
     init {
         if (prototype != null) {
