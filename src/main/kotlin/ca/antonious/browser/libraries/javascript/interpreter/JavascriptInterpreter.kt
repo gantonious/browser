@@ -499,7 +499,7 @@ class JavascriptInterpreter {
 
                                 val returnValue = maybeConsumeControlFlowInterrupt<ControlFlowInterruption.Return>() ?: JavascriptValue.Undefined
 
-                                return if (returnValue is JavascriptValue.Object) {
+                                if (returnValue is JavascriptValue.Object) {
                                     returnValue
                                 } else {
                                     JavascriptValue.Object(objectThis)
@@ -515,7 +515,7 @@ class JavascriptInterpreter {
 
                                 val returnValue = constructor.body.invoke(nativeExecutionContext)
 
-                                return if (returnValue is JavascriptValue.Object) {
+                                if (returnValue is JavascriptValue.Object) {
                                     returnValue
                                 } else {
                                     JavascriptValue.Object(objectThis)
