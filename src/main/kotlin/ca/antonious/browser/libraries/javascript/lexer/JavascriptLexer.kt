@@ -100,7 +100,7 @@ class JavascriptLexer (private val source: String) {
                     advanceCursor()
                     val stringStart = cursor
 
-                    while (!isAtEnd() && getPreviousChar() != '\\' && getCurrentChar() != '"') {
+                    while (!isAtEnd() && getCurrentChar() != '"' || (getCurrentChar() == '"' && getPreviousChar() == '\\')) {
                         advanceCursor()
                     }
 
@@ -111,7 +111,7 @@ class JavascriptLexer (private val source: String) {
                     advanceCursor()
                     val stringStart = cursor
 
-                    while (!isAtEnd() && getPreviousChar() != '\\' && getCurrentChar() != '\'') {
+                    while (!isAtEnd() && getCurrentChar() != '\'' || (getCurrentChar() == '\'' && getPreviousChar() == '\\')) {
                         advanceCursor()
                     }
 
@@ -129,7 +129,7 @@ class JavascriptLexer (private val source: String) {
                     val regexEnd = cursor
                     advanceCursor()
 
-                    while (!isAtEnd() && getCurrentChar().isLetter()) {
+                    while (!isAtEnd() && getCurrentChar().isRegexFlag()) {
                         advanceCursor()
                     }
 
@@ -323,4 +323,9 @@ class JavascriptLexer (private val source: String) {
         return this == '0' || this == '1'
     }
 
+    private fun Char.isRegexFlag(): Boolean {
+        return this == 'g' || this == 'i' ||
+            this == 'm' || this == 's' ||
+            this == 'u' || this == 'y'
+    }
 }
