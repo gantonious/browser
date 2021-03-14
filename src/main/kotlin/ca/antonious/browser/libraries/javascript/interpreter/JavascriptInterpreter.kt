@@ -425,8 +425,15 @@ class JavascriptInterpreter {
                 }
             }
             is JavascriptExpression.Reference -> {
-                return currentScope.getProperty(statement.name).toReference {
-                    currentScope.setProperty(statement.name, it)
+                val referenceValue = currentScope.getProperty(statement.name)
+
+                return if (referenceValue == JavascriptValue.Undefined) {
+                    throwError(JavascriptValue.String("ReferenceError: ${statement.name} is not defined"))
+                    JavascriptReference.Undefined
+                } else {
+                    referenceValue.toReference {
+                        currentScope.setProperty(statement.name, it)
+                    }
                 }
             }
             is JavascriptExpression.DotAccess -> {
