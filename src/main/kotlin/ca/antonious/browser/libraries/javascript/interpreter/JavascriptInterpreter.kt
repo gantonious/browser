@@ -1,11 +1,13 @@
 package ca.antonious.browser.libraries.javascript.interpreter
 
 import ca.antonious.browser.libraries.javascript.ast.*
-import ca.antonious.browser.libraries.javascript.interpreter.builtins.*
+import ca.antonious.browser.libraries.javascript.interpreter.builtins.`object`.ObjectObject
+import ca.antonious.browser.libraries.javascript.interpreter.builtins.array.JavascriptArray
+import ca.antonious.browser.libraries.javascript.interpreter.builtins.string.StringConstructor
+import ca.antonious.browser.libraries.javascript.interpreter.builtins.string.StringObject
 import ca.antonious.browser.libraries.javascript.lexer.JavascriptLexer
 import ca.antonious.browser.libraries.javascript.lexer.JavascriptTokenType
 import ca.antonious.browser.libraries.javascript.parser.JavascriptParser
-import java.lang.Error
 import java.util.*
 import kotlin.random.Random
 
@@ -475,7 +477,7 @@ class JavascriptInterpreter {
             is JavascriptExpression.AnonymousFunction -> {
                 return JavascriptValue.Object(
                     JavascriptFunction(
-                       parameterNames = statement.parameterNames,
+                        parameterNames = statement.parameterNames,
                         body = statement.body,
                         parentScope = currentScope
                     )

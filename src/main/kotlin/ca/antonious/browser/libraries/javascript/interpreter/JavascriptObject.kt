@@ -1,7 +1,7 @@
 package ca.antonious.browser.libraries.javascript.interpreter
 
 import ca.antonious.browser.libraries.javascript.ast.JavascriptValue
-import ca.antonious.browser.libraries.javascript.interpreter.builtins.ObjectPrototype
+import ca.antonious.browser.libraries.javascript.interpreter.builtins.`object`.ObjectPrototype
 
 open class JavascriptObject(
     val prototype: JavascriptObject? = ObjectPrototype

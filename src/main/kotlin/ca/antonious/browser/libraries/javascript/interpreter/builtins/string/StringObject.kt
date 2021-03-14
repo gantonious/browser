@@ -1,4 +1,4 @@
-package ca.antonious.browser.libraries.javascript.interpreter.builtins
+package ca.antonious.browser.libraries.javascript.interpreter.builtins.string
 
 import ca.antonious.browser.libraries.javascript.interpreter.JavascriptObject
 

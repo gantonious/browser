@@ -6,10 +6,10 @@ import ca.antonious.browser.libraries.html.HtmlElement
 import ca.antonious.browser.libraries.html.HtmlParser
 import ca.antonious.browser.libraries.http.*
 import ca.antonious.browser.libraries.javascript.ast.JavascriptValue
-import ca.antonious.browser.libraries.javascript.interpreter.builtins.JavascriptArray
+import ca.antonious.browser.libraries.javascript.interpreter.builtins.array.JavascriptArray
 import ca.antonious.browser.libraries.javascript.interpreter.JavascriptInterpreter
 import ca.antonious.browser.libraries.javascript.interpreter.JavascriptObject
-import ca.antonious.browser.libraries.javascript.interpreter.builtins.setNonEnumerableNativeFunction
+import ca.antonious.browser.libraries.javascript.interpreter.setNonEnumerableNativeFunction
 import ca.antonious.browser.libraries.layout.builtins.BlockNode
 import ca.antonious.browser.libraries.layout.core.Key
 import ca.antonious.browser.libraries.web.javascript.JavascriptHtmlElement

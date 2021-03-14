@@ -1,6 +1,7 @@
-package ca.antonious.browser.libraries.javascript.interpreter.builtins
+package ca.antonious.browser.libraries.javascript.interpreter.builtins.string
 
 import ca.antonious.browser.libraries.javascript.ast.JavascriptValue
+import ca.antonious.browser.libraries.javascript.interpreter.NativeFunction
 
 class StringConstructor : NativeFunction(StringPrototype, { executionContext ->
     val stringValue = if (executionContext.arguments.isEmpty()) {
