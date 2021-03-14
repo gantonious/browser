@@ -19,8 +19,8 @@ sealed class JavascriptStatement {
     data class ConstAssignment(val name: String, val expression: JavascriptExpression) : JavascriptStatement()
     data class VarAssignment(val name: String, val expression: JavascriptExpression) : JavascriptStatement()
     data class ForLoop(
-        val initializerStatement: JavascriptStatement,
-        val conditionExpression: JavascriptExpression,
+        val initializerStatement: JavascriptStatement?,
+        val conditionExpression: JavascriptExpression?,
         val updaterExpression: JavascriptExpression?,
         val body: JavascriptStatement
     ) : JavascriptStatement()

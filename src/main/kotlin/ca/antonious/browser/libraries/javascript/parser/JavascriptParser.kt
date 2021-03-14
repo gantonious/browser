@@ -281,6 +281,10 @@ class JavascriptParser(
         expectToken<JavascriptTokenType.For>()
         expectToken<JavascriptTokenType.OpenParentheses>()
 
+        if (getCurrentToken() is JavascriptTokenType.SemiColon) {
+            return expectCStyleForLoop(initializerStatement = null)
+        }
+
         checkpoint()
         val forExpression = expectStatement()
 
@@ -294,7 +298,7 @@ class JavascriptParser(
         }
 
         revertToCheckpoint()
-
+        
         val initializerStatement = expectStatement()
 
         return when (getCurrentToken()) {
@@ -304,15 +308,23 @@ class JavascriptParser(
         }
     }
 
-    private fun expectCStyleForLoop(initializerStatement: JavascriptStatement): JavascriptStatement {
+    private fun expectCStyleForLoop(initializerStatement: JavascriptStatement?): JavascriptStatement {
         expectToken<JavascriptTokenType.SemiColon>()
-        val conditionExpression = expectExpression()
+
+        val conditionExpression = if (getCurrentToken() is JavascriptTokenType.SemiColon) {
+            null
+        } else {
+            expectExpression()
+        }
+
         expectToken<JavascriptTokenType.SemiColon>()
+
         val updaterExpression = if (getCurrentToken() is JavascriptTokenType.CloseParentheses) {
             null
         } else {
             expectExpression()
         }
+
         expectToken<JavascriptTokenType.CloseParentheses>()
 
         return JavascriptStatement.ForLoop(
@@ -715,7 +727,7 @@ class JavascriptParser(
 
         if (getCurrentToken() !is JavascriptTokenType.CloseBracket) {
             values += expectSubExpression()
-            
+
             loop@while (getCurrentToken() !is JavascriptTokenType.CloseBracket) {
                 expectToken<JavascriptTokenType.Comma>()
 

@@ -201,9 +201,11 @@ class JavascriptInterpreter {
                 return JavascriptReference.Undefined
             }
             is JavascriptStatement.ForLoop -> {
-                interpret(statement.initializerStatement)
+                if (statement.initializerStatement != null) {
+                    interpret(statement.initializerStatement)
+                }
 
-                while (!hasControlFlowInterrupted() && interpretPrimitiveValueOf(statement.conditionExpression).isTruthy) {
+                while (!hasControlFlowInterrupted() && statement.conditionExpression?.let { interpretPrimitiveValueOf(it).isTruthy } != false) {
                     interpret(statement.body)
                     statement.updaterExpression?.let { interpret(it) }
                 }
