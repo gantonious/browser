@@ -366,6 +366,14 @@ class JavascriptInterpreter {
                             )
                         ).toReference()
                     }
+                    is JavascriptTokenType.In -> {
+                        val valueToTest = interpret(statement.lhs)
+                        JavascriptValue.Boolean(
+                            interpretAsObject(statement.rhs).properties.keys.any { key ->
+                                JavascriptValue.looselyEquals(JavascriptValue.String(key), valueToTest)
+                            }
+                        ).toReference()
+                    }
                     is JavascriptTokenType.Operator.Assignment -> {
                         val valueToAssign = interpret(statement.rhs)
                         interpretAsReference(statement.lhs).setter?.invoke(valueToAssign)

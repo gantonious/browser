@@ -12,7 +12,8 @@ import kotlin.math.max
 
 class JavascriptParser(
     private val tokens: List<JavascriptToken>,
-    source: String
+    source: String,
+    val sourceFileName: String = ""
 ) {
     private val sourceLines = source.split("\n")
 
@@ -31,7 +32,8 @@ class JavascriptParser(
             JavascriptTokenType.Operator.LessThan,
             JavascriptTokenType.Operator.LessThanOrEqual,
             JavascriptTokenType.Operator.GreaterThan,
-            JavascriptTokenType.Operator.GreaterThanOrEqual
+            JavascriptTokenType.Operator.GreaterThanOrEqual,
+            JavascriptTokenType.In
         )
 
         private val assignmentToken = setOf(
@@ -42,7 +44,9 @@ class JavascriptParser(
             JavascriptTokenType.Operator.PlusAssign,
             JavascriptTokenType.Operator.MinusAssign,
             JavascriptTokenType.Operator.MultiplyAssign,
-            JavascriptTokenType.Operator.DivideAssign
+            JavascriptTokenType.Operator.DivideAssign,
+            JavascriptTokenType.Operator.OrAssign,
+            JavascriptTokenType.Operator.AndAssign
         )
 
         private val incrementTokens = setOf(
@@ -68,7 +72,9 @@ class JavascriptParser(
 
         private val rightToLeftAssociativeOperators = assignmentToken
     }
+
     private var cursor = 0
+    private var savedCursor = 0
 
     fun parse(): JavascriptProgram {
         val statements = mutableListOf<JavascriptStatement>()
@@ -273,8 +279,22 @@ class JavascriptParser(
 
     private fun expectForLoop(): JavascriptStatement {
         expectToken<JavascriptTokenType.For>()
-
         expectToken<JavascriptTokenType.OpenParentheses>()
+
+        checkpoint()
+        val forExpression = expectStatement()
+
+        if (forExpression is JavascriptExpression.BinaryOperation && forExpression.operator is JavascriptTokenType.In) {
+            expectToken<JavascriptTokenType.CloseParentheses>()
+            return JavascriptStatement.ForEachLoop(
+                initializerStatement = forExpression.lhs,
+                enumerableExpression = forExpression.rhs,
+                body = expectBlockOrStatement()
+            )
+        }
+
+        revertToCheckpoint()
+
         val initializerStatement = expectStatement()
 
         return when (getCurrentToken()) {
@@ -794,7 +814,7 @@ class JavascriptParser(
 
     private fun throwUnexpectedTokenFound(): Nothing {
         val sourceInfo = tokens[cursor].sourceInfo
-        val topLine = "Uncaught SyntaxError: Unexpected token"
+        val topLine = "($sourceFileName:${sourceInfo.line + 1}) column:${sourceInfo.column + 1} Uncaught SyntaxError: Unexpected token"
         val errorLines = sourceLines.subList(max(0, sourceInfo.line - 3), sourceInfo.line + 1)
 
         val message = "$topLine\n${errorLines.joinToString("\n")}\n${" ".repeat(sourceInfo.column)}^"
@@ -842,6 +862,14 @@ class JavascriptParser(
 
     private fun isAtEnd(): Boolean {
         return cursor >= tokens.size
+    }
+
+    private fun checkpoint() {
+        savedCursor = cursor
+    }
+
+    private fun revertToCheckpoint() {
+        cursor = savedCursor
     }
 
     private fun JavascriptExpression.convertToRightToLeftAssociativity(): JavascriptExpression {
