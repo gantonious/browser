@@ -55,7 +55,7 @@ sealed class JavascriptExpression : JavascriptStatement() {
     data class TernaryOperation(val condition: JavascriptExpression, val ifTruthy: JavascriptExpression, val ifNot: JavascriptExpression) : JavascriptExpression()
     data class BinaryOperation(val operator: JavascriptTokenType, val lhs: JavascriptExpression, val rhs: JavascriptExpression): JavascriptExpression()
     data class UnaryOperation(val operator: JavascriptTokenType, val expression: JavascriptExpression, val isPrefix: Boolean): JavascriptExpression()
-    data class AnonymousFunction(val parameterNames: List<String>, val body: Block) : JavascriptExpression()
+    data class AnonymousFunction(val name: String?, val parameterNames: List<String>, val body: Block) : JavascriptExpression()
 }
 
 sealed class JavascriptValue {

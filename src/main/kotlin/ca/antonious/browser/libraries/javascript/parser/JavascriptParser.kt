@@ -807,6 +807,7 @@ class JavascriptParser(
 
     private fun expectAnonymousFunctionExpression(): JavascriptExpression {
         expectToken<JavascriptTokenType.Function>()
+        val name = tryGetToken<JavascriptTokenType.Identifier>()?.name
         expectToken<JavascriptTokenType.OpenParentheses>()
 
         val parameterNames = mutableListOf<JavascriptTokenType.Identifier>()
@@ -823,6 +824,7 @@ class JavascriptParser(
         expectToken<JavascriptTokenType.CloseParentheses>()
 
         return JavascriptExpression.AnonymousFunction(
+            name = name,
             parameterNames = parameterNames.map { it.name },
             body = expectBlock()
         )
