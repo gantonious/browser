@@ -31,6 +31,7 @@ sealed class JavascriptTokenType {
     object Catch : JavascriptTokenType()
     object Finally : JavascriptTokenType()
     object Throw : JavascriptTokenType()
+    object In : JavascriptTokenType()
 
     data class RegularExpression(val regex: kotlin.String, val flags: kotlin.String) : JavascriptTokenType()
     data class String(val value: kotlin.String) : JavascriptTokenType()

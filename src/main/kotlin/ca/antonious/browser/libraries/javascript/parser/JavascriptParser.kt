@@ -271,11 +271,20 @@ class JavascriptParser(
         return JavascriptStatement.DoWhileLoop(body = body, condition = condition)
     }
 
-    private fun expectForLoop(): JavascriptStatement.ForLoop {
+    private fun expectForLoop(): JavascriptStatement {
         expectToken<JavascriptTokenType.For>()
 
         expectToken<JavascriptTokenType.OpenParentheses>()
         val initializerStatement = expectStatement()
+
+        return when (getCurrentToken()) {
+            is JavascriptTokenType.SemiColon -> expectCStyleForLoop(initializerStatement)
+            is JavascriptTokenType.In -> expectForEachLoop(initializerStatement)
+            else -> throwUnexpectedTokenFound()
+        }
+    }
+
+    private fun expectCStyleForLoop(initializerStatement: JavascriptStatement): JavascriptStatement {
         expectToken<JavascriptTokenType.SemiColon>()
         val conditionExpression = expectExpression()
         expectToken<JavascriptTokenType.SemiColon>()
@@ -290,6 +299,18 @@ class JavascriptParser(
             initializerStatement = initializerStatement,
             conditionExpression = conditionExpression,
             updaterExpression = updaterExpression,
+            body = expectBlockOrStatement()
+        )
+    }
+
+    private fun expectForEachLoop(initializerStatement: JavascriptStatement): JavascriptStatement {
+        expectToken<JavascriptTokenType.In>()
+        val enumerableExpression = expectExpression()
+        expectToken<JavascriptTokenType.CloseParentheses>()
+
+        return JavascriptStatement.ForEachLoop(
+            initializerStatement = initializerStatement,
+            enumerableExpression = enumerableExpression,
             body = expectBlockOrStatement()
         )
     }
@@ -681,7 +702,7 @@ class JavascriptParser(
 
             loop@while (getCurrentToken() !is JavascriptTokenType.CloseCurlyBracket) {
                 expectToken<JavascriptTokenType.Comma>()
-                
+
                 when (getCurrentToken()) {
                     is JavascriptTokenType.CloseCurlyBracket -> break@loop
                     else -> fields += expectObjectField()
@@ -792,6 +813,9 @@ class JavascriptParser(
     }
 
     private inline fun maybeConsumeLineTerminator() {
+        if (isAtEnd()) {
+            return
+        }
         tryGetToken<JavascriptTokenType.SemiColon>()
     }
 

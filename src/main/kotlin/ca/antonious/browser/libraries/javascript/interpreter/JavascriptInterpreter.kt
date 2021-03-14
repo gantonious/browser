@@ -210,6 +210,20 @@ class JavascriptInterpreter {
 
                 return JavascriptReference.Undefined
             }
+            is JavascriptStatement.ForEachLoop -> {
+                val initializerReference = interpretAsReference(statement.initializerStatement)
+                val enumerableObject = interpretAsObject(statement.enumerableExpression)
+
+                for (property in enumerableObject.properties.values) {
+                    initializerReference.setter?.invoke(property) ?: error("Uncaught SyntaxError: Invalid left-hand side in assignment")
+                    interpret(statement.body)
+                    if (hasControlFlowInterrupted()) {
+                        break
+                    }
+                }
+
+                return JavascriptReference.Undefined
+            }
             is JavascriptStatement.TryStatement -> {
                 interpret(statement.tryBlock)
 

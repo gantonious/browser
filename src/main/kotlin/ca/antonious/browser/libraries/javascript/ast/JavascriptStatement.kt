@@ -25,6 +25,12 @@ sealed class JavascriptStatement {
         val body: JavascriptStatement
     ) : JavascriptStatement()
 
+    data class ForEachLoop(
+        val initializerStatement: JavascriptStatement,
+        val enumerableExpression: JavascriptExpression,
+        val body: JavascriptStatement
+    ) : JavascriptStatement()
+
     data class TryStatement(
         val tryBlock: Block,
         val catchBlock: Block?,
