@@ -1,6 +1,7 @@
 package ca.antonious.browser.libraries.javascript.interpreter
 
 import ca.antonious.browser.libraries.javascript.ast.*
+import ca.antonious.browser.libraries.javascript.interpreter.builtins.*
 import ca.antonious.browser.libraries.javascript.interpreter.builtins.`object`.ObjectObject
 import ca.antonious.browser.libraries.javascript.interpreter.builtins.array.JavascriptArray
 import ca.antonious.browser.libraries.javascript.interpreter.builtins.string.StringConstructor
@@ -433,13 +434,8 @@ class JavascriptInterpreter {
             is JavascriptExpression.Reference -> {
                 val referenceValue = currentScope.getProperty(statement.name)
 
-                return if (referenceValue == JavascriptValue.Undefined) {
-                    throwError(JavascriptValue.String("ReferenceError: ${statement.name} is not defined"))
-                    JavascriptReference.Undefined
-                } else {
-                    referenceValue.toReference {
-                        currentScope.setProperty(statement.name, it)
-                    }
+                return referenceValue.toReference {
+                    currentScope.setProperty(statement.name, it)
                 }
             }
             is JavascriptExpression.DotAccess -> {
