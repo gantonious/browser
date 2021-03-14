@@ -414,7 +414,10 @@ class JavascriptInterpreter {
                 }
             }
             is JavascriptExpression.Literal -> {
-                return statement.value.toReference()
+                return when (statement.value) {
+                    is JavascriptValue.String -> JavascriptValue.Object(StringObject(statement.value.value))
+                    else -> statement.value
+                }.toReference()
             }
             is JavascriptExpression.ObjectLiteral -> {
                 return JavascriptValue.Object(
