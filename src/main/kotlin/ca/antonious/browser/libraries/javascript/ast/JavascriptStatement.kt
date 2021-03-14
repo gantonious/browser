@@ -25,6 +25,13 @@ sealed class JavascriptStatement {
         val updaterExpression: JavascriptExpression?,
         val body: JavascriptStatement
     ) : JavascriptStatement()
+
+    data class TryStatement(
+        val tryBlock: Block,
+        val catchBlock: Block?,
+        val errorName: String?,
+        val finallyBlock: Block?
+    ) : JavascriptStatement()
 }
 
 sealed class JavascriptExpression : JavascriptStatement() {

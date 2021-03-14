@@ -99,8 +99,52 @@ class JavascriptParser(
             is JavascriptTokenType.Do -> expectDoWhileLoop()
             is JavascriptTokenType.Identifier -> expectLabeledStatement()
             is JavascriptTokenType.OpenCurlyBracket -> expectBlock()
+            is JavascriptTokenType.Try -> expectTryStatement()
             else -> expectExpression()
         }
+    }
+
+    private fun expectTryStatement(): JavascriptStatement {
+        var errorName: String? = null
+        var catchBlock: JavascriptStatement.Block? = null
+        var finallyBlock: JavascriptStatement.Block? = null
+
+        expectToken<JavascriptTokenType.Try>()
+        val tryBlock = expectBlock()
+
+        when (getCurrentToken()) {
+            is JavascriptTokenType.Catch -> {
+                expectToken<JavascriptTokenType.Catch>()
+
+                if (getCurrentToken() is JavascriptTokenType.OpenParentheses) {
+                    expectToken<JavascriptTokenType.OpenParentheses>()
+                    errorName = expectToken<JavascriptTokenType.Identifier>().name
+                    expectToken<JavascriptTokenType.CloseParentheses>()
+                }
+
+                catchBlock = expectBlock()
+            }
+            is JavascriptTokenType.Finally -> {
+                finallyBlock = expectFinallyBlock()
+            }
+            else -> throwUnexpectedTokenFound()
+        }
+
+        if (maybeGetCurrentToken() is JavascriptTokenType.Finally) {
+            finallyBlock = expectFinallyBlock()
+        }
+
+        return JavascriptStatement.TryStatement(
+            tryBlock = tryBlock,
+            catchBlock = catchBlock,
+            errorName = errorName,
+            finallyBlock = finallyBlock
+        )
+    }
+
+    private fun expectFinallyBlock(): JavascriptStatement.Block {
+        expectToken<JavascriptTokenType.Finally>()
+        return expectBlock()
     }
 
     private fun expectLabeledStatement(): JavascriptStatement {

@@ -4,8 +4,8 @@ import ca.antonious.browser.libraries.javascript.ast.JavascriptValue
 
 class JavascriptScope (
     val thisBinding: JavascriptObject,
-    private val scopeObject: JavascriptObject,
-    private val parentScope: JavascriptScope?,
+    val scopeObject: JavascriptObject,
+    val parentScope: JavascriptScope?,
     val type: Type = Type.Block
 ) {
     init {

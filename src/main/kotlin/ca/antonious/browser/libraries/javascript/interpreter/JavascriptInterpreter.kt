@@ -5,7 +5,7 @@ import ca.antonious.browser.libraries.javascript.interpreter.builtins.*
 import ca.antonious.browser.libraries.javascript.lexer.JavascriptLexer
 import ca.antonious.browser.libraries.javascript.lexer.JavascriptTokenType
 import ca.antonious.browser.libraries.javascript.parser.JavascriptParser
-import java.beans.Expression
+import java.lang.Error
 import java.util.*
 import kotlin.random.Random
 
@@ -68,7 +68,13 @@ class JavascriptInterpreter {
     }
 
     fun interpret(program: JavascriptProgram): JavascriptValue {
-        return interpret(JavascriptStatement.Block(program.body))
+        val value = interpret(JavascriptStatement.Block(program.body))
+
+        return if (hasControlFlowInterruptedDueTo<ControlFlowInterruption.Error>()) {
+            error(consumeControlFlowInterrupt<ControlFlowInterruption.Error>().value.toString())
+        } else {
+            value
+        }
     }
 
     private fun interpret(statement: JavascriptStatement): JavascriptValue {
@@ -191,6 +197,35 @@ class JavascriptInterpreter {
                 while (!hasControlFlowInterrupted() && interpretPrimitiveValueOf(statement.conditionExpression).isTruthy) {
                     interpret(statement.body)
                     statement.updaterExpression?.let { interpret(it) }
+                }
+
+                return JavascriptReference.Undefined
+            }
+            is JavascriptStatement.TryStatement -> {
+                interpret(statement.tryBlock)
+
+                if (hasControlFlowInterruptedDueTo<ControlFlowInterruption.Error>() && statement.catchBlock != null) {
+                    val error = consumeControlFlowInterrupt<ControlFlowInterruption.Error>()
+
+                    val scopeParameterNames = if (statement.errorName == null) {
+                        emptyList()
+                    } else {
+                        listOf(statement.errorName)
+                    }
+
+                    val scopeParameters = if (statement.errorName == null) {
+                        emptyList()
+                    } else {
+                        listOf(JavascriptExpression.Literal(error.value))
+                    }
+
+                    enterScope(scopeParameterNames, scopeParameters)
+                    interpret(statement.catchBlock)
+                    exitScope()
+                }
+
+                if (statement.finallyBlock != null) {
+                    interpret(statement.finallyBlock)
                 }
 
                 return JavascriptReference.Undefined
@@ -374,6 +409,7 @@ class JavascriptInterpreter {
                                 rhs = JavascriptExpression.Literal(JavascriptValue.Number(1.0))
                             )
                         )
+
                         reference.setter?.invoke(newValue)
                             ?: error("Uncaught SyntaxError: Invalid left-hand side in assignment")
 
@@ -567,6 +603,31 @@ class JavascriptInterpreter {
         stack.pop()
     }
 
+    private fun enterScope(
+        parameterNames: List<String>,
+        passedParameters: List<JavascriptExpression>
+    ) {
+        stack.peek().scope = JavascriptScope(
+            thisBinding =  stack.peek().scope.thisBinding,
+            scopeObject = JavascriptObject().apply {
+                parameterNames.forEachIndexed { index, parameterName ->
+                    setProperty(parameterName, interpret(passedParameters.getOrElse(index) {
+                        JavascriptExpression.Literal(value = JavascriptValue.Undefined)
+                    }))
+                }
+            },
+            parentScope = stack.peek().scope
+        )
+    }
+
+    private fun exitScope() {
+        stack.peek().scope = currentScope.parentScope ?:  JavascriptScope(
+            thisBinding = globalObject,
+            scopeObject = JavascriptObject(),
+            parentScope = null
+        )
+    }
+
     private fun interruptControlFlowWith(interruption: ControlFlowInterruption) {
         controlFlowInterruption = interruption
     }
@@ -590,7 +651,12 @@ class JavascriptInterpreter {
         return controlFlowInterruption is T
     }
 
+    private fun throwError(error: JavascriptValue) {
+        interruptControlFlowWith(ControlFlowInterruption.Error(error))
+    }
+
     sealed class ControlFlowInterruption {
         data class Return(val value: JavascriptValue) : ControlFlowInterruption()
+        data class Error(val value: JavascriptValue) : ControlFlowInterruption()
     }
 }
