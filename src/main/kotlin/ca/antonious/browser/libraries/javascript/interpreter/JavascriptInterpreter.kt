@@ -71,7 +71,7 @@ class JavascriptInterpreter {
         val value = interpret(JavascriptStatement.Block(program.body))
 
         return if (hasControlFlowInterruptedDueTo<ControlFlowInterruption.Error>()) {
-            error(consumeControlFlowInterrupt<ControlFlowInterruption.Error>().value.toString())
+            error("Uncaught ${consumeControlFlowInterrupt<ControlFlowInterruption.Error>().value}")
         } else {
             value
         }
@@ -117,6 +117,10 @@ class JavascriptInterpreter {
 
                 interruptControlFlowWith(ControlFlowInterruption.Return(value))
 
+                return JavascriptReference.Undefined
+            }
+            is JavascriptStatement.Throw -> {
+                interruptControlFlowWith(ControlFlowInterruption.Error(interpret(statement.expression)))
                 return JavascriptReference.Undefined
             }
             is JavascriptExpression.FunctionCall -> {

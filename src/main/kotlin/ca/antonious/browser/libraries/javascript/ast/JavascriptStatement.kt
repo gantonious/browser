@@ -32,6 +32,8 @@ sealed class JavascriptStatement {
         val errorName: String?,
         val finallyBlock: Block?
     ) : JavascriptStatement()
+
+    data class Throw(val expression: JavascriptExpression) : JavascriptStatement()
 }
 
 sealed class JavascriptExpression : JavascriptStatement() {

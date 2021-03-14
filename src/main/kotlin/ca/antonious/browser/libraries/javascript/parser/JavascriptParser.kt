@@ -100,8 +100,14 @@ class JavascriptParser(
             is JavascriptTokenType.Identifier -> expectLabeledStatement()
             is JavascriptTokenType.OpenCurlyBracket -> expectBlock()
             is JavascriptTokenType.Try -> expectTryStatement()
+            is JavascriptTokenType.Throw -> expectThrowStatement()
             else -> expectExpression()
         }
+    }
+
+    private fun expectThrowStatement(): JavascriptStatement {
+        expectToken<JavascriptTokenType.Throw>()
+        return JavascriptStatement.Throw(expression = expectExpression())
     }
 
     private fun expectTryStatement(): JavascriptStatement {

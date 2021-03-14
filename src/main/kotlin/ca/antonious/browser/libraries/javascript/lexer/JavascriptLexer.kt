@@ -20,7 +20,8 @@ class JavascriptLexer (private val source: String) {
             "do" to JavascriptTokenType.Do,
             "try" to JavascriptTokenType.Try,
             "catch" to JavascriptTokenType.Catch,
-            "finally" to JavascriptTokenType.Finally
+            "finally" to JavascriptTokenType.Finally,
+            "throw" to JavascriptTokenType.Throw
         )
 
         private val singleCharTokenMap = mapOf(
