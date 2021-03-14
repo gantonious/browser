@@ -431,14 +431,28 @@ class JavascriptParser(
     }
 
     private fun expectTernaryExpression(): JavascriptExpression {
-        val expression = expectAssignmentExpression()
+        val expression = expectBitwiseAndExpression()
 
         if (maybeGetCurrentToken() is JavascriptTokenType.QuestionMark) {
             expectToken<JavascriptTokenType.QuestionMark>()
             return JavascriptExpression.TernaryOperation(
                 condition = expression,
-                ifTruthy = expectAssignmentExpression().also { expectToken<JavascriptTokenType.Colon>() },
-                ifNot = expectAssignmentExpression()
+                ifTruthy = expectBitwiseAndExpression().also { expectToken<JavascriptTokenType.Colon>() },
+                ifNot = expectBitwiseAndExpression()
+            )
+        }
+
+        return expression
+    }
+
+    private fun expectBitwiseAndExpression(): JavascriptExpression {
+        var expression = expectAssignmentExpression()
+
+        while (maybeGetCurrentToken() is JavascriptTokenType.Operator.And) {
+            expression = JavascriptExpression.BinaryOperation(
+                operator = expectToken(),
+                lhs = expression,
+                rhs = expectAssignmentExpression()
             )
         }
 
@@ -701,10 +715,14 @@ class JavascriptParser(
 
         if (getCurrentToken() !is JavascriptTokenType.CloseBracket) {
             values += expectSubExpression()
-
-            while (getCurrentToken() !is JavascriptTokenType.CloseBracket) {
+            
+            loop@while (getCurrentToken() !is JavascriptTokenType.CloseBracket) {
                 expectToken<JavascriptTokenType.Comma>()
-                values += expectSubExpression()
+
+                when (getCurrentToken()) {
+                    is JavascriptTokenType.CloseBracket -> break@loop
+                    else -> values += expectSubExpression()
+                }
             }
         }
 
