@@ -16,7 +16,7 @@ object StringPrototype : JavascriptObject() {
             val regex = executionContext.arguments.first().valueAs<JavascriptValue.Object>()?.value as JavascriptRegex
             JavascriptValue.Object(
                 JavascriptArray(
-                    Regex(regex.regex).findAll(stringObject.value).map { JavascriptValue.Object(StringObject(it.value)) }.toList()
+                    Regex(regex.regex).findAll(stringObject.value).map { JavascriptValue.String(it.value) }.toList()
                 )
             )
         }
@@ -25,18 +25,14 @@ object StringPrototype : JavascriptObject() {
             val stringObject = executionContext.thisBinding as? StringObject
                 ?: return@setNonEnumerableNativeFunction JavascriptValue.Undefined
 
-            JavascriptValue.Object(
-                StringObject(value = stringObject.value.toLowerCase())
-            )
+            JavascriptValue.String(stringObject.value.toLowerCase())
         }
 
         setNonEnumerableNativeFunction("toUpperCase") { executionContext ->
             val stringObject = executionContext.thisBinding as? StringObject
                 ?: return@setNonEnumerableNativeFunction JavascriptValue.Undefined
 
-            JavascriptValue.Object(
-                StringObject(value = stringObject.value.toUpperCase())
-            )
+            JavascriptValue.String(stringObject.value.toUpperCase())
         }
     }
 }

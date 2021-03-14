@@ -65,13 +65,13 @@ class JavascriptHtmlElement(
     override fun getProperty(key: String): JavascriptValue {
         return when (key) {
             "id" -> {
-                JavascriptValue.Object(StringObject(domParentLayoutNode.htmlNode.attributes["id"] ?: ""))
+                JavascriptValue.String(domParentLayoutNode.htmlNode.attributes["id"] ?: "")
             }
             "innerHTML" -> {
                 if (domParentLayoutNode.children.size == 1 && domParentLayoutNode.children.first() is DOMTextNode) {
-                    JavascriptValue.Object(StringObject((domParentLayoutNode.children.first() as DOMTextNode).htmlElement.requireAsText().text))
+                    JavascriptValue.String((domParentLayoutNode.children.first() as DOMTextNode).htmlElement.requireAsText().text)
                 } else {
-                    JavascriptValue.Object(StringObject(""))
+                    JavascriptValue.String("")
                 }
             }
             "value" -> JavascriptValue.Number(4.0)

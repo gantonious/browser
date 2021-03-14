@@ -54,11 +54,9 @@ class JavascriptInterpreter {
     }
 
     private var controlFlowInterruption: ControlFlowInterruption? = null
-    private var lastReturn: JavascriptReference? = null
 
     private val currentScope: JavascriptScope
         get() = stack.peek().scope
-
 
     fun interpret(javascript: String): JavascriptValue {
         val tokens = JavascriptLexer(javascript).lex()
@@ -115,7 +113,7 @@ class JavascriptInterpreter {
             is JavascriptExpression.FunctionCall -> {
                 val (valueToCall, thisBinding) = when (statement.expression) {
                     is JavascriptExpression.DotAccess -> {
-                        val objectToInvoke = (interpret(statement.expression.expression) as JavascriptValue.Object).value
+                        val objectToInvoke = interpretAsObject(statement.expression.expression)
                         objectToInvoke.getProperty(statement.expression.propertyName) to objectToInvoke
                     }
                     else -> {
@@ -286,16 +284,10 @@ class JavascriptInterpreter {
                         }
                     }
                     is JavascriptTokenType.Operator.StrictEquals -> {
-                        JavascriptValue.Boolean(
-                            strictlyInterpretPrimitiveValueOf(statement.lhs) ==
-                            strictlyInterpretPrimitiveValueOf(statement.rhs)
-                        ).toReference()
+                        JavascriptValue.Boolean(interpret(statement.lhs) == interpret(statement.rhs)).toReference()
                     }
                     is JavascriptTokenType.Operator.StrictNotEquals -> {
-                        JavascriptValue.Boolean(
-                            strictlyInterpretPrimitiveValueOf(statement.lhs) !=
-                            strictlyInterpretPrimitiveValueOf(statement.rhs)
-                        ).toReference()
+                        JavascriptValue.Boolean(interpret(statement.lhs) != interpret(statement.rhs)).toReference()
                     }
                     is JavascriptTokenType.Operator.Equals -> {
                         JavascriptValue.Boolean(
@@ -399,31 +391,22 @@ class JavascriptInterpreter {
                 }
             }
             is JavascriptExpression.DotAccess -> {
-                val value = when (val value = interpret(statement.expression)) {
-                    is JavascriptValue.Object -> value.value
-                    else -> error("Cannot access property '${statement.propertyName}' on ${value} since it's not an object.")
-                }
+                val objectToAccess = interpretAsObject(statement.expression)
 
-                return value.getProperty(statement.propertyName).toReference {
-                    value.setProperty(statement.propertyName, it)
+                return objectToAccess.getProperty(statement.propertyName).toReference {
+                    objectToAccess.setProperty(statement.propertyName, it)
                 }
             }
             is JavascriptExpression.IndexAccess -> {
-                val value = when (val value = interpret(statement.expression)) {
-                    is JavascriptValue.Object -> value.value
-                    else -> error("Cannot index $value since it's not an object.")
-                }
+                val objectToAccess = interpretAsObject(statement.expression)
 
                 val property = interpret(statement.indexExpression)
-                return value.getProperty(property.toString()).toReference {
-                    value.setProperty(property.toString(), it)
+                return objectToAccess.getProperty(property.toString()).toReference {
+                    objectToAccess.setProperty(property.toString(), it)
                 }
             }
             is JavascriptExpression.Literal -> {
-                return when (statement.value) {
-                    is JavascriptValue.String -> JavascriptValue.Object(StringObject(statement.value.value))
-                    else -> statement.value
-                }.toReference()
+                return statement.value.toReference()
             }
             is JavascriptExpression.ObjectLiteral -> {
                 return JavascriptValue.Object(
@@ -501,15 +484,11 @@ class JavascriptInterpreter {
         }
     }
 
-    private fun strictlyInterpretPrimitiveValueOf(expression: JavascriptExpression): JavascriptValue {
+    private fun interpretAsObject(expression: JavascriptExpression): JavascriptObject {
         return when (val value = interpret(expression)) {
-            is JavascriptValue.Object -> {
-                when (value.value) {
-                    is StringObject -> JavascriptValue.String(value = value.value.value)
-                    else -> value
-                }
-            }
-            else -> value
+            is JavascriptValue.Object -> value.value
+            is JavascriptValue.String -> StringObject(value = value.value)
+            else -> JavascriptObject()
         }
     }
 
