@@ -140,7 +140,7 @@ class JavascriptInterpreter {
                     }
                     is NativeFunction -> {
                         val nativeExecutionContext = NativeExecutionContext(
-                            arguments = statement.parameters.map { interpret(it) },
+                            arguments = statement.parameters.map { interpretPrimitiveValueOf(it) },
                             thisBinding = thisBinding,
                             interpreter = this
                         )
@@ -467,19 +467,31 @@ class JavascriptInterpreter {
     }
 
     private fun interpretPrimitiveValueOf(expression: JavascriptExpression): JavascriptValue {
-        return when (val value = interpret(expression)) {
-            is JavascriptValue.Object -> {
-                interpret(
-                    JavascriptExpression.FunctionCall(
-                        expression = JavascriptExpression.DotAccess(
-                            expression = JavascriptExpression.Literal(value),
-                            propertyName = "valueOf"
-                        ),
-                        parameters = emptyList()
+        fun interpretExpressionThenInterpretPrimitiveValue(): JavascriptValue {
+            return when (val value = interpret(expression)) {
+                is JavascriptValue.Object -> {
+                    interpret(
+                        JavascriptExpression.FunctionCall(
+                            expression = JavascriptExpression.DotAccess(
+                                expression = JavascriptExpression.Literal(value),
+                                propertyName = "valueOf"
+                            ),
+                            parameters = emptyList()
+                        )
                     )
-                )
+                }
+                else -> value
             }
-            else -> value
+        }
+
+        return when (expression) {
+            is JavascriptExpression.Literal -> {
+                when (expression.value) {
+                    is JavascriptObject -> interpretExpressionThenInterpretPrimitiveValue()
+                    else -> expression.value
+                }
+            }
+            else -> interpretExpressionThenInterpretPrimitiveValue()
         }
     }
 
