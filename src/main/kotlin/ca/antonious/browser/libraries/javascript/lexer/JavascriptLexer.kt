@@ -312,9 +312,7 @@ class JavascriptLexer (private val source: String) {
         return this == '0' || this == '1' ||
             this == '2' || this == '3' ||
             this == '4' || this == '5' ||
-            this == '6' || this == '7' ||
-            this == 'e' || this == 'E' ||
-            this == 'f' || this == 'F'
+            this == '6' || this == '7'
     }
 
     private fun Char.isBinaryDigit(): Boolean {
