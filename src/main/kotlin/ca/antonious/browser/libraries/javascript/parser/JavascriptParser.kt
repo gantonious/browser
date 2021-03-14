@@ -679,9 +679,13 @@ class JavascriptParser(
         if (getCurrentToken() !is JavascriptTokenType.CloseCurlyBracket) {
             fields += expectObjectField()
 
-            while (getCurrentToken() !is JavascriptTokenType.CloseCurlyBracket) {
+            loop@while (getCurrentToken() !is JavascriptTokenType.CloseCurlyBracket) {
                 expectToken<JavascriptTokenType.Comma>()
-                fields += expectObjectField()
+                
+                when (getCurrentToken()) {
+                    is JavascriptTokenType.CloseCurlyBracket -> break@loop
+                    else -> fields += expectObjectField()
+                }
             }
         }
 
