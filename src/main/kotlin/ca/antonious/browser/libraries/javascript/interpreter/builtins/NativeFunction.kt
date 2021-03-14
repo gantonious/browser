@@ -4,8 +4,10 @@ import ca.antonious.browser.libraries.javascript.ast.JavascriptValue
 import ca.antonious.browser.libraries.javascript.interpreter.JavascriptInterpreter
 import ca.antonious.browser.libraries.javascript.interpreter.JavascriptObject
 
-class NativeFunction(val body: (NativeExecutionContext) -> JavascriptValue) : JavascriptObject() {
-    val functionPrototype = JavascriptObject()
+open class NativeFunction(
+    val functionPrototype: JavascriptObject = JavascriptObject(),
+    val body: (NativeExecutionContext) -> JavascriptValue
+) : JavascriptObject() {
 
     init {
         setNonEnumerableProperty("prototype", JavascriptValue.Object(functionPrototype))
@@ -23,5 +25,5 @@ data class NativeExecutionContext(
 )
 
 fun JavascriptObject.setNonEnumerableNativeFunction(name: String, body: (NativeExecutionContext) -> JavascriptValue) {
-    setNonEnumerableProperty(name, JavascriptValue.Object(NativeFunction(body)))
+    setNonEnumerableProperty(name, JavascriptValue.Object(NativeFunction(JavascriptObject(), body)))
 }

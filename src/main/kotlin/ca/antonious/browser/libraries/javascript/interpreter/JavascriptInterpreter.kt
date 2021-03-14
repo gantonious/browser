@@ -11,6 +11,8 @@ import kotlin.random.Random
 
 class JavascriptInterpreter {
     val globalObject = JavascriptObject().apply {
+        setProperty("String", JavascriptValue.Object(StringConstructor()))
+
         setNonEnumerableNativeFunction("getInput") { executionContext ->
             val inputText = executionContext.arguments.firstOrNull() as? JavascriptValue.String
             if (inputText != null) {
@@ -448,7 +450,14 @@ class JavascriptInterpreter {
                                 interpret(constructor.body)
 
                                 exitFunction()
-                                return JavascriptValue.Object(objectThis).toReference()
+
+                                val returnValue = maybeConsumeControlFlowInterrupt<ControlFlowInterruption.Return>() ?: JavascriptValue.Undefined
+
+                                return if (returnValue is JavascriptValue.Object) {
+                                    returnValue
+                                } else {
+                                    JavascriptValue.Object(objectThis)
+                                }.toReference()
                             }
                             is NativeFunction -> {
                                 val objectThis = JavascriptObject(prototype = constructor.functionPrototype)
@@ -458,7 +467,13 @@ class JavascriptInterpreter {
                                     interpreter = this
                                 )
 
-                                constructor.body.invoke(nativeExecutionContext).toReference()
+                                val returnValue = constructor.body.invoke(nativeExecutionContext)
+
+                                return if (returnValue is JavascriptValue.Object) {
+                                    returnValue
+                                } else {
+                                    JavascriptValue.Object(objectThis)
+                                }.toReference()
                             }
                             else -> error("TypeError: Value is not a constructor")
                         }
