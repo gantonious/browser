@@ -3,6 +3,8 @@ package ca.antonious.browser.libraries.javascript.interpreter
 import ca.antonious.browser.libraries.javascript.ast.*
 import ca.antonious.browser.libraries.javascript.interpreter.builtins.`object`.ObjectConstructor
 import ca.antonious.browser.libraries.javascript.interpreter.builtins.array.JavascriptArray
+import ca.antonious.browser.libraries.javascript.interpreter.builtins.number.NumberConstructor
+import ca.antonious.browser.libraries.javascript.interpreter.builtins.number.NumberObject
 import ca.antonious.browser.libraries.javascript.interpreter.builtins.string.StringConstructor
 import ca.antonious.browser.libraries.javascript.interpreter.builtins.string.StringObject
 import ca.antonious.browser.libraries.javascript.lexer.JavascriptLexer
@@ -13,8 +15,9 @@ import kotlin.random.Random
 
 class JavascriptInterpreter {
     val globalObject = JavascriptObject().apply {
-        setProperty("Object", JavascriptValue.Object(ObjectConstructor()))
-        setProperty("String", JavascriptValue.Object(StringConstructor()))
+        setNonEnumerableProperty("Object", JavascriptValue.Object(ObjectConstructor()))
+        setNonEnumerableProperty("String", JavascriptValue.Object(StringConstructor()))
+        setNonEnumerableProperty("Number", JavascriptValue.Object(NumberConstructor()))
 
         setNonEnumerableNativeFunction("getInput") { executionContext ->
             val inputText = executionContext.arguments.firstOrNull() as? JavascriptValue.String
@@ -562,6 +565,7 @@ class JavascriptInterpreter {
         return when (val value = interpret(expression)) {
             is JavascriptValue.Object -> value.value
             is JavascriptValue.String -> StringObject(value = value.value)
+            is JavascriptValue.Number -> NumberObject(value = value.value)
             else -> JavascriptObject()
         }
     }

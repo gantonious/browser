@@ -4,6 +4,7 @@ import ca.antonious.browser.libraries.javascript.ast.JavascriptValue
 import ca.antonious.browser.libraries.javascript.interpreter.JavascriptObject
 import ca.antonious.browser.libraries.javascript.interpreter.NativeFunction
 import ca.antonious.browser.libraries.javascript.interpreter.builtins.array.JavascriptArray
+import ca.antonious.browser.libraries.javascript.interpreter.builtins.number.NumberObject
 import ca.antonious.browser.libraries.javascript.interpreter.builtins.string.StringObject
 import ca.antonious.browser.libraries.javascript.interpreter.setNonEnumerableNativeFunction
 
@@ -12,6 +13,7 @@ class ObjectConstructor : NativeFunction(
     body = { executionContext ->
         when (val input = executionContext.arguments.first()) {
             is JavascriptValue.String -> JavascriptValue.Object(StringObject(input.value))
+            is JavascriptValue.Number -> JavascriptValue.Object(NumberObject(input.value))
             else -> input
         }
     }
