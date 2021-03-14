@@ -5,6 +5,12 @@ import ca.antonious.browser.libraries.javascript.interpreter.JavascriptInterpret
 import ca.antonious.browser.libraries.javascript.interpreter.JavascriptObject
 
 class NativeFunction(val body: (NativeExecutionContext) -> JavascriptValue) : JavascriptObject() {
+    val functionPrototype = JavascriptObject()
+
+    init {
+        setNonEnumerableProperty("prototype", JavascriptValue.Object(functionPrototype))
+    }
+
     override fun toString(): String {
         return "function () { [native code] }"
     }

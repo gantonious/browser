@@ -432,25 +432,39 @@ class JavascriptInterpreter {
                 ).toReference()
             }
             is JavascriptExpression.NewCall -> {
-                val constructor = (interpret(statement.function.expression) as JavascriptValue.Object).value
+                return when (val value = interpret(statement.function.expression)) {
+                    is JavascriptValue.Object -> {
+                        when (val constructor = value.value) {
+                            is JavascriptFunction -> {
+                                val objectThis = JavascriptObject(prototype = constructor.functionPrototype)
 
-                if (constructor !is JavascriptFunction) {
-                    error("TypeError: $constructor is not a constructor")
+                                enterFunction(
+                                    parameterNames = constructor.parameterNames,
+                                    passedParameters = statement.function.parameters,
+                                    parentScope = constructor.parentScope,
+                                    thisBinding = objectThis
+                                )
+
+                                interpret(constructor.body)
+
+                                exitFunction()
+                                return JavascriptValue.Object(objectThis).toReference()
+                            }
+                            is NativeFunction -> {
+                                val objectThis = JavascriptObject(prototype = constructor.functionPrototype)
+                                val nativeExecutionContext = NativeExecutionContext(
+                                    arguments = statement.function.parameters.map { interpretPrimitiveValueOf(it) },
+                                    thisBinding = objectThis,
+                                    interpreter = this
+                                )
+
+                                constructor.body.invoke(nativeExecutionContext).toReference()
+                            }
+                            else -> error("TypeError: Value is not a constructor")
+                        }
+                    }
+                    else -> error("TypeError: Value is not a constructor")
                 }
-
-                val objectThis = JavascriptObject(prototype = constructor.functionPrototype)
-
-                enterFunction(
-                    parameterNames = constructor.parameterNames,
-                    passedParameters = statement.function.parameters,
-                    parentScope = constructor.parentScope,
-                    thisBinding = objectThis
-                )
-
-                interpret(constructor.body)
-
-                exitFunction()
-                return JavascriptValue.Object(objectThis).toReference()
             }
         }
     }
