@@ -286,10 +286,16 @@ class JavascriptInterpreter {
                         }
                     }
                     is JavascriptTokenType.Operator.StrictEquals -> {
-                        JavascriptValue.Boolean(interpret(statement.lhs) == interpret(statement.rhs)).toReference()
+                        JavascriptValue.Boolean(
+                            strictlyInterpretPrimitiveValueOf(statement.lhs) ==
+                            strictlyInterpretPrimitiveValueOf(statement.rhs)
+                        ).toReference()
                     }
                     is JavascriptTokenType.Operator.StrictNotEquals -> {
-                        JavascriptValue.Boolean(interpret(statement.lhs) != interpret(statement.rhs)).toReference()
+                        JavascriptValue.Boolean(
+                            strictlyInterpretPrimitiveValueOf(statement.lhs) !=
+                            strictlyInterpretPrimitiveValueOf(statement.rhs)
+                        ).toReference()
                     }
                     is JavascriptTokenType.Operator.Equals -> {
                         JavascriptValue.Boolean(
@@ -492,6 +498,18 @@ class JavascriptInterpreter {
                 }
             }
             else -> interpretExpressionThenInterpretPrimitiveValue()
+        }
+    }
+
+    private fun strictlyInterpretPrimitiveValueOf(expression: JavascriptExpression): JavascriptValue {
+        return when (val value = interpret(expression)) {
+            is JavascriptValue.Object -> {
+                when (value.value) {
+                    is StringObject -> JavascriptValue.String(value = value.value.value)
+                    else -> value
+                }
+            }
+            else -> value
         }
     }
 

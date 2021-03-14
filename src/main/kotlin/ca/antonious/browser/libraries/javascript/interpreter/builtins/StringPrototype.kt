@@ -5,6 +5,10 @@ import ca.antonious.browser.libraries.javascript.interpreter.JavascriptObject
 
 object StringPrototype : JavascriptObject() {
     init {
+        setNonEnumerableNativeFunction("valueOf") { executionContext ->
+            JavascriptValue.String((executionContext.thisBinding as StringObject).value)
+        }
+
         setNonEnumerableNativeFunction("match") { executionContext ->
             val stringObject = executionContext.thisBinding as? StringObject
                 ?: return@setNonEnumerableNativeFunction JavascriptValue.Undefined
@@ -12,7 +16,7 @@ object StringPrototype : JavascriptObject() {
             val regex = executionContext.arguments.first().valueAs<JavascriptValue.Object>()?.value as JavascriptRegex
             JavascriptValue.Object(
                 JavascriptArray(
-                    Regex(regex.regex).findAll(stringObject.value).map { JavascriptValue.String(it.value) }.toList()
+                    Regex(regex.regex).findAll(stringObject.value).map { JavascriptValue.Object(StringObject(it.value)) }.toList()
                 )
             )
         }
