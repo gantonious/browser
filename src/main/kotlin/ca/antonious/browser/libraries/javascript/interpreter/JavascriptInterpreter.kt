@@ -1,8 +1,7 @@
 package ca.antonious.browser.libraries.javascript.interpreter
 
 import ca.antonious.browser.libraries.javascript.ast.*
-import ca.antonious.browser.libraries.javascript.interpreter.builtins.*
-import ca.antonious.browser.libraries.javascript.interpreter.builtins.`object`.ObjectObject
+import ca.antonious.browser.libraries.javascript.interpreter.builtins.`object`.ObjectConstructor
 import ca.antonious.browser.libraries.javascript.interpreter.builtins.array.JavascriptArray
 import ca.antonious.browser.libraries.javascript.interpreter.builtins.string.StringConstructor
 import ca.antonious.browser.libraries.javascript.interpreter.builtins.string.StringObject
@@ -14,7 +13,7 @@ import kotlin.random.Random
 
 class JavascriptInterpreter {
     val globalObject = JavascriptObject().apply {
-        setProperty("Object", JavascriptValue.Object(ObjectObject()))
+        setProperty("Object", JavascriptValue.Object(ObjectConstructor()))
         setProperty("String", JavascriptValue.Object(StringConstructor()))
 
         setNonEnumerableNativeFunction("getInput") { executionContext ->

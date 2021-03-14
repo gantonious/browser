@@ -2,10 +2,20 @@ package ca.antonious.browser.libraries.javascript.interpreter.builtins.`object`
 
 import ca.antonious.browser.libraries.javascript.ast.JavascriptValue
 import ca.antonious.browser.libraries.javascript.interpreter.JavascriptObject
+import ca.antonious.browser.libraries.javascript.interpreter.NativeFunction
 import ca.antonious.browser.libraries.javascript.interpreter.builtins.array.JavascriptArray
+import ca.antonious.browser.libraries.javascript.interpreter.builtins.string.StringObject
 import ca.antonious.browser.libraries.javascript.interpreter.setNonEnumerableNativeFunction
 
-class ObjectObject : JavascriptObject() {
+class ObjectConstructor : NativeFunction(
+    functionPrototype = ObjectPrototype,
+    body = { executionContext ->
+        when (val input = executionContext.arguments.first()) {
+            is JavascriptValue.String -> JavascriptValue.Object(StringObject(input.value))
+            else -> input
+        }
+    }
+) {
     init {
         setNonEnumerableNativeFunction("keys") { executionContext ->
             val javascriptObject = executionContext.arguments.first().valueAs<JavascriptValue.Object>()
