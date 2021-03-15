@@ -2,7 +2,6 @@ package ca.antonious.browser.libraries.layout.builtins
 
 import ca.antonious.browser.libraries.graphics.core.*
 import ca.antonious.browser.libraries.layout.core.InputEvent
-import ca.antonious.browser.libraries.layout.core.LayoutConstraint
 import ca.antonious.browser.libraries.layout.core.LayoutNode
 import kotlin.math.max
 import kotlin.math.min
@@ -17,8 +16,8 @@ class BlockNode : LayoutNode() {
 
     override fun measure(
         measuringTape: MeasuringTape,
-        widthConstraint: LayoutConstraint,
-        heightConstraint: LayoutConstraint
+        widthConstraint: Float,
+        heightConstraint: Float
     ): Size {
         var width = 0f
         var height = 0f

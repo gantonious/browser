@@ -3,7 +3,6 @@ package ca.antonious.browser.libraries.web.ui
 import ca.antonious.browser.libraries.graphics.core.*
 import ca.antonious.browser.libraries.layout.core.InputEvent
 import ca.antonious.browser.libraries.layout.core.Key
-import ca.antonious.browser.libraries.layout.core.LayoutConstraint
 import ca.antonious.browser.libraries.layout.core.LayoutNode
 
 class NavigationBar : LayoutNode() {
@@ -13,15 +12,10 @@ class NavigationBar : LayoutNode() {
 
     override fun measure(
         measuringTape: MeasuringTape,
-        widthConstraint: LayoutConstraint,
-        heightConstraint: LayoutConstraint
+        widthConstraint: Float,
+        heightConstraint: Float
     ): Size {
-        val width = when (widthConstraint) {
-            is LayoutConstraint.SpecificSize -> widthConstraint.size
-            is LayoutConstraint.AnySize -> 1000f
-        }
-
-        return Size(width, 60f).apply {
+        return Size(widthConstraint, 60f).apply {
             frame.width = width
             frame.height = height
         }

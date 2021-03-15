@@ -10,8 +10,8 @@ abstract class LayoutNode {
 
     abstract fun measure(
         measuringTape: MeasuringTape,
-        widthConstraint: LayoutConstraint,
-        heightConstraint: LayoutConstraint
+        widthConstraint: Float,
+        heightConstraint: Float
     ): Size
 
     abstract fun drawTo(canvas: Canvas)

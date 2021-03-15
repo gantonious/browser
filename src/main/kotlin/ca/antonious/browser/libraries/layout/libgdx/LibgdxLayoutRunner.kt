@@ -6,7 +6,6 @@ import ca.antonious.browser.libraries.graphics.libgdx.LibgdxDrawCall
 import ca.antonious.browser.libraries.graphics.libgdx.LibgdxFontProvider
 import ca.antonious.browser.libraries.graphics.libgdx.LibgdxMeasuringTape
 import ca.antonious.browser.libraries.layout.core.InputEvent
-import ca.antonious.browser.libraries.layout.core.LayoutConstraint
 import ca.antonious.browser.libraries.layout.core.LayoutNode
 import ca.antonious.browser.libraries.layout.core.LayoutRunner
 import com.badlogic.gdx.ApplicationAdapter
@@ -14,14 +13,10 @@ import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.InputProcessor
 import com.badlogic.gdx.backends.lwjgl.LwjglApplication
 import com.badlogic.gdx.backends.lwjgl.LwjglApplicationConfiguration
-import com.badlogic.gdx.files.FileHandle
 import com.badlogic.gdx.graphics.Color
 import com.badlogic.gdx.graphics.GL20
 import com.badlogic.gdx.graphics.OrthographicCamera
-import com.badlogic.gdx.graphics.Texture
-import com.badlogic.gdx.graphics.g2d.BitmapFont
 import com.badlogic.gdx.graphics.g2d.SpriteBatch
-import com.badlogic.gdx.graphics.g2d.freetype.FreeTypeFontGenerator
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer
 import com.badlogic.gdx.utils.Align
 
@@ -79,8 +74,8 @@ private class LibgdxLayoutRunnerApplication(val rootNode: LayoutNode) : Applicat
 
         rootNode.measure(
             measuringTape = measureTape,
-            widthConstraint = LayoutConstraint.SpecificSize(camera.viewportWidth),
-            heightConstraint = LayoutConstraint.SpecificSize(camera.viewportHeight)
+            widthConstraint = camera.viewportWidth,
+            heightConstraint = camera.viewportHeight
         )
 
         val canvas = LibgdxCanvas()
