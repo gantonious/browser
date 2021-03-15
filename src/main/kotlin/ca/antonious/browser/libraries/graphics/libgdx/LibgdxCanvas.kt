@@ -4,10 +4,6 @@ import ca.antonious.browser.libraries.graphics.core.Canvas
 import ca.antonious.browser.libraries.graphics.core.Font
 import ca.antonious.browser.libraries.graphics.core.Paint
 import ca.antonious.browser.libraries.graphics.core.Rect
-import com.badlogic.gdx.graphics.Color
-import com.badlogic.gdx.graphics.g2d.BitmapFont
-import com.badlogic.gdx.graphics.g2d.SpriteBatch
-import com.badlogic.gdx.graphics.glutils.ShapeRenderer
 
 class LibgdxCanvas : Canvas {
     val drawCalls = mutableListOf<LibgdxDrawCall>()
@@ -23,5 +19,12 @@ class LibgdxCanvas : Canvas {
 
 sealed class LibgdxDrawCall {
     data class DrawRect(val rect: Rect, val paint: Paint) : LibgdxDrawCall()
-    data class DrawText(val text: String, val x: Float, val y: Float, val width: Float, val paint: Paint, val font: Font) : LibgdxDrawCall()
+    data class DrawText(
+        val text: String,
+        val x: Float,
+        val y: Float,
+        val width: Float,
+        val paint: Paint,
+        val font: Font
+    ) : LibgdxDrawCall()
 }

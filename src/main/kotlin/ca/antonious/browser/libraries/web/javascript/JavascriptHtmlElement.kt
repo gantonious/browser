@@ -4,8 +4,8 @@ import ca.antonious.browser.libraries.html.HtmlElement
 import ca.antonious.browser.libraries.html.HtmlParser
 import ca.antonious.browser.libraries.javascript.ast.JavascriptValue
 import ca.antonious.browser.libraries.javascript.interpreter.JavascriptObject
-import ca.antonious.browser.libraries.javascript.interpreter.builtins.array.JavascriptArray
 import ca.antonious.browser.libraries.javascript.interpreter.NativeFunction
+import ca.antonious.browser.libraries.javascript.interpreter.builtins.array.JavascriptArray
 import ca.antonious.browser.libraries.web.layout.DOMLayoutNode
 import ca.antonious.browser.libraries.web.layout.DOMParentLayoutNode
 import ca.antonious.browser.libraries.web.layout.DOMTextNode
@@ -13,7 +13,6 @@ import ca.antonious.browser.libraries.web.layout.DOMTextNode
 class JavascriptHtmlElement(
     private val domParentLayoutNode: DOMParentLayoutNode
 ) : JavascriptObject() {
-
 
     override fun setProperty(key: String, value: JavascriptValue) {
         when (key) {
@@ -74,7 +73,8 @@ class JavascriptHtmlElement(
             "value" -> JavascriptValue.Number(4.0)
             "appendChild" -> JavascriptValue.Object(
                 NativeFunction { executionContext ->
-                    val element = executionContext.arguments.first().valueAs<JavascriptValue.Object>()?.value as JavascriptHtmlElement
+                    val element = executionContext.arguments.first()
+                        .valueAs<JavascriptValue.Object>()?.value as JavascriptHtmlElement
                     domParentLayoutNode.children += element.domParentLayoutNode
                     domParentLayoutNode.htmlNode.children.add(element.domParentLayoutNode.htmlNode)
                     JavascriptValue.Undefined

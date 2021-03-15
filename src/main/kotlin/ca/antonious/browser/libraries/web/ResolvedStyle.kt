@@ -1,7 +1,6 @@
 package ca.antonious.browser.libraries.web
 
 import ca.antonious.browser.libraries.css.CssAlignment
-import ca.antonious.browser.libraries.css.CssAttribute
 import ca.antonious.browser.libraries.css.CssDisplay
 import ca.antonious.browser.libraries.css.CssSize
 import ca.antonious.browser.libraries.graphics.core.Color

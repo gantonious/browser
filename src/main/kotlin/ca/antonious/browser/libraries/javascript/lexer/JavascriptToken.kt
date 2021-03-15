@@ -45,7 +45,7 @@ sealed class JavascriptTokenType {
         object Multiply : Operator()
         object Divide : Operator()
         object Or : Operator()
-        object And: Operator()
+        object And : Operator()
         object AndAnd : Operator()
         object OrOr : Operator()
         object Mod : Operator()
@@ -67,7 +67,7 @@ sealed class JavascriptTokenType {
         object NotEquals : Operator()
         object StrictEquals : Operator()
         object StrictNotEquals : Operator()
-        object BitNot: Operator()
+        object BitNot : Operator()
         object Not : Operator()
     }
 }

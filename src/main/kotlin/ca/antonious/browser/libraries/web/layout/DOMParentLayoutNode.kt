@@ -3,7 +3,12 @@ package ca.antonious.browser.libraries.web.layout
 import ca.antonious.browser.libraries.css.CssAlignment
 import ca.antonious.browser.libraries.css.CssDisplay
 import ca.antonious.browser.libraries.css.CssSize
-import ca.antonious.browser.libraries.graphics.core.*
+import ca.antonious.browser.libraries.graphics.core.Canvas
+import ca.antonious.browser.libraries.graphics.core.MeasuringTape
+import ca.antonious.browser.libraries.graphics.core.Paint
+import ca.antonious.browser.libraries.graphics.core.Rect
+import ca.antonious.browser.libraries.graphics.core.Size
+import ca.antonious.browser.libraries.graphics.core.subRegion
 import ca.antonious.browser.libraries.html.HtmlElement
 import ca.antonious.browser.libraries.layout.core.InputEvent
 import ca.antonious.browser.libraries.web.DOMEvent

@@ -55,10 +55,10 @@ private class LibgdxLayoutRunnerApplication(val rootNode: LayoutNode) : Applicat
     }
 
     override fun render() {
-        Gdx.gl.glClearColor(1f, 1f, 1f, 1f);
-        Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
-        Gdx.gl.glEnable(GL20.GL_BLEND);
-        Gdx.gl.glBlendFunc(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA);
+        Gdx.gl.glClearColor(1f, 1f, 1f, 1f)
+        Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT)
+        Gdx.gl.glEnable(GL20.GL_BLEND)
+        Gdx.gl.glBlendFunc(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA)
 
         camera.update()
         spriteBatch.projectionMatrix = camera.combined
@@ -82,21 +82,29 @@ private class LibgdxLayoutRunnerApplication(val rootNode: LayoutNode) : Applicat
         rootNode.drawTo(canvas)
 
         shapeRenderer.begin(ShapeRenderer.ShapeType.Filled)
-            canvas.drawCalls.filterIsInstance<LibgdxDrawCall.DrawRect>().forEach { drawRectCall ->
-                val paint = drawRectCall.paint
-                val rect = drawRectCall.rect
-                shapeRenderer.color = Color(paint.color.r, paint.color.g, paint.color.b, paint.color.a)
-                shapeRenderer.rect(rect.x, rect.y, rect.width, rect.height)
-            }
+        canvas.drawCalls.filterIsInstance<LibgdxDrawCall.DrawRect>().forEach { drawRectCall ->
+            val paint = drawRectCall.paint
+            val rect = drawRectCall.rect
+            shapeRenderer.color = Color(paint.color.r, paint.color.g, paint.color.b, paint.color.a)
+            shapeRenderer.rect(rect.x, rect.y, rect.width, rect.height)
+        }
         shapeRenderer.end()
 
         spriteBatch.begin()
-            canvas.drawCalls.filterIsInstance<LibgdxDrawCall.DrawText>().forEach { drawTextCall ->
-                val font = fontProvider.getFont(drawTextCall.font)
-                val color = drawTextCall.paint.color
-                font.color = Color(color.r, color.g, color.b, color.a)
-                font.draw(spriteBatch, drawTextCall.text, drawTextCall.x, drawTextCall.y, drawTextCall.width, Align.left, true)
-            }
+        canvas.drawCalls.filterIsInstance<LibgdxDrawCall.DrawText>().forEach { drawTextCall ->
+            val font = fontProvider.getFont(drawTextCall.font)
+            val color = drawTextCall.paint.color
+            font.color = Color(color.r, color.g, color.b, color.a)
+            font.draw(
+                spriteBatch,
+                drawTextCall.text,
+                drawTextCall.x,
+                drawTextCall.y,
+                drawTextCall.width,
+                Align.left,
+                true
+            )
+        }
         spriteBatch.end()
     }
 

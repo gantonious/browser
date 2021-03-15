@@ -1,6 +1,10 @@
 package ca.antonious.browser.libraries.layout.builtins
 
-import ca.antonious.browser.libraries.graphics.core.*
+import ca.antonious.browser.libraries.graphics.core.Canvas
+import ca.antonious.browser.libraries.graphics.core.MeasuringTape
+import ca.antonious.browser.libraries.graphics.core.Rect
+import ca.antonious.browser.libraries.graphics.core.Size
+import ca.antonious.browser.libraries.graphics.core.subRegion
 import ca.antonious.browser.libraries.layout.core.InputEvent
 import ca.antonious.browser.libraries.layout.core.LayoutNode
 import kotlin.math.max

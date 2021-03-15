@@ -4,7 +4,6 @@ import ca.antonious.browser.libraries.javascript.ast.JavascriptValue
 import ca.antonious.browser.libraries.javascript.interpreter.JavascriptInterpreter
 import ca.antonious.browser.libraries.javascript.lexer.JavascriptLexer
 import ca.antonious.browser.libraries.javascript.parser.JavascriptParser
-import java.lang.Exception
 
 fun main() {
     val interpreter = JavascriptInterpreter()

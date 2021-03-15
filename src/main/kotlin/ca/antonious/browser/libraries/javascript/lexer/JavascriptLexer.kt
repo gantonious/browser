@@ -1,6 +1,6 @@
 package ca.antonious.browser.libraries.javascript.lexer
 
-class JavascriptLexer (private val source: String) {
+class JavascriptLexer(private val source: String) {
 
     companion object {
         private val keywordTokenMap = mapOf(
@@ -85,7 +85,7 @@ class JavascriptLexer (private val source: String) {
     private val tokens = mutableListOf<JavascriptToken>()
 
     fun lex(): List<JavascriptToken> {
-        mainLoop@while (!isAtEnd()) {
+        mainLoop@ while (!isAtEnd()) {
             sourceColumnAtParse = sourceColumn
             val currentChar = getCurrentChar()
             when {
@@ -239,7 +239,7 @@ class JavascriptLexer (private val source: String) {
                 val digitsStart = cursor
                 var decimalFound = false
 
-                digitLoop@while (!isAtEnd()) {
+                digitLoop@ while (!isAtEnd()) {
                     val currentDigit = getCurrentChar()
                     when {
                         !decimalFound && currentDigit == '.' -> decimalFound = true

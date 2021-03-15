@@ -17,7 +17,8 @@ open class JavascriptObject(
     }
 
     open fun getProperty(key: String): JavascriptValue {
-        return properties[key] ?: nonEnumerableProperties[key] ?: prototype?.getProperty(key) ?: JavascriptValue.Undefined
+        return properties[key] ?: nonEnumerableProperties[key] ?: prototype?.getProperty(key)
+            ?: JavascriptValue.Undefined
     }
 
     open fun setProperty(key: String, value: JavascriptValue) {

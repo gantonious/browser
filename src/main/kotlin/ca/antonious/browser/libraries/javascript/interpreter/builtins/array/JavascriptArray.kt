@@ -55,6 +55,7 @@ class JavascriptArray(initialValues: List<JavascriptValue> = emptyList()) : Java
         return arrayWithObjectValues.toString()
     }
 }
+
 private data class Tuple(val left: Any, val right: Any) {
     override fun toString() = "$left: $right"
 }

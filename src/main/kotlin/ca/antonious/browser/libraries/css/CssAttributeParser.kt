@@ -88,12 +88,11 @@ class CssAttributeParser {
         } else if (size.endsWith("px")) {
             return CssSize.Pixel(size.replace("px", "").trim().toInt())
         } else if (size.endsWith("%")) {
-            return CssSize.Percent(size.replace("%","").trim().toFloat() / 100f)
+            return CssSize.Percent(size.replace("%", "").trim().toFloat() / 100f)
         } else if (size.toIntOrNull() != null) {
             return CssSize.Pixel(size.toInt())
         }
 
         return CssSize.Auto
     }
-
 }

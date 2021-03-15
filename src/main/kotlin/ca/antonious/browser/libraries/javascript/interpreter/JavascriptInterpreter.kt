@@ -1,6 +1,9 @@
 package ca.antonious.browser.libraries.javascript.interpreter
 
-import ca.antonious.browser.libraries.javascript.ast.*
+import ca.antonious.browser.libraries.javascript.ast.JavascriptExpression
+import ca.antonious.browser.libraries.javascript.ast.JavascriptProgram
+import ca.antonious.browser.libraries.javascript.ast.JavascriptStatement
+import ca.antonious.browser.libraries.javascript.ast.JavascriptValue
 import ca.antonious.browser.libraries.javascript.interpreter.builtins.`object`.ObjectConstructor
 import ca.antonious.browser.libraries.javascript.interpreter.builtins.array.JavascriptArray
 import ca.antonious.browser.libraries.javascript.interpreter.builtins.number.NumberConstructor
@@ -10,7 +13,7 @@ import ca.antonious.browser.libraries.javascript.interpreter.builtins.string.Str
 import ca.antonious.browser.libraries.javascript.lexer.JavascriptLexer
 import ca.antonious.browser.libraries.javascript.lexer.JavascriptTokenType
 import ca.antonious.browser.libraries.javascript.parser.JavascriptParser
-import java.util.*
+import java.util.Stack
 import kotlin.random.Random
 
 class JavascriptInterpreter {
@@ -31,22 +34,32 @@ class JavascriptInterpreter {
             JavascriptValue.Number(executionContext.arguments.first().coerceToNumber().toInt().toDouble())
         }
 
-        setProperty("console", JavascriptValue.Object(JavascriptObject().apply {
-            setNonEnumerableNativeFunction("log") { executionContext ->
-                println(executionContext.arguments.joinToString(separator = " "))
-                JavascriptValue.Undefined
-            }
-        }))
+        setProperty(
+            "console",
+            JavascriptValue.Object(
+                JavascriptObject().apply {
+                    setNonEnumerableNativeFunction("log") { executionContext ->
+                        println(executionContext.arguments.joinToString(separator = " "))
+                        JavascriptValue.Undefined
+                    }
+                }
+            )
+        )
 
-        setProperty("Math", JavascriptValue.Object(JavascriptObject().apply {
-            setNonEnumerableNativeFunction("floor") { executionContext ->
-                JavascriptValue.Number(executionContext.arguments.first().coerceToNumber().toInt().toDouble())
-            }
+        setProperty(
+            "Math",
+            JavascriptValue.Object(
+                JavascriptObject().apply {
+                    setNonEnumerableNativeFunction("floor") { executionContext ->
+                        JavascriptValue.Number(executionContext.arguments.first().coerceToNumber().toInt().toDouble())
+                    }
 
-            setNonEnumerableNativeFunction("random") {
-                JavascriptValue.Number(Random.nextDouble())
-            }
-        }))
+                    setNonEnumerableNativeFunction("random") {
+                        JavascriptValue.Number(Random.nextDouble())
+                    }
+                }
+            )
+        )
     }
 
     private var stack = Stack<JavascriptStackFrame>().apply {
@@ -152,7 +165,10 @@ class JavascriptInterpreter {
 
                         exitFunction()
 
-                        (maybeConsumeControlFlowInterrupt<ControlFlowInterruption.Return>()?.value ?: JavascriptValue.Undefined)
+                        (
+                            maybeConsumeControlFlowInterrupt<ControlFlowInterruption.Return>()?.value
+                                ?: JavascriptValue.Undefined
+                            )
                     }
                     is NativeFunction -> {
                         val nativeExecutionContext = NativeExecutionContext(
@@ -217,7 +233,8 @@ class JavascriptInterpreter {
                 val enumerableObject = interpretAsObject(statement.enumerableExpression)
 
                 for (property in enumerableObject.properties.values) {
-                    initializerReference.setter?.invoke(property) ?: error("Uncaught SyntaxError: Invalid left-hand side in assignment")
+                    initializerReference.setter?.invoke(property)
+                        ?: error("Uncaught SyntaxError: Invalid left-hand side in assignment")
                     interpret(statement.body)
                     if (hasControlFlowInterrupted()) {
                         break
@@ -277,57 +294,57 @@ class JavascriptInterpreter {
                     is JavascriptTokenType.Operator.Minus -> {
                         JavascriptValue.Number(
                             interpretPrimitiveValueOf(statement.lhs).coerceToNumber() -
-                            interpretPrimitiveValueOf(statement.rhs).coerceToNumber()
+                                interpretPrimitiveValueOf(statement.rhs).coerceToNumber()
                         ).toReference()
                     }
                     is JavascriptTokenType.Operator.Multiply -> {
                         JavascriptValue.Number(
                             interpretPrimitiveValueOf(statement.lhs).coerceToNumber() *
-                            interpretPrimitiveValueOf(statement.rhs).coerceToNumber()
+                                interpretPrimitiveValueOf(statement.rhs).coerceToNumber()
                         ).toReference()
                     }
                     is JavascriptTokenType.Operator.Divide -> {
                         JavascriptValue.Number(
                             interpretPrimitiveValueOf(statement.lhs).coerceToNumber() /
-                            interpretPrimitiveValueOf(statement.rhs).coerceToNumber()
+                                interpretPrimitiveValueOf(statement.rhs).coerceToNumber()
                         ).toReference()
                     }
                     is JavascriptTokenType.Operator.Xor -> {
                         val result = (
                             interpretPrimitiveValueOf(statement.lhs).coerceToNumber().toInt() xor
-                            interpretPrimitiveValueOf(statement.rhs).coerceToNumber().toInt()
-                        ).toDouble()
+                                interpretPrimitiveValueOf(statement.rhs).coerceToNumber().toInt()
+                            ).toDouble()
 
                         JavascriptValue.Number(result).toReference()
                     }
                     is JavascriptTokenType.Operator.Mod -> {
                         JavascriptValue.Number(
                             interpretPrimitiveValueOf(statement.lhs).coerceToNumber() %
-                            interpretPrimitiveValueOf(statement.rhs).coerceToNumber()
+                                interpretPrimitiveValueOf(statement.rhs).coerceToNumber()
                         ).toReference()
                     }
                     is JavascriptTokenType.Operator.LessThanOrEqual -> {
                         JavascriptValue.Boolean(
-                        interpretPrimitiveValueOf(statement.lhs).coerceToNumber() <=
-                            interpretPrimitiveValueOf(statement.rhs).coerceToNumber()
+                            interpretPrimitiveValueOf(statement.lhs).coerceToNumber() <=
+                                interpretPrimitiveValueOf(statement.rhs).coerceToNumber()
                         ).toReference()
                     }
                     is JavascriptTokenType.Operator.LessThan -> {
                         JavascriptValue.Boolean(
                             interpretPrimitiveValueOf(statement.lhs).coerceToNumber() <
-                            interpretPrimitiveValueOf(statement.rhs).coerceToNumber()
+                                interpretPrimitiveValueOf(statement.rhs).coerceToNumber()
                         ).toReference()
                     }
                     is JavascriptTokenType.Operator.GreaterThanOrEqual -> {
                         JavascriptValue.Boolean(
                             interpretPrimitiveValueOf(statement.lhs).coerceToNumber() >=
-                            interpretPrimitiveValueOf(statement.rhs).coerceToNumber()
+                                interpretPrimitiveValueOf(statement.rhs).coerceToNumber()
                         ).toReference()
                     }
                     is JavascriptTokenType.Operator.GreaterThan -> {
                         JavascriptValue.Boolean(
                             interpretPrimitiveValueOf(statement.lhs).coerceToNumber() >
-                            interpretPrimitiveValueOf(statement.rhs).coerceToNumber()
+                                interpretPrimitiveValueOf(statement.rhs).coerceToNumber()
                         ).toReference()
                     }
                     is JavascriptTokenType.Operator.OrOr -> {
@@ -383,12 +400,30 @@ class JavascriptInterpreter {
 
                         valueToAssign.toReference()
                     }
-                    is JavascriptTokenType.Operator.PlusAssign -> interpretOperatorAssignAsReference(JavascriptTokenType.Operator.Plus, statement)
-                    is JavascriptTokenType.Operator.MinusAssign -> interpretOperatorAssignAsReference(JavascriptTokenType.Operator.Minus, statement)
-                    is JavascriptTokenType.Operator.MultiplyAssign -> interpretOperatorAssignAsReference(JavascriptTokenType.Operator.Multiply, statement)
-                    is JavascriptTokenType.Operator.DivideAssign -> interpretOperatorAssignAsReference(JavascriptTokenType.Operator.Divide, statement)
-                    is JavascriptTokenType.Operator.XorAssign -> interpretOperatorAssignAsReference(JavascriptTokenType.Operator.Xor, statement)
-                    is JavascriptTokenType.Operator.ModAssign -> interpretOperatorAssignAsReference(JavascriptTokenType.Operator.Mod, statement)
+                    is JavascriptTokenType.Operator.PlusAssign -> interpretOperatorAssignAsReference(
+                        JavascriptTokenType.Operator.Plus,
+                        statement
+                    )
+                    is JavascriptTokenType.Operator.MinusAssign -> interpretOperatorAssignAsReference(
+                        JavascriptTokenType.Operator.Minus,
+                        statement
+                    )
+                    is JavascriptTokenType.Operator.MultiplyAssign -> interpretOperatorAssignAsReference(
+                        JavascriptTokenType.Operator.Multiply,
+                        statement
+                    )
+                    is JavascriptTokenType.Operator.DivideAssign -> interpretOperatorAssignAsReference(
+                        JavascriptTokenType.Operator.Divide,
+                        statement
+                    )
+                    is JavascriptTokenType.Operator.XorAssign -> interpretOperatorAssignAsReference(
+                        JavascriptTokenType.Operator.Xor,
+                        statement
+                    )
+                    is JavascriptTokenType.Operator.ModAssign -> interpretOperatorAssignAsReference(
+                        JavascriptTokenType.Operator.Mod,
+                        statement
+                    )
                     is JavascriptTokenType.Comma -> {
                         interpret(statement.lhs)
                         interpretAsReference(statement.rhs)
@@ -523,7 +558,8 @@ class JavascriptInterpreter {
 
                                 exitFunction()
 
-                                val returnValue = maybeConsumeControlFlowInterrupt<ControlFlowInterruption.Return>() ?: JavascriptValue.Undefined
+                                val returnValue = maybeConsumeControlFlowInterrupt<ControlFlowInterruption.Return>()
+                                    ?: JavascriptValue.Undefined
 
                                 if (returnValue is JavascriptValue.Object) {
                                     returnValue
@@ -623,10 +659,15 @@ class JavascriptInterpreter {
         val functionScope = JavascriptScope(
             thisBinding = thisBinding ?: parentScope.thisBinding,
             scopeObject = JavascriptObject().apply {
-                    parameterNames.forEachIndexed { index, parameterName ->
-                    setProperty(parameterName, interpret(passedParameters.getOrElse(index) {
-                        JavascriptExpression.Literal(value = JavascriptValue.Undefined)
-                    }))
+                parameterNames.forEachIndexed { index, parameterName ->
+                    setProperty(
+                        parameterName,
+                        interpret(
+                            passedParameters.getOrElse(index) {
+                                JavascriptExpression.Literal(value = JavascriptValue.Undefined)
+                            }
+                        )
+                    )
                 }
             },
             parentScope = parentScope
@@ -644,12 +685,17 @@ class JavascriptInterpreter {
         passedParameters: List<JavascriptExpression>
     ) {
         stack.peek().scope = JavascriptScope(
-            thisBinding =  stack.peek().scope.thisBinding,
+            thisBinding = stack.peek().scope.thisBinding,
             scopeObject = JavascriptObject().apply {
                 parameterNames.forEachIndexed { index, parameterName ->
-                    setProperty(parameterName, interpret(passedParameters.getOrElse(index) {
-                        JavascriptExpression.Literal(value = JavascriptValue.Undefined)
-                    }))
+                    setProperty(
+                        parameterName,
+                        interpret(
+                            passedParameters.getOrElse(index) {
+                                JavascriptExpression.Literal(value = JavascriptValue.Undefined)
+                            }
+                        )
+                    )
                 }
             },
             parentScope = stack.peek().scope
@@ -657,7 +703,7 @@ class JavascriptInterpreter {
     }
 
     private fun exitScope() {
-        stack.peek().scope = currentScope.parentScope ?:  JavascriptScope(
+        stack.peek().scope = currentScope.parentScope ?: JavascriptScope(
             thisBinding = globalObject,
             scopeObject = JavascriptObject(),
             parentScope = null

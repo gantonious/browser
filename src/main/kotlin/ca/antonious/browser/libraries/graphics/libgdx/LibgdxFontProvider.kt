@@ -13,15 +13,17 @@ class LibgdxFontProvider {
 
     fun getFont(font: Font): BitmapFont {
         return fontCache[font] ?: kotlin.run {
-            fontGenerator.generateFont(FreeTypeFontGenerator.FreeTypeFontParameter().apply {
-                size = font.size.toInt()
-                borderStraight = true
-                flip = true
-                genMipMaps = true
-                minFilter = Texture.TextureFilter.Nearest
-                magFilter = Texture.TextureFilter.MipMapLinearNearest
-                color = Color.WHITE
-            })
+            fontGenerator.generateFont(
+                FreeTypeFontGenerator.FreeTypeFontParameter().apply {
+                    size = font.size.toInt()
+                    borderStraight = true
+                    flip = true
+                    genMipMaps = true
+                    minFilter = Texture.TextureFilter.Nearest
+                    magFilter = Texture.TextureFilter.MipMapLinearNearest
+                    color = Color.WHITE
+                }
+            )
         }.also {
             fontCache[font] = it
         }

@@ -1,6 +1,10 @@
 package ca.antonious.browser.libraries.web
 
-import ca.antonious.browser.libraries.graphics.core.*
+import ca.antonious.browser.libraries.graphics.core.Canvas
+import ca.antonious.browser.libraries.graphics.core.MeasuringTape
+import ca.antonious.browser.libraries.graphics.core.Rect
+import ca.antonious.browser.libraries.graphics.core.Size
+import ca.antonious.browser.libraries.graphics.core.subRegion
 import ca.antonious.browser.libraries.layout.core.InputEvent
 import ca.antonious.browser.libraries.layout.core.LayoutNode
 import ca.antonious.browser.libraries.web.layout.DOMLayoutNode
@@ -26,7 +30,16 @@ class WebContentLayout(url: String) : LayoutNode() {
     }
 
     override fun drawTo(canvas: Canvas) {
-        dom.rootNode.drawTo(canvas.subRegion(Rect(0f, navigationBar.frame.height, dom.rootNode.frame.width, dom.rootNode.frame.height)))
+        dom.rootNode.drawTo(
+            canvas.subRegion(
+                Rect(
+                    0f,
+                    navigationBar.frame.height,
+                    dom.rootNode.frame.width,
+                    dom.rootNode.frame.height
+                )
+            )
+        )
         navigationBar.drawTo(canvas)
     }
 

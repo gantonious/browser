@@ -1,7 +1,6 @@
 package ca.antonious.browser.libraries.css
 
 import ca.antonious.browser.libraries.html.HtmlElement
-import ca.antonious.browser.libraries.web.DOMElement
 import ca.antonious.browser.libraries.web.layout.DOMParentLayoutNode
 
 sealed class CssSelector {

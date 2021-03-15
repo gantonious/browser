@@ -7,7 +7,7 @@ import ca.antonious.browser.libraries.javascript.ast.JavascriptValue
 import ca.antonious.browser.libraries.javascript.interpreter.builtins.regex.JavascriptRegex
 import ca.antonious.browser.libraries.javascript.lexer.JavascriptToken
 import ca.antonious.browser.libraries.javascript.lexer.JavascriptTokenType
-import java.util.*
+import java.util.Stack
 import kotlin.math.max
 
 class JavascriptParser(
@@ -262,7 +262,7 @@ class JavascriptParser(
 
         return JavascriptStatement.WhileLoop(
             condition = condition,
-            body =  expectBlock()
+            body = expectBlock()
         )
     }
 
@@ -298,7 +298,7 @@ class JavascriptParser(
         }
 
         revertToCheckpoint()
-        
+
         val initializerStatement = expectStatement()
 
         return when (getCurrentToken()) {
@@ -612,7 +612,7 @@ class JavascriptParser(
 
         var continueParsing = true
 
-        loop@while (continueParsing) {
+        loop@ while (continueParsing) {
             expression = when (maybeGetCurrentToken()) {
                 is JavascriptTokenType.OpenParentheses -> expectFunctionCallOn(expression)
                 is JavascriptTokenType.OpenBracket -> expectIndexAccessOn(expression)
@@ -627,7 +627,7 @@ class JavascriptParser(
         return expression
     }
 
-    private fun expectNewExpression() : JavascriptExpression.NewCall {
+    private fun expectNewExpression(): JavascriptExpression.NewCall {
         expectToken<JavascriptTokenType.New>()
         val identifier = expectToken<JavascriptTokenType.Identifier>()
 
@@ -678,7 +678,7 @@ class JavascriptParser(
     }
 
     private fun expectDotAccessOn(expression: JavascriptExpression): JavascriptExpression.DotAccess {
-        expectToken<JavascriptTokenType.Dot>();
+        expectToken<JavascriptTokenType.Dot>()
 
         return JavascriptExpression.DotAccess(
             expression = expression,
@@ -714,7 +714,14 @@ class JavascriptParser(
             }
             is JavascriptTokenType.RegularExpression -> {
                 advanceCursor()
-                JavascriptExpression.Literal(value = JavascriptValue.Object(JavascriptRegex(currentToken.regex, currentToken.flags)))
+                JavascriptExpression.Literal(
+                    value = JavascriptValue.Object(
+                        JavascriptRegex(
+                            currentToken.regex,
+                            currentToken.flags
+                        )
+                    )
+                )
             }
             else -> throwUnexpectedTokenFound()
         }
@@ -728,7 +735,7 @@ class JavascriptParser(
         if (getCurrentToken() !is JavascriptTokenType.CloseBracket) {
             values += expectSubExpression()
 
-            loop@while (getCurrentToken() !is JavascriptTokenType.CloseBracket) {
+            loop@ while (getCurrentToken() !is JavascriptTokenType.CloseBracket) {
                 expectToken<JavascriptTokenType.Comma>()
 
                 when (getCurrentToken()) {
@@ -750,7 +757,7 @@ class JavascriptParser(
         if (getCurrentToken() !is JavascriptTokenType.CloseCurlyBracket) {
             fields += expectObjectField()
 
-            loop@while (getCurrentToken() !is JavascriptTokenType.CloseCurlyBracket) {
+            loop@ while (getCurrentToken() !is JavascriptTokenType.CloseCurlyBracket) {
                 expectToken<JavascriptTokenType.Comma>()
 
                 when (getCurrentToken()) {
@@ -834,7 +841,7 @@ class JavascriptParser(
         cursor += 1
     }
 
-    private inline fun <reified T: JavascriptTokenType> expectToken(): T {
+    private inline fun <reified T : JavascriptTokenType> expectToken(): T {
         if (getCurrentToken() !is T) {
             throwUnexpectedTokenFound()
         }
@@ -846,7 +853,8 @@ class JavascriptParser(
 
     private fun throwUnexpectedTokenFound(): Nothing {
         val sourceInfo = tokens[cursor].sourceInfo
-        val topLine = "($sourceFileName:${sourceInfo.line + 1}) column:${sourceInfo.column + 1} Uncaught SyntaxError: Unexpected token"
+        val topLine =
+            "($sourceFileName:${sourceInfo.line + 1}) column:${sourceInfo.column + 1} Uncaught SyntaxError: Unexpected token"
         val errorLines = sourceLines.subList(max(0, sourceInfo.line - 3), sourceInfo.line + 1)
 
         val message = "$topLine\n${errorLines.joinToString("\n")}\n${" ".repeat(sourceInfo.column)}^"
@@ -854,7 +862,7 @@ class JavascriptParser(
         throw UnexpectedTokenException(message)
     }
 
-    private inline fun <reified T: JavascriptTokenType> tryGetToken(): T? {
+    private inline fun <reified T : JavascriptTokenType> tryGetToken(): T? {
         if (getCurrentToken() !is T) {
             return null
         }

@@ -4,11 +4,15 @@ import ca.antonious.browser.libraries.css.CssAttributeParser
 import ca.antonious.browser.libraries.css.CssParser
 import ca.antonious.browser.libraries.html.HtmlElement
 import ca.antonious.browser.libraries.html.HtmlParser
-import ca.antonious.browser.libraries.http.*
+import ca.antonious.browser.libraries.http.HttpClient
+import ca.antonious.browser.libraries.http.HttpMethod
+import ca.antonious.browser.libraries.http.HttpRequest
+import ca.antonious.browser.libraries.http.Uri
+import ca.antonious.browser.libraries.http.toUri
 import ca.antonious.browser.libraries.javascript.ast.JavascriptValue
-import ca.antonious.browser.libraries.javascript.interpreter.builtins.array.JavascriptArray
 import ca.antonious.browser.libraries.javascript.interpreter.JavascriptInterpreter
 import ca.antonious.browser.libraries.javascript.interpreter.JavascriptObject
+import ca.antonious.browser.libraries.javascript.interpreter.builtins.array.JavascriptArray
 import ca.antonious.browser.libraries.javascript.interpreter.setNonEnumerableNativeFunction
 import ca.antonious.browser.libraries.layout.builtins.BlockNode
 import ca.antonious.browser.libraries.layout.core.Key
@@ -44,8 +48,17 @@ class DOM {
                 JavascriptObject().apply {
                     setNonEnumerableNativeFunction("getElementsByClassName") { executionContext ->
                         val className = executionContext.arguments.first() as JavascriptValue.String
-                        val matchingNodes = findNodesWithClass(className.value, rootNode.children.map { it as DOMLayoutNode })
-                        JavascriptValue.Object(JavascriptArray(matchingNodes.map { JavascriptValue.Object(JavascriptHtmlElement(it)) }))
+                        val matchingNodes =
+                            findNodesWithClass(className.value, rootNode.children.map { it as DOMLayoutNode })
+                        JavascriptValue.Object(
+                            JavascriptArray(
+                                matchingNodes.map {
+                                    JavascriptValue.Object(
+                                        JavascriptHtmlElement(it)
+                                    )
+                                }
+                            )
+                        )
                     }
 
                     setNonEnumerableNativeFunction("getElementById") { executionContext ->
@@ -59,7 +72,7 @@ class DOM {
                         }
                     }
 
-                    setNonEnumerableNativeFunction("createElement") { executionContext->
+                    setNonEnumerableNativeFunction("createElement") { executionContext ->
                         val tagName = executionContext.arguments.first() as JavascriptValue.String
                         val element = HtmlElement.Node(name = tagName.value)
                         val layoutNode = DOMParentLayoutNode(
@@ -109,7 +122,10 @@ class DOM {
         javascriptInterpreter.interpret("window.onload()")
     }
 
-    private fun loadDocument(htmlDocument: List<HtmlElement>, parent: DOMParentLayoutNode? = null): List<DOMLayoutNode> {
+    private fun loadDocument(
+        htmlDocument: List<HtmlElement>,
+        parent: DOMParentLayoutNode? = null
+    ): List<DOMLayoutNode> {
         val layoutTree = mutableListOf<DOMLayoutNode>()
 
         for (htmlElement in htmlDocument) {
@@ -118,7 +134,11 @@ class DOM {
                     when (htmlElement.name) {
                         "head" -> processHead(htmlElement)
                         else -> {
-                            val layoutNode = DOMParentLayoutNode(parent = parent, htmlNode = htmlElement, domEventHandler = ::handleEvent)
+                            val layoutNode = DOMParentLayoutNode(
+                                parent = parent,
+                                htmlNode = htmlElement,
+                                domEventHandler = ::handleEvent
+                            )
                             layoutNode.setChildren(children = loadDocument(htmlElement.children, parent = layoutNode))
                             layoutTree += layoutNode
                         }

@@ -1,6 +1,11 @@
 package ca.antonious.browser.libraries.web.ui
 
-import ca.antonious.browser.libraries.graphics.core.*
+import ca.antonious.browser.libraries.graphics.core.Canvas
+import ca.antonious.browser.libraries.graphics.core.Color
+import ca.antonious.browser.libraries.graphics.core.Font
+import ca.antonious.browser.libraries.graphics.core.MeasuringTape
+import ca.antonious.browser.libraries.graphics.core.Paint
+import ca.antonious.browser.libraries.graphics.core.Size
 import ca.antonious.browser.libraries.layout.core.InputEvent
 import ca.antonious.browser.libraries.layout.core.Key
 import ca.antonious.browser.libraries.layout.core.LayoutNode

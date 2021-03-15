@@ -13,6 +13,7 @@ sealed class JavascriptStatement {
     data class IfStatement(val conditions: List<ConditionAndStatement>) : JavascriptStatement() {
         data class ConditionAndStatement(val condition: JavascriptExpression, val body: JavascriptStatement)
     }
+
     data class WhileLoop(val condition: JavascriptExpression, val body: Block) : JavascriptStatement()
     data class DoWhileLoop(val body: JavascriptStatement, val condition: JavascriptExpression) : JavascriptStatement()
     data class LetAssignment(val name: String, val expression: JavascriptExpression) : JavascriptStatement()
@@ -43,19 +44,40 @@ sealed class JavascriptStatement {
 
 sealed class JavascriptExpression : JavascriptStatement() {
     data class NewCall(val function: FunctionCall) : JavascriptExpression()
-    data class FunctionCall(val expression: JavascriptExpression, val parameters: List<JavascriptExpression>) : JavascriptExpression()
+    data class FunctionCall(val expression: JavascriptExpression, val parameters: List<JavascriptExpression>) :
+        JavascriptExpression()
+
     data class DotAccess(val propertyName: String, val expression: JavascriptExpression) : JavascriptExpression()
-    data class IndexAccess(val indexExpression: JavascriptExpression, val expression: JavascriptExpression) : JavascriptExpression()
+    data class IndexAccess(val indexExpression: JavascriptExpression, val expression: JavascriptExpression) :
+        JavascriptExpression()
+
     data class Reference(val name: String) : JavascriptExpression()
     data class ObjectLiteral(val fields: List<Field>) : JavascriptExpression() {
         data class Field(val name: String, val rhs: JavascriptExpression)
     }
+
     data class ArrayLiteral(val items: List<JavascriptExpression>) : JavascriptExpression()
     data class Literal(val value: JavascriptValue) : JavascriptExpression()
-    data class TernaryOperation(val condition: JavascriptExpression, val ifTruthy: JavascriptExpression, val ifNot: JavascriptExpression) : JavascriptExpression()
-    data class BinaryOperation(val operator: JavascriptTokenType, val lhs: JavascriptExpression, val rhs: JavascriptExpression): JavascriptExpression()
-    data class UnaryOperation(val operator: JavascriptTokenType, val expression: JavascriptExpression, val isPrefix: Boolean): JavascriptExpression()
-    data class AnonymousFunction(val name: String?, val parameterNames: List<String>, val body: Block) : JavascriptExpression()
+    data class TernaryOperation(
+        val condition: JavascriptExpression,
+        val ifTruthy: JavascriptExpression,
+        val ifNot: JavascriptExpression
+    ) : JavascriptExpression()
+
+    data class BinaryOperation(
+        val operator: JavascriptTokenType,
+        val lhs: JavascriptExpression,
+        val rhs: JavascriptExpression
+    ) : JavascriptExpression()
+
+    data class UnaryOperation(
+        val operator: JavascriptTokenType,
+        val expression: JavascriptExpression,
+        val isPrefix: Boolean
+    ) : JavascriptExpression()
+
+    data class AnonymousFunction(val name: String?, val parameterNames: List<String>, val body: Block) :
+        JavascriptExpression()
 }
 
 sealed class JavascriptValue {
@@ -87,7 +109,7 @@ sealed class JavascriptValue {
                 numberOperand != null && objectOperand != null -> false
                 numberOperand != null && objectOperand != null -> false
                 stringOperand != null && booleanOperand != null -> stringOperand.coerceToNumber() == booleanOperand.coerceToNumber()
-                stringOperand != null && objectOperand != null  -> false
+                stringOperand != null && objectOperand != null -> false
                 booleanOperand != null && objectOperand != null -> false
                 else -> error("Should never be reached")
             }
@@ -122,6 +144,7 @@ sealed class JavascriptValue {
         } else {
             value.toString()
         }
+
         override fun coerceToNumber() = value
         override fun isSameType(other: JavascriptValue) = other is Number
     }

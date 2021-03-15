@@ -1,6 +1,10 @@
 package ca.antonious.browser.libraries.web.layout
 
-import ca.antonious.browser.libraries.graphics.core.*
+import ca.antonious.browser.libraries.graphics.core.Canvas
+import ca.antonious.browser.libraries.graphics.core.Font
+import ca.antonious.browser.libraries.graphics.core.MeasuringTape
+import ca.antonious.browser.libraries.graphics.core.Paint
+import ca.antonious.browser.libraries.graphics.core.Size
 import ca.antonious.browser.libraries.html.HtmlElement
 
 class DOMTextNode(parent: DOMParentLayoutNode?, htmlElement: HtmlElement) : DOMLayoutNode(parent, htmlElement) {

@@ -1,6 +1,6 @@
 package ca.antonious.browser.libraries.html
 
-import java.util.*
+import java.util.Stack
 
 data class TagParsingScope(
     val name: String,
@@ -19,6 +19,7 @@ class HtmlParser {
             "input"
         )
     }
+
     fun parse(rawHtml: String): List<HtmlElement> {
         var cursor = 0
         var tagStack = Stack<TagParsingScope>()
@@ -67,33 +68,39 @@ class HtmlParser {
             cursor += amount
         }
 
-
-        mainLoop@while (cursor < rawHtml.length) {
+        mainLoop@ while (cursor < rawHtml.length) {
             when (val currentCharacter = rawHtml[cursor]) {
                 '\n', '\r' -> {
                     advanceCursor()
                 }
                 '<' -> {
                     if (currentText.isNotBlank() && tagStack.isNotEmpty()) {
-                        tagStack.peek().children += HtmlElement.Text(text = currentText.trim().replace("&nbsp;", "    "))
+                        tagStack.peek().children += HtmlElement.Text(
+                            text = currentText.trim().replace("&nbsp;", "    ")
+                        )
                     }
                     currentText = ""
 
                     advanceCursor()
-                    when(rawHtml[cursor]) {
+                    when (rawHtml[cursor]) {
                         '!' -> {
                             when (peekNextCharacter()) {
                                 '-' -> {
                                     advanceCursorBy(3)
                                     var commentText = ""
-                                    while(!(currentCharacter() == '-' && peekNextCharacter() == '-' && peekNextNthCharacter(2) == '>')) {
+                                    while (!(
+                                        currentCharacter() == '-' && peekNextCharacter() == '-' && peekNextNthCharacter(
+                                                2
+                                            ) == '>'
+                                        )
+                                    ) {
                                         commentText += currentCharacter()
                                         advanceCursor()
                                     }
                                     advanceCursorBy(3)
                                 }
                                 else -> {
-                                    while(currentCharacter().let { it != null && it != '\n' && it != '<'}) {
+                                    while (currentCharacter().let { it != null && it != '\n' && it != '<' }) {
                                         advanceCursor()
                                     }
                                 }
@@ -117,12 +124,19 @@ class HtmlParser {
 
                             while (matchingOpening.name != tagName) {
                                 if (matchingOpening.name in autoClosingTags) {
-                                    tagStack.peek().children += HtmlElement.Node(name = matchingOpening.name, attributes = matchingOpening.attributes.toMutableMap())
+                                    tagStack.peek().children += HtmlElement.Node(
+                                        name = matchingOpening.name,
+                                        attributes = matchingOpening.attributes.toMutableMap()
+                                    )
                                     tagStack.peek().children += matchingOpening.children
                                     matchingOpening = tagStack.pop()
                                 } else {
                                     println("WARN: Couldn't find matching closing tag for '${matchingOpening.name}'")
-                                    val node = HtmlElement.Node(name = matchingOpening.name, attributes = matchingOpening.attributes.toMutableMap(), children = matchingOpening.children)
+                                    val node = HtmlElement.Node(
+                                        name = matchingOpening.name,
+                                        attributes = matchingOpening.attributes.toMutableMap(),
+                                        children = matchingOpening.children
+                                    )
 
                                     if (tagStack.isEmpty()) {
                                         return listOf(node)
@@ -133,7 +147,11 @@ class HtmlParser {
                                 }
                             }
 
-                            val parsedNode = HtmlElement.Node(name = matchingOpening.name, attributes = matchingOpening.attributes.toMutableMap(), children = matchingOpening.children)
+                            val parsedNode = HtmlElement.Node(
+                                name = matchingOpening.name,
+                                attributes = matchingOpening.attributes.toMutableMap(),
+                                children = matchingOpening.children
+                            )
 
                             if (tagStack.isEmpty()) {
                                 return listOf(parsedNode)
@@ -157,7 +175,7 @@ class HtmlParser {
                                         if (currentCharacter()?.isLetter() == true) {
                                             var attributeName = ""
 
-                                            while (currentCharacter()?.let { it.isLetterOrDigit() || it == '-' || it == '_'} == true) {
+                                            while (currentCharacter()?.let { it.isLetterOrDigit() || it == '-' || it == '_' } == true) {
                                                 attributeName += currentCharacter()
                                                 advanceCursor()
                                             }
@@ -207,13 +225,15 @@ class HtmlParser {
                                         }
                                     }
                                 }
-
                             }
 
-                            when(rawHtml[cursor - 1]) {
+                            when (rawHtml[cursor - 1]) {
                                 '/' -> {
                                     advanceCursor()
-                                    tagStack.peek().children += HtmlElement.Node(name = tagName, attributes = attributes)
+                                    tagStack.peek().children += HtmlElement.Node(
+                                        name = tagName,
+                                        attributes = attributes
+                                    )
                                 }
                                 else -> {
                                     advanceCursor()

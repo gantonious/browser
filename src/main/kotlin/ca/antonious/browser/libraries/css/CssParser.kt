@@ -88,13 +88,18 @@ class CssParser {
         }
 
         fun parseParentSelector() {
-            val previousSelector = currentSelector ?: error("Can't process parent selector since no selector is being parsed.")
+            val previousSelector =
+                currentSelector ?: error("Can't process parent selector since no selector is being parsed.")
             parseSelector()
             val capturedCurrentSelector = currentSelector ?: error("Expected current selector after parsing selector.")
 
             currentSelector = when (previousSelector) {
                 is CssSelector.MatchesParent -> {
-                    previousSelector.copy(parentSelectors = previousSelector.parentSelectors + listOf(capturedCurrentSelector))
+                    previousSelector.copy(
+                        parentSelectors = previousSelector.parentSelectors + listOf(
+                            capturedCurrentSelector
+                        )
+                    )
                 }
                 else -> CssSelector.MatchesParent(listOf(previousSelector, capturedCurrentSelector))
             }
@@ -105,7 +110,9 @@ class CssParser {
                 error("Attempted to parse css attributes without a selector being parsed.")
             }
 
-            while (currentCharacter()?.isWhitespace() == true) { advanceCursor() }
+            while (currentCharacter()?.isWhitespace() == true) {
+                advanceCursor()
+            }
 
             if (currentCharacter() != '{') {
                 error("Expected '{' following css selector")
@@ -114,7 +121,9 @@ class CssParser {
 
             val attributes = mutableListOf<CssAttribute>()
             while (currentCharacter() != '}') {
-                while (currentCharacter()?.isWhitespace() == true) { advanceCursor() }
+                while (currentCharacter()?.isWhitespace() == true) {
+                    advanceCursor()
+                }
 
                 var attributeName = ""
                 while (currentCharacter()?.let { it.isLetterOrDigit() || it == '-' } == true) {
@@ -122,7 +131,9 @@ class CssParser {
                     advanceCursor()
                 }
 
-                while (currentCharacter()?.isWhitespace() == true) { advanceCursor() }
+                while (currentCharacter()?.isWhitespace() == true) {
+                    advanceCursor()
+                }
 
                 if (currentCharacter() != ':') {
                     error("Expected ':' to follow css attribute '$attributeName'")
@@ -130,14 +141,16 @@ class CssParser {
                 advanceCursor()
 
                 var attributeValue = ""
-                while (currentCharacter()?.let { it != '\n' && it != ';'} == true) {
+                while (currentCharacter()?.let { it != '\n' && it != ';' } == true) {
                     attributeValue += currentCharacter()
                     advanceCursor()
                 }
 
                 attributes += attributeParser.parse(attributeName, attributeValue)
                 advanceCursor()
-                while (currentCharacter()?.isWhitespace() == true) { advanceCursor() }
+                while (currentCharacter()?.isWhitespace() == true) {
+                    advanceCursor()
+                }
             }
 
             advanceCursor()
@@ -149,10 +162,12 @@ class CssParser {
                 '\r', '\n', '\t' -> advanceCursor()
                 ' ' -> {
                     if (currentSelector != null) {
-                        while (currentCharacter() == ' ') { advanceCursor() }
+                        while (currentCharacter() == ' ') {
+                            advanceCursor()
+                        }
                         when (currentCharacter()) {
                             '{' -> parseCssAttributes()
-                            else ->  parseParentSelector()
+                            else -> parseParentSelector()
                         }
                     } else {
                         advanceCursor()
