@@ -102,7 +102,7 @@ class DOM {
     }
 
     fun handleKeyDown(key: Key) {
-        javascriptInterpreter.interpret("window.onkeydown({ code: '${key.name}' })")
+        javascriptInterpreter.interpret("window.onkeydown && window.onkeydown({ code: '${key.name}' })")
     }
 
     private fun handleEvent(event: DOMEvent) {
