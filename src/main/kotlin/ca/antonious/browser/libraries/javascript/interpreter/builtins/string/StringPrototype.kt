@@ -37,5 +37,18 @@ object StringPrototype : JavascriptObject() {
 
             JavascriptValue.String(stringObject.value.toUpperCase())
         }
+
+        setNonEnumerableNativeFunction("charAt") { executionContext ->
+            val stringObject = executionContext.thisBinding as? StringObject
+                ?: return@setNonEnumerableNativeFunction JavascriptValue.Undefined
+
+            val index = executionContext.arguments.firstOrNull()?.coerceToNumber()?.toInt() ?: 0
+
+            if (index >= 0 && index < stringObject.value.length) {
+                JavascriptValue.String(stringObject.value[index].toString())
+            } else {
+                JavascriptValue.String("")
+            }
+        }
     }
 }
