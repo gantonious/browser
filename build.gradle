@@ -4,6 +4,8 @@ plugins {
     id 'com.github.johnrengelman.shadow' version '5.1.0'
 }
 
+apply from: "${rootProject.projectDir}/ktlint.gradle"
+
 group 'org.example'
 version '1.0-SNAPSHOT'
 
