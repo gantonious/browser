@@ -3,7 +3,7 @@ package ca.antonious.browser.libraries.http
 class HttpResponseParser {
     fun parse(response: String): HttpResponse {
         val responseLines = response.split("\n")
-        val responseStatus = responseLines.first().split(" ")[1].toInt()
+        val responseStatus = responseLines.first().split(" ")[1].trim().toInt()
         val responseHeaders = responseLines.drop(1).takeWhile { it != "\r" }
         val responseBody = responseLines.dropWhile { it != "\r" }.drop(1)
 

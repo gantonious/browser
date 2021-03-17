@@ -1,5 +1,6 @@
 package ca.antonious.browser.libraries.javascript.interpreter.builtins.`object`
 
+import ca.antonious.browser.libraries.javascript.ast.JavascriptExpression
 import ca.antonious.browser.libraries.javascript.ast.JavascriptValue
 import ca.antonious.browser.libraries.javascript.interpreter.NativeFunction
 import ca.antonious.browser.libraries.javascript.interpreter.builtins.array.JavascriptArray
@@ -45,6 +46,18 @@ class ObjectConstructor : NativeFunction(
                         javascriptObject.value.properties.values.toList()
                     )
                 )
+            }
+        }
+
+        setNonEnumerableNativeFunction("getPrototypeOf") { executionContext ->
+            val javascriptObject = executionContext.interpreter.interpretAsObject(
+                JavascriptExpression.Literal(executionContext.arguments.first())
+            )
+
+            if (javascriptObject.prototype != null) {
+                JavascriptValue.Object(javascriptObject.prototype)
+            } else {
+                JavascriptValue.Undefined
             }
         }
     }

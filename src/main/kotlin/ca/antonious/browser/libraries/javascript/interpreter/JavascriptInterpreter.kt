@@ -621,7 +621,7 @@ class JavascriptInterpreter {
         }
     }
 
-    private fun interpretAsObject(expression: JavascriptExpression): JavascriptObject {
+    fun interpretAsObject(expression: JavascriptExpression): JavascriptObject {
         return when (val value = interpret(expression)) {
             is JavascriptValue.Object -> value.value
             is JavascriptValue.String -> StringObject(value = value.value)
