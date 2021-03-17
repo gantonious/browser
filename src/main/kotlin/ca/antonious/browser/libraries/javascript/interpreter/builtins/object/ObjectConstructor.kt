@@ -49,6 +49,22 @@ class ObjectConstructor : NativeFunction(
             }
         }
 
+        setNonEnumerableNativeFunction("getOwnPropertyNames") { executionContext ->
+            val javascriptObject = executionContext.arguments.first().valueAs<JavascriptValue.Object>()
+
+            if (javascriptObject == null) {
+                JavascriptValue.Object(JavascriptArray())
+            } else {
+                JavascriptValue.Object(
+                    JavascriptArray(
+                        (javascriptObject.value.properties.keys + javascriptObject.value.nonEnumerableProperties.keys).map {
+                            JavascriptValue.String(it)
+                        }
+                    )
+                )
+            }
+        }
+
         setNonEnumerableNativeFunction("getPrototypeOf") { executionContext ->
             val javascriptObject = executionContext.interpreter.interpretAsObject(
                 JavascriptExpression.Literal(executionContext.arguments.first())
