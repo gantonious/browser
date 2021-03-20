@@ -1,14 +1,10 @@
 package ca.antonious.browser.libraries.web.layout
 
-import ca.antonious.browser.libraries.css.CssAlignment
+import ca.antonious.browser.libraries.css.CssHorizontalAlignment
 import ca.antonious.browser.libraries.css.CssDisplay
 import ca.antonious.browser.libraries.css.CssSize
-import ca.antonious.browser.libraries.graphics.core.Canvas
-import ca.antonious.browser.libraries.graphics.core.MeasuringTape
-import ca.antonious.browser.libraries.graphics.core.Paint
-import ca.antonious.browser.libraries.graphics.core.Rect
-import ca.antonious.browser.libraries.graphics.core.Size
-import ca.antonious.browser.libraries.graphics.core.subRegion
+import ca.antonious.browser.libraries.css.CssVerticalAlignment
+import ca.antonious.browser.libraries.graphics.core.*
 import ca.antonious.browser.libraries.html.HtmlElement
 import ca.antonious.browser.libraries.layout.core.InputEvent
 import ca.antonious.browser.libraries.web.DOMEvent
@@ -49,51 +45,54 @@ class DOMParentLayoutNode(
             return Size(0f, 0f)
         }
 
-        val explicitTopMargin = measuringTape.resolveSize(resolvedStyle.margins.top) ?: 0f
+        var explicitWidth: Float?
+        var explicitHeight: Float?
 
-        var width = 0f
-        var childrenWidth = 0f
-        var height = explicitTopMargin
+        explicitWidth = measuringTape.resolveSize(resolvedStyle.width)
+        explicitHeight = measuringTape.resolveSize(resolvedStyle.height)
 
-        val styleWidth = measuringTape.resolveSize(resolvedStyle.width)
+        if (resolvedStyle.width is CssSize.Percent) {
+            explicitWidth = widthConstraint * (resolvedStyle.width as CssSize.Percent).size
+        }
+
+        if (resolvedStyle.height is CssSize.Percent) {
+            explicitHeight = heightConstraint * (resolvedStyle.height as CssSize.Percent).size
+        }
+
         val startMargin = measuringTape.resolveSize(resolvedStyle.margins.start)
         val endMargin = measuringTape.resolveSize(resolvedStyle.margins.end)
         val explicitHorizontalMarginSize = (startMargin ?: 0f) + (endMargin ?: 0f)
+        val realWidthConstraint = min(widthConstraint, explicitWidth ?: widthConstraint)
 
-        var x = startMargin ?: 0f
-        var y = explicitTopMargin
+        val topMargin = measuringTape.resolveSize(resolvedStyle.margins.top)
+        val bottomMargin = measuringTape.resolveSize(resolvedStyle.margins.bottom)
+        val explicitVerticalMarginSize = (topMargin ?: 0f) + (bottomMargin ?: 0f)
+        val realHeightConstraint = min(heightConstraint, explicitHeight ?: heightConstraint)
 
-        val realWidthConstraint = min(widthConstraint, styleWidth ?: widthConstraint) - explicitHorizontalMarginSize
-
-        if (resolvedStyle.width is CssSize.Percent) {
-            width = realWidthConstraint * (resolvedStyle.width as CssSize.Percent).size
-        }
-
-        height += measuringTape.resolveSize(resolvedStyle.margins.bottom) ?: 0f
-
-        val maxWidth = realWidthConstraint
+        var childrenWidth = 0f
+        var childrenHeight = 0f
+        var x = 0f
+        var y = 0f
 
         for (child in children) {
-            val childMeasureResult = child.measure(measuringTape, realWidthConstraint, heightConstraint)
+            val childMeasureResult = child.measure(measuringTape, realWidthConstraint, realHeightConstraint)
 
             when ((child as? DOMParentLayoutNode)?.resolvedStyle?.displayType ?: CssDisplay.inlineBlock) {
                 CssDisplay.block -> {
-                    x = startMargin ?: 0f
                     child.frame.x = x
                     child.frame.y = y
 
-                    height += childMeasureResult.height
-                    y = height
+                    childrenHeight += childMeasureResult.height
+                    y += childMeasureResult.height
                     childrenWidth = max(childrenWidth, (child.frame.x + childMeasureResult.width))
                 }
                 CssDisplay.inlineBlock -> {
-                    if (childrenWidth + childMeasureResult.width > maxWidth) {
-                        x = startMargin ?: 0f
+                    if (childrenWidth + childMeasureResult.width > realWidthConstraint) {
                         child.frame.x = x
                         child.frame.y = y
 
-                        height += childMeasureResult.height
-                        y = height
+                        childrenHeight += childMeasureResult.height
+                        y += childMeasureResult.height
                         childrenWidth = max(childrenWidth, (child.frame.x + childMeasureResult.width))
                     } else {
                         child.frame.x = x
@@ -101,7 +100,7 @@ class DOMParentLayoutNode(
 
                         childrenWidth += childMeasureResult.width
                         x += childMeasureResult.width
-                        height = max(height, (child.frame.y + childMeasureResult.height))
+                        childrenHeight = max(childrenHeight, (child.frame.y + childMeasureResult.height))
                     }
                 }
                 CssDisplay.none -> Unit
@@ -114,10 +113,16 @@ class DOMParentLayoutNode(
             widthConstraint
         }
 
+        val heightConstraintToFill = if (resolvedStyle.displayType == CssDisplay.block) {
+            realHeightConstraint
+        } else {
+            heightConstraint
+        }
+
         if (childrenWidth < widthConstraintToFill) {
             when {
                 (resolvedStyle.margins.start is CssSize.Auto && resolvedStyle.margins.end is CssSize.Auto) ||
-                    (resolvedStyle.textAlignment == CssAlignment.center) -> {
+                    (resolvedStyle.textAlignment == CssHorizontalAlignment.center) -> {
                     val remainingMargin = (widthConstraintToFill - childrenWidth) / 2
                     for (child in children) {
                         child.frame.x += remainingMargin
@@ -126,7 +131,22 @@ class DOMParentLayoutNode(
             }
         }
 
-        return Size(width = max(childrenWidth, width), height = height).also {
+        if (childrenHeight < heightConstraintToFill) {
+            when {
+                (resolvedStyle.margins.top is CssSize.Auto && resolvedStyle.margins.bottom is CssSize.Auto) ||
+                    (resolvedStyle.verticalAlignment == CssVerticalAlignment.middle) -> {
+                    val remainingMargin = (heightConstraintToFill - childrenHeight) / 2
+                    for (child in children) {
+                        child.frame.y += remainingMargin
+                    }
+                }
+            }
+        }
+
+        return Size(
+            width = explicitWidth ?: childrenWidth,
+            height = explicitHeight ?: childrenHeight
+        ).also {
             frame.width = it.width
             frame.height = it.height
         }

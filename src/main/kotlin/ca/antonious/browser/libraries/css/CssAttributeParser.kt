@@ -23,6 +23,9 @@ class CssAttributeParser {
             "width" -> {
                 attributes += CssAttribute.Width(size = parseSize(attributeValue))
             }
+            "height" -> {
+                attributes += CssAttribute.Height(size = parseSize(attributeValue))
+            }
             "margin" -> {
                 val marginValues = attributeValue.trim().split(" ")
                     .map { it.trim() }
@@ -58,10 +61,20 @@ class CssAttributeParser {
             "text-align" -> {
                 attributes += CssAttribute.TextAlignment(
                     alignment = when (attributeValue.trim()) {
-                        "left" -> CssAlignment.left
-                        "center" -> CssAlignment.center
-                        "right" -> CssAlignment.right
-                        else -> CssAlignment.left
+                        "left" -> CssHorizontalAlignment.left
+                        "center" -> CssHorizontalAlignment.center
+                        "right" -> CssHorizontalAlignment.right
+                        else -> CssHorizontalAlignment.left
+                    }
+                )
+            }
+            "vertical-align" -> {
+                attributes += CssAttribute.VerticalAlignment(
+                    alignment = when (attributeValue.trim()) {
+                        "top" -> CssVerticalAlignment.top
+                        "middle" -> CssVerticalAlignment.middle
+                        "bottom" -> CssVerticalAlignment.bottom
+                        else -> CssVerticalAlignment.top
                     }
                 )
             }

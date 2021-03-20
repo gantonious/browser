@@ -34,7 +34,11 @@ sealed class CssSelector {
 
     data class MatchesParent(val parentSelectors: List<CssSelector>) : CssSelector() {
         override fun matches(domElement: DOMParentLayoutNode): Boolean {
-            return false
+            val currentElementSelector = parentSelectors.last()
+            val parentElementSelector = parentSelectors.first()
+
+            val parent = domElement.parent ?: return false
+            return currentElementSelector.matches(domElement) && parentElementSelector.matches(parent)
         }
     }
 

@@ -38,6 +38,10 @@ class CssStyleResolver {
                 CssAttribute.MarginBottom(size = CssSize.Pixel(8)),
                 CssAttribute.FontSize(size = CssSize.Pixel(12))
             )
+        ),
+        CssRule(
+            selector = CssSelector.MatchesTag("img"),
+            attributes = listOf(CssAttribute.Display(displayType = CssDisplay.inlineBlock))
         )
     )
 
@@ -61,6 +65,8 @@ class CssStyleResolver {
         resolvedStyle.displayType = CssDisplay.block
         resolvedStyle.backgroundColor = Color.clear
         resolvedStyle.width = CssSize.Percent(1f)
+        resolvedStyle.height = CssSize.Auto
+        resolvedStyle.margins = CssInsets.zero()
 
         for (attribute in matchingAttributes) {
             when (attribute) {
@@ -69,10 +75,12 @@ class CssStyleResolver {
                 is CssAttribute.MarginTop -> resolvedStyle.margins.top = attribute.size
                 is CssAttribute.MarginBottom -> resolvedStyle.margins.bottom = attribute.size
                 is CssAttribute.Width -> resolvedStyle.width = attribute.size
+                is CssAttribute.Height -> resolvedStyle.height = attribute.size
                 is CssAttribute.FontSize -> resolvedStyle.fontSize = attribute.size
                 is CssAttribute.BackgroundColor -> resolvedStyle.backgroundColor = attribute.color
                 is CssAttribute.Color -> resolvedStyle.color = attribute.color
                 is CssAttribute.TextAlignment -> resolvedStyle.textAlignment = attribute.alignment
+                is CssAttribute.VerticalAlignment -> resolvedStyle.verticalAlignment = attribute.alignment
                 is CssAttribute.Display -> resolvedStyle.displayType = attribute.displayType
             }
         }

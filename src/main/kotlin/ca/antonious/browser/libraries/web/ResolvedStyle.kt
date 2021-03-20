@@ -1,19 +1,19 @@
 package ca.antonious.browser.libraries.web
 
-import ca.antonious.browser.libraries.css.CssAlignment
-import ca.antonious.browser.libraries.css.CssDisplay
-import ca.antonious.browser.libraries.css.CssSize
+import ca.antonious.browser.libraries.css.*
 import ca.antonious.browser.libraries.graphics.core.Color
 import ca.antonious.browser.libraries.graphics.core.MeasuringTape
 
 data class ResolvedStyle(
-    val margins: CssInsets = CssInsets.zero(),
-    val padding: CssInsets = CssInsets.zero(),
+    var margins: CssInsets = CssInsets.zero(),
+    var padding: CssInsets = CssInsets.zero(),
     var fontSize: CssSize = CssSize.Pixel(8),
     var width: CssSize = CssSize.Auto,
+    var height: CssSize = CssSize.Auto,
     var backgroundColor: Color = Color.clear,
     var color: Color = Color.black,
-    var textAlignment: CssAlignment = CssAlignment.left,
+    var textAlignment: CssHorizontalAlignment = CssHorizontalAlignment.left,
+    var verticalAlignment: CssVerticalAlignment = CssVerticalAlignment.top,
     var displayType: CssDisplay = CssDisplay.block
 )
 
