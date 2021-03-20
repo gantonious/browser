@@ -152,7 +152,7 @@ class JavascriptInterpreter {
                     }
                 }
 
-                return when (val objectToCall = (valueToCall as JavascriptValue.Object).value) {
+                return when (val objectToCall = (valueToCall as? JavascriptValue.Object)?.value) {
                     is JavascriptFunction -> {
                         enterFunction(
                             parameterNames = objectToCall.parameterNames,
@@ -160,15 +160,10 @@ class JavascriptInterpreter {
                             parentScope = objectToCall.parentScope,
                             thisBinding = thisBinding
                         )
-
                         interpret(objectToCall.body)
-
                         exitFunction()
 
-                        (
-                            maybeConsumeControlFlowInterrupt<ControlFlowInterruption.Return>()?.value
-                                ?: JavascriptValue.Undefined
-                            )
+                        maybeConsumeControlFlowInterrupt<ControlFlowInterruption.Return>()?.value ?: JavascriptValue.Undefined
                     }
                     is NativeFunction -> {
                         val nativeExecutionContext = NativeExecutionContext(
@@ -179,7 +174,10 @@ class JavascriptInterpreter {
 
                         objectToCall.body.invoke(nativeExecutionContext)
                     }
-                    else -> error("TypeError: $objectToCall is not a function")
+                    else -> {
+                        throwError(JavascriptValue.String("TypeError: '$valueToCall' is not a function"))
+                        JavascriptValue.Undefined
+                    }
                 }.toReference()
             }
             is JavascriptStatement.IfStatement -> {

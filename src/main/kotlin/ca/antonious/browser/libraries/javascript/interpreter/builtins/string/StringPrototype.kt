@@ -8,10 +8,6 @@ import ca.antonious.browser.libraries.javascript.interpreter.setNonEnumerableNat
 
 object StringPrototype : JavascriptObject() {
     init {
-        setNonEnumerableNativeFunction("valueOf") { executionContext ->
-            JavascriptValue.String((executionContext.thisBinding as StringObject).value)
-        }
-
         setNonEnumerableNativeFunction("match") { executionContext ->
             val stringObject = executionContext.thisBinding as? StringObject
                 ?: return@setNonEnumerableNativeFunction JavascriptValue.Undefined
