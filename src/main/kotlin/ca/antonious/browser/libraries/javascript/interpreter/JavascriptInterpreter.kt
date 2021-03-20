@@ -65,6 +65,7 @@ class JavascriptInterpreter {
     private var stack = Stack<JavascriptStackFrame>().apply {
         push(
             JavascriptStackFrame(
+                name = "main",
                 scope = JavascriptScope(
                     thisBinding = globalObject,
                     scopeObject = JavascriptObject(),
@@ -89,7 +90,11 @@ class JavascriptInterpreter {
         val value = interpret(JavascriptStatement.Block(program.body))
 
         return if (hasControlFlowInterruptedDueTo<ControlFlowInterruption.Error>()) {
-            error("Uncaught ${consumeControlFlowInterrupt<ControlFlowInterruption.Error>().value}")
+            val tab = " ".repeat(4)
+            val error = consumeControlFlowInterrupt<ControlFlowInterruption.Error>()
+            val errorMessage = "Uncaught ${error.value}\n$tab" + error.trace.joinToString("\n$tab") { "at ${it.name}()"}
+
+            error(errorMessage)
         } else {
             value
         }
@@ -118,6 +123,7 @@ class JavascriptInterpreter {
             is JavascriptStatement.Function -> {
                 val value = JavascriptValue.Object(
                     value = JavascriptFunction(
+                        name = statement.name,
                         parameterNames = statement.parameterNames,
                         body = statement.body,
                         parentScope = currentScope
@@ -138,7 +144,7 @@ class JavascriptInterpreter {
                 return JavascriptReference.Undefined
             }
             is JavascriptStatement.Throw -> {
-                interruptControlFlowWith(ControlFlowInterruption.Error(interpret(statement.expression)))
+                throwError(interpret(statement.expression))
                 return JavascriptReference.Undefined
             }
             is JavascriptExpression.FunctionCall -> {
@@ -155,6 +161,7 @@ class JavascriptInterpreter {
                 return when (val objectToCall = (valueToCall as? JavascriptValue.Object)?.value) {
                     is JavascriptFunction -> {
                         enterFunction(
+                            functionName = objectToCall.name,
                             parameterNames = objectToCall.parameterNames,
                             passedParameters = statement.parameters,
                             parentScope = objectToCall.parentScope,
@@ -532,6 +539,7 @@ class JavascriptInterpreter {
             is JavascriptExpression.AnonymousFunction -> {
                 return JavascriptValue.Object(
                     JavascriptFunction(
+                        name = "anonymous",
                         parameterNames = statement.parameterNames,
                         body = statement.body,
                         parentScope = currentScope
@@ -546,6 +554,7 @@ class JavascriptInterpreter {
                                 val objectThis = JavascriptObject(prototype = constructor.functionPrototype)
 
                                 enterFunction(
+                                    functionName = constructor.name,
                                     parameterNames = constructor.parameterNames,
                                     passedParameters = statement.function.parameters,
                                     parentScope = constructor.parentScope,
@@ -649,6 +658,7 @@ class JavascriptInterpreter {
     }
 
     private fun enterFunction(
+        functionName: String,
         parameterNames: List<String>,
         passedParameters: List<JavascriptExpression>,
         parentScope: JavascriptScope,
@@ -671,7 +681,12 @@ class JavascriptInterpreter {
             parentScope = parentScope
         )
 
-        stack.push(JavascriptStackFrame(functionScope))
+        stack.push(
+            JavascriptStackFrame(
+                name = functionName,
+                scope = functionScope
+            )
+        )
     }
 
     private fun exitFunction() {
@@ -732,11 +747,19 @@ class JavascriptInterpreter {
     }
 
     private fun throwError(error: JavascriptValue) {
-        interruptControlFlowWith(ControlFlowInterruption.Error(error))
+        interruptControlFlowWith(
+            ControlFlowInterruption.Error(
+                value = error,
+                trace = ArrayList(stack).reversed()
+            )
+        )
     }
 
     sealed class ControlFlowInterruption {
         data class Return(val value: JavascriptValue) : ControlFlowInterruption()
-        data class Error(val value: JavascriptValue) : ControlFlowInterruption()
+        data class Error(
+            val value: JavascriptValue,
+            val trace: List<JavascriptStackFrame>
+        ) : ControlFlowInterruption()
     }
 }

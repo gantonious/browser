@@ -4,6 +4,7 @@ import ca.antonious.browser.libraries.javascript.ast.JavascriptStatement
 import ca.antonious.browser.libraries.javascript.ast.JavascriptValue
 
 class JavascriptFunction(
+    val name: String,
     val parameterNames: List<String>,
     val body: JavascriptStatement.Block,
     val parentScope: JavascriptScope
