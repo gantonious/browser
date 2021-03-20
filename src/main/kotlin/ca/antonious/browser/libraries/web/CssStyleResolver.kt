@@ -16,7 +16,8 @@ class CssStyleResolver {
                 CssAttribute.MarginTop(size = CssSize.Pixel(8)),
                 CssAttribute.MarginStart(size = CssSize.Pixel(8)),
                 CssAttribute.MarginEnd(size = CssSize.Pixel(8)),
-                CssAttribute.MarginBottom(size = CssSize.Pixel(8))
+                CssAttribute.MarginBottom(size = CssSize.Pixel(8)),
+                CssAttribute.Height(size = CssSize.Percent(1f))
             )
         ),
         CssRule(
