@@ -77,6 +77,7 @@ class DOMParentLayoutNode(
 
         var childrenWidth = 0f
         var childrenHeight = 0f
+        var rowWidth = 0f
         var x = 0f
         var y = 0f
 
@@ -85,26 +86,32 @@ class DOMParentLayoutNode(
 
             when ((child as? DOMParentLayoutNode)?.resolvedStyle?.displayType ?: CssDisplay.inlineBlock) {
                 CssDisplay.block -> {
+                    x = 0f
                     child.frame.x = x
                     child.frame.y = y
 
                     childrenHeight += childMeasureResult.height
                     y += childMeasureResult.height
-                    childrenWidth = max(childrenWidth, (child.frame.x + childMeasureResult.width))
+                    rowWidth = max(rowWidth, (child.frame.x + childMeasureResult.width))
+                    childrenWidth = max(childrenWidth, rowWidth)
                 }
                 CssDisplay.inlineBlock -> {
-                    if (childrenWidth + childMeasureResult.width > realWidthConstraint) {
+                    if (rowWidth + childMeasureResult.width > realWidthConstraint) {
+                        x = 0f
+                        y = childrenHeight
                         child.frame.x = x
                         child.frame.y = y
 
+                        rowWidth = childMeasureResult.width
+                        childrenWidth = max(childrenWidth, rowWidth)
+                        x += childMeasureResult.width
                         childrenHeight += childMeasureResult.height
-                        y += childMeasureResult.height
-                        childrenWidth = max(childrenWidth, (child.frame.x + childMeasureResult.width))
                     } else {
                         child.frame.x = x
                         child.frame.y = y
 
-                        childrenWidth += childMeasureResult.width
+                        rowWidth += childMeasureResult.width
+                        childrenWidth = max(childrenWidth, rowWidth)
                         x += childMeasureResult.width
                         childrenHeight = max(childrenHeight, (child.frame.y + childMeasureResult.height))
                     }
