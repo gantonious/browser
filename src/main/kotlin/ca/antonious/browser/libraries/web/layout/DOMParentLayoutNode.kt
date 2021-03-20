@@ -198,9 +198,7 @@ class DOMParentLayoutNode(
                 frame.y = min(0f, frame.y)
             }
             is InputEvent.TouchUp -> {
-                if ((htmlElement as HtmlElement.Node).name == "a") {
-                    domEventHandler.invoke(DOMEvent.NodeClicked(htmlElement))
-                }
+                domEventHandler.invoke(DOMEvent.NodeClicked(htmlNode))
 
                 for (child in children) {
                     if (child.frame.contains(inputEvent.mousePosition)) {

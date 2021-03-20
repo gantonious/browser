@@ -108,8 +108,16 @@ class DOM {
     private fun handleEvent(event: DOMEvent) {
         when (event) {
             is DOMEvent.NodeClicked -> {
-                val url = siteUrl!!.copy(path = event.element.attributes["href"]!!)
-                loadSite(url)
+                when {
+                    event.element.name == "a" -> {
+                        val url = siteUrl!!.copy(path = event.element.attributes["href"]!!)
+                        loadSite(url)
+                    }
+                    event.element.attributes["onclick"] != null -> {
+                        javascriptInterpreter.interpret(event.element.attributes["onclick"] ?: "")
+                    }
+                }
+
             }
         }
     }
