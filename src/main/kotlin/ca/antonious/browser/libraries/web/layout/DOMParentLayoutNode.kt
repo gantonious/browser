@@ -82,10 +82,12 @@ class DOMParentLayoutNode(
         var y = 0f
 
         for (child in children) {
-            val childMeasureResult = child.measure(measuringTape, realWidthConstraint, realHeightConstraint)
+
 
             when ((child as? DOMParentLayoutNode)?.resolvedStyle?.displayType ?: CssDisplay.inlineBlock) {
                 CssDisplay.block -> {
+                    val childMeasureResult = child.measure(measuringTape, realWidthConstraint, realHeightConstraint)
+
                     x = 0f
                     y = childrenHeight
                     child.frame.x = x
@@ -96,7 +98,10 @@ class DOMParentLayoutNode(
                     childrenWidth = max(childrenWidth, rowWidth)
                 }
                 CssDisplay.inlineBlock -> {
+                    var childMeasureResult = child.measure(measuringTape, realWidthConstraint - rowWidth, realHeightConstraint)
+
                     if (rowWidth + childMeasureResult.width > realWidthConstraint) {
+                        childMeasureResult = child.measure(measuringTape, realWidthConstraint, realHeightConstraint)
                         x = 0f
                         y = childrenHeight
                         child.frame.x = x
