@@ -87,12 +87,12 @@ class DOMParentLayoutNode(
             when ((child as? DOMParentLayoutNode)?.resolvedStyle?.displayType ?: CssDisplay.inlineBlock) {
                 CssDisplay.block -> {
                     x = 0f
+                    y = childrenHeight
                     child.frame.x = x
                     child.frame.y = y
 
                     childrenHeight += childMeasureResult.height
-                    y += childMeasureResult.height
-                    rowWidth = max(rowWidth, (child.frame.x + childMeasureResult.width))
+                    rowWidth = childMeasureResult.width
                     childrenWidth = max(childrenWidth, rowWidth)
                 }
                 CssDisplay.inlineBlock -> {
