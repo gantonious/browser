@@ -30,8 +30,10 @@ class JavascriptArray(initialValues: List<JavascriptValue> = emptyList()) : Java
 
                 if (keyAsNumber == null) {
                     super.getProperty(key)
-                } else {
+                } else if (keyAsNumber in 0 until array.size) {
                     array[keyAsNumber]
+                } else {
+                    JavascriptValue.Undefined
                 }
             }
         }
