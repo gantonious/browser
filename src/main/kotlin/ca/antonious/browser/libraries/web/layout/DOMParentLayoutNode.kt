@@ -20,6 +20,7 @@ class DOMParentLayoutNode(
 ) : DOMLayoutNode(parent, htmlNode) {
 
     var resolvedStyle = ResolvedStyle()
+    var marginInsets = Insets.zero()
     val children = mutableListOf<DOMLayoutNode>()
 
     fun setChildren(children: List<DOMLayoutNode>) {
@@ -59,15 +60,20 @@ class DOMParentLayoutNode(
             explicitHeight = heightConstraint * (resolvedStyle.height as CssSize.Percent).size
         }
 
-        val startMargin = measuringTape.resolveSize(resolvedStyle.margins.start)
-        val endMargin = measuringTape.resolveSize(resolvedStyle.margins.end)
-        val explicitHorizontalMarginSize = (startMargin ?: 0f) + (endMargin ?: 0f)
+        val startMargin = measuringTape.resolveSize(resolvedStyle.margins.start) ?: 0f
+        val endMargin = measuringTape.resolveSize(resolvedStyle.margins.end) ?: 0f
+        val explicitHorizontalMarginSize = startMargin + endMargin
         val realWidthConstraint = min(widthConstraint, explicitWidth ?: widthConstraint)
 
-        val topMargin = measuringTape.resolveSize(resolvedStyle.margins.top)
-        val bottomMargin = measuringTape.resolveSize(resolvedStyle.margins.bottom)
-        val explicitVerticalMarginSize = (topMargin ?: 0f) + (bottomMargin ?: 0f)
+        val topMargin = measuringTape.resolveSize(resolvedStyle.margins.top) ?: 0f
+        val bottomMargin = measuringTape.resolveSize(resolvedStyle.margins.bottom) ?: 0f
+        val explicitVerticalMarginSize = topMargin + bottomMargin
         val realHeightConstraint = min(heightConstraint, explicitHeight ?: heightConstraint)
+
+        marginInsets.start = startMargin
+        marginInsets.end = endMargin
+        marginInsets.top = topMargin
+        marginInsets.bottom = bottomMargin
 
         var childrenWidth = 0f
         var childrenHeight = 0f
@@ -144,8 +150,8 @@ class DOMParentLayoutNode(
         }
 
         return Size(
-            width = explicitWidth ?: childrenWidth,
-            height = explicitHeight ?: childrenHeight
+            width = (explicitWidth ?: childrenWidth) + explicitHorizontalMarginSize,
+            height = (explicitHeight ?: childrenHeight) + explicitVerticalMarginSize
         ).also {
             frame.width = it.width
             frame.height = it.height
@@ -153,9 +159,23 @@ class DOMParentLayoutNode(
     }
 
     override fun drawTo(canvas: Canvas) {
-        canvas.drawRect(Rect(0f, 0f, frame.width, frame.height), Paint(color = resolvedStyle.backgroundColor))
+        val drawRect = Rect(
+            marginInsets.start,
+            marginInsets.top,
+            frame.width - marginInsets.start - marginInsets.end,
+            frame.height - marginInsets.top - marginInsets.bottom
+        )
+        canvas.drawRect(
+            drawRect,
+            Paint(color = resolvedStyle.backgroundColor)
+        )
         children.forEach {
-            it.drawTo(canvas.subRegion(it.frame))
+            it.drawTo(
+                canvas.subRegion(it.frame.copy(
+                    x = it.frame.x + marginInsets.start,
+                    y = it.frame.y + marginInsets.top
+                ))
+            )
         }
     }
 
