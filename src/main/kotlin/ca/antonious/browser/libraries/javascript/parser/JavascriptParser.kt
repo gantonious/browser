@@ -449,8 +449,8 @@ class JavascriptParser(
             expectToken<JavascriptTokenType.QuestionMark>()
             return JavascriptExpression.TernaryOperation(
                 condition = expression,
-                ifTruthy = expectBitwiseAndExpression().also { expectToken<JavascriptTokenType.Colon>() },
-                ifNot = expectBitwiseAndExpression()
+                ifTruthy = expectTernaryExpression().also { expectToken<JavascriptTokenType.Colon>() },
+                ifNot = expectTernaryExpression()
             )
         }
 
