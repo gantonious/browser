@@ -26,7 +26,8 @@ class JavascriptLexer(private val source: String) {
             "finally" to JavascriptTokenType.Finally,
             "throw" to JavascriptTokenType.Throw,
             "in" to JavascriptTokenType.In,
-            "typeof" to JavascriptTokenType.TypeOf
+            "typeof" to JavascriptTokenType.TypeOf,
+            "void" to JavascriptTokenType.Void
         )
 
         private val singleCharTokenMap = mapOf(

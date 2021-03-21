@@ -465,6 +465,10 @@ class JavascriptInterpreter {
                     is JavascriptTokenType.TypeOf -> {
                         JavascriptValue.String(interpret(statement.expression).typeName).toReference()
                     }
+                    is JavascriptTokenType.Void -> {
+                        interpret(statement.expression)
+                        JavascriptReference.Undefined
+                    }
                     is JavascriptTokenType.Operator.Not -> {
                         JavascriptValue.Boolean(!interpret(statement.expression).isTruthy).toReference()
                     }
