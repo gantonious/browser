@@ -501,6 +501,16 @@ class JavascriptInterpreter {
                         interpret(statement.expression)
                         JavascriptReference.Undefined
                     }
+                    is JavascriptTokenType.Delete -> {
+                        val reference = interpretAsReference(statement.expression)
+
+                        return if (reference.deleter == null) {
+                            JavascriptValue.Boolean(false)
+                        } else {
+                            reference.deleter.invoke()
+                            JavascriptValue.Boolean(true)
+                        }.toReference()
+                    }
                     is JavascriptTokenType.Operator.Not -> {
                         JavascriptValue.Boolean(!interpret(statement.expression).isTruthy).toReference()
                     }
@@ -568,17 +578,27 @@ class JavascriptInterpreter {
             is JavascriptExpression.DotAccess -> {
                 val objectToAccess = interpretAsObject(statement.expression)
 
-                return objectToAccess.getProperty(statement.propertyName).toReference {
-                    objectToAccess.setProperty(statement.propertyName, it)
-                }
+                return objectToAccess.getProperty(statement.propertyName).toReference(
+                    deleter = {
+                        objectToAccess.deleteProperty(statement.propertyName)
+                    },
+                    setter = {
+                        objectToAccess.setProperty(statement.propertyName, it)
+                    }
+                )
             }
             is JavascriptExpression.IndexAccess -> {
                 val objectToAccess = interpretAsObject(statement.expression)
 
                 val property = interpret(statement.indexExpression)
-                return objectToAccess.getProperty(property.toString()).toReference {
-                    objectToAccess.setProperty(property.toString(), it)
-                }
+                return objectToAccess.getProperty(property.toString()).toReference(
+                    deleter = {
+                        objectToAccess.deleteProperty(property.toString())
+                    },
+                    setter = {
+                        objectToAccess.setProperty(property.toString(), it)
+                    }
+                )
             }
             is JavascriptExpression.Literal -> {
                 return statement.value.toReference()

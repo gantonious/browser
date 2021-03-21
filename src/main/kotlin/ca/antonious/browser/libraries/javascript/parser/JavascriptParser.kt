@@ -64,7 +64,8 @@ class JavascriptParser(
             JavascriptTokenType.Operator.Plus,
             JavascriptTokenType.Operator.Minus,
             JavascriptTokenType.TypeOf,
-            JavascriptTokenType.Void
+            JavascriptTokenType.Void,
+            JavascriptTokenType.Delete
         )
 
         private val equalityTokens = setOf(

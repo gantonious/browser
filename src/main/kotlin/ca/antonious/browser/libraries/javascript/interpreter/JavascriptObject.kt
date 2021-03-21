@@ -25,6 +25,10 @@ open class JavascriptObject(
         properties[key] = value
     }
 
+    open fun deleteProperty(key: String) {
+        properties.remove(key)
+    }
+
     fun setNonEnumerableProperty(key: String, value: JavascriptValue) {
         nonEnumerableProperties[key] = value
     }
