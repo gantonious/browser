@@ -447,7 +447,7 @@ class JavascriptParser(
     }
 
     private fun expectTernaryExpression(): JavascriptExpression {
-        val expression = expectBitwiseAndExpression()
+        val expression = expectBitwiseOrExpression()
 
         if (maybeGetCurrentToken() is JavascriptTokenType.QuestionMark) {
             expectToken<JavascriptTokenType.QuestionMark>()
@@ -455,6 +455,20 @@ class JavascriptParser(
                 condition = expression,
                 ifTruthy = expectTernaryExpression().also { expectToken<JavascriptTokenType.Colon>() },
                 ifNot = expectTernaryExpression()
+            )
+        }
+
+        return expression
+    }
+
+    private fun expectBitwiseOrExpression(): JavascriptExpression {
+        var expression = expectBitwiseAndExpression()
+
+        while (maybeGetCurrentToken() is JavascriptTokenType.Operator.Or) {
+            expression = JavascriptExpression.BinaryOperation(
+                operator = expectToken(),
+                lhs = expression,
+                rhs = expectBitwiseAndExpression()
             )
         }
 

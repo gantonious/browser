@@ -344,6 +344,22 @@ class JavascriptInterpreter {
 
                         JavascriptValue.Number(result).toReference()
                     }
+                    is JavascriptTokenType.Operator.Or -> {
+                        val result = (
+                                interpretPrimitiveValueOf(statement.lhs).coerceToNumber().toInt() or
+                                        interpretPrimitiveValueOf(statement.rhs).coerceToNumber().toInt()
+                                ).toDouble()
+
+                        JavascriptValue.Number(result).toReference()
+                    }
+                    is JavascriptTokenType.Operator.And -> {
+                        val result = (
+                                interpretPrimitiveValueOf(statement.lhs).coerceToNumber().toInt() and
+                                        interpretPrimitiveValueOf(statement.rhs).coerceToNumber().toInt()
+                                ).toDouble()
+
+                        JavascriptValue.Number(result).toReference()
+                    }
                     is JavascriptTokenType.Operator.Mod -> {
                         JavascriptValue.Number(
                             interpretPrimitiveValueOf(statement.lhs).coerceToNumber() %
