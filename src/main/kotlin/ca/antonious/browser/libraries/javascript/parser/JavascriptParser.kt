@@ -507,9 +507,23 @@ class JavascriptParser(
     }
 
     private fun expectLogicalOrExpression(): JavascriptExpression {
-        var expression = expectLogicalAndExpression()
+        var expression = expectXorExpression()
 
         while (maybeGetCurrentToken() is JavascriptTokenType.Operator.OrOr) {
+            expression = JavascriptExpression.BinaryOperation(
+                operator = expectToken(),
+                lhs = expression,
+                rhs = expectXorExpression()
+            )
+        }
+
+        return expression
+    }
+
+    private fun expectXorExpression(): JavascriptExpression {
+        var expression = expectLogicalAndExpression()
+
+        while (maybeGetCurrentToken() is JavascriptTokenType.Operator.Xor) {
             expression = JavascriptExpression.BinaryOperation(
                 operator = expectToken(),
                 lhs = expression,
