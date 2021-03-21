@@ -350,6 +350,22 @@ class JavascriptInterpreter {
                                 interpretPrimitiveValueOf(statement.rhs).coerceToNumber()
                         ).toReference()
                     }
+                    is JavascriptTokenType.Operator.LeftShift -> {
+                        val result = (
+                            interpretPrimitiveValueOf(statement.lhs).coerceToNumber().toInt() shl
+                                interpretPrimitiveValueOf(statement.rhs).coerceToNumber().toInt()
+                        ).toDouble()
+
+                        JavascriptValue.Number(result).toReference()
+                    }
+                    is JavascriptTokenType.Operator.RightShift -> {
+                        val result = (
+                                interpretPrimitiveValueOf(statement.lhs).coerceToNumber().toInt() shr
+                                        interpretPrimitiveValueOf(statement.rhs).coerceToNumber().toInt()
+                                ).toDouble()
+
+                        JavascriptValue.Number(result).toReference()
+                    }
                     is JavascriptTokenType.Operator.LessThanOrEqual -> {
                         JavascriptValue.Boolean(
                             interpretPrimitiveValueOf(statement.lhs).coerceToNumber() <=

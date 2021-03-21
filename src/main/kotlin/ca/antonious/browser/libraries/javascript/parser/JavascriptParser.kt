@@ -33,6 +33,11 @@ class JavascriptParser(
             JavascriptTokenType.In
         )
 
+        private val bitShiftTokens = setOf(
+            JavascriptTokenType.Operator.LeftShift,
+            JavascriptTokenType.Operator.RightShift
+        )
+
         private val assignmentToken = setOf(
             JavascriptTokenType.Operator.Assignment,
             JavascriptTokenType.Operator.XorAssign,
@@ -527,9 +532,23 @@ class JavascriptParser(
     }
 
     private fun expectComparisonExpression(): JavascriptExpression {
-        var expression = expectAdditiveExpression()
+        var expression = expectBitShiftExpression()
 
         while (maybeGetCurrentToken() in comparisonTokens) {
+            expression = JavascriptExpression.BinaryOperation(
+                operator = expectToken(),
+                lhs = expression,
+                rhs = expectBitShiftExpression()
+            )
+        }
+
+        return expression
+    }
+
+    private fun expectBitShiftExpression(): JavascriptExpression {
+        var expression = expectAdditiveExpression()
+
+        while (maybeGetCurrentToken() in bitShiftTokens) {
             expression = JavascriptExpression.BinaryOperation(
                 operator = expectToken(),
                 lhs = expression,

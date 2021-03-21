@@ -71,6 +71,8 @@ sealed class JavascriptTokenType {
         object StrictNotEquals : Operator()
         object BitNot : Operator()
         object Not : Operator()
+        object LeftShift : Operator()
+        object RightShift : Operator()
     }
 }
 
