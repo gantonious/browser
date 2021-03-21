@@ -10,6 +10,19 @@ open class JavascriptObject(
     val nonEnumerableProperties = mutableMapOf<String, JavascriptValue>()
     val properties = mutableMapOf<String, JavascriptValue>()
 
+    val prototypeChain: List<JavascriptObject>
+        get() {
+            val chain = mutableListOf<JavascriptObject>()
+            var currentPrototype = prototype
+
+            while (currentPrototype != null) {
+                chain += currentPrototype
+                currentPrototype = currentPrototype.prototype
+            }
+
+            return chain
+        }
+
     init {
         if (prototype != null) {
             setNonEnumerableProperty("__proto__", JavascriptValue.Object(prototype))

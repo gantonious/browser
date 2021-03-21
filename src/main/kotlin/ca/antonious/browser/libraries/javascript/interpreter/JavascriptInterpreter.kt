@@ -452,6 +452,31 @@ class JavascriptInterpreter {
                             }
                         ).toReference()
                     }
+                    is JavascriptTokenType.InstanceOf -> {
+                        val objectToTest = interpret(statement.lhs)
+
+                        val prototypeToFind = when (val value = interpret(statement.rhs)) {
+                            is JavascriptValue.Object -> when (val constructor = value.value) {
+                                is JavascriptFunction -> constructor.functionPrototype
+                                is NativeFunction -> constructor.functionPrototype
+                                else -> {
+                                    throwError(JavascriptValue.String("TypeError: Right-hand side of 'instanceof' is not callable"))
+                                    return JavascriptReference.Undefined
+                                }
+                            }
+                            else -> {
+                                throwError(JavascriptValue.String("TypeError: Right-hand side of 'instanceof' is not an object"))
+                                return JavascriptReference.Undefined
+                            }
+                        }
+
+                        val isInstanceOf = when (objectToTest) {
+                            is JavascriptValue.Object -> objectToTest.value.prototypeChain.contains(prototypeToFind)
+                            else -> false
+                        }
+
+                        JavascriptValue.Boolean(isInstanceOf).toReference()
+                    }
                     is JavascriptTokenType.Operator.Assignment -> {
                         val valueToAssign = interpret(statement.rhs)
                         interpretAsReference(statement.lhs).setter?.invoke(valueToAssign)

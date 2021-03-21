@@ -31,7 +31,8 @@ class JavascriptParser(
             JavascriptTokenType.Operator.LessThanOrEqual,
             JavascriptTokenType.Operator.GreaterThan,
             JavascriptTokenType.Operator.GreaterThanOrEqual,
-            JavascriptTokenType.In
+            JavascriptTokenType.In,
+            JavascriptTokenType.InstanceOf
         )
 
         private val bitShiftTokens = setOf(
