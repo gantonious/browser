@@ -87,8 +87,28 @@ class CssAttributeParser {
                     }
                 )
             }
+            "position" -> {
+                attributes += CssAttribute.Position(
+                    positionType = when (attributeValue.trim()) {
+                        "absolute" -> CssPosition.absolute
+                        else -> CssPosition.static
+                    }
+                )
+            }
             "font-size" -> {
                 attributes += CssAttribute.FontSize(size = parseSize(attributeValue))
+            }
+            "left" -> {
+                attributes += CssAttribute.Left(size = parseSize(attributeValue))
+            }
+            "right" -> {
+                attributes += CssAttribute.Right(size = parseSize(attributeValue))
+            }
+            "top" -> {
+                attributes += CssAttribute.Top(size = parseSize(attributeValue))
+            }
+            "bottom" -> {
+                attributes += CssAttribute.Bottom(size = parseSize(attributeValue))
             }
         }
 

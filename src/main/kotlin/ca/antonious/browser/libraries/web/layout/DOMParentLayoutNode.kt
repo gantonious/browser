@@ -1,15 +1,13 @@
 package ca.antonious.browser.libraries.web.layout
 
-import ca.antonious.browser.libraries.css.CssHorizontalAlignment
-import ca.antonious.browser.libraries.css.CssDisplay
-import ca.antonious.browser.libraries.css.CssSize
-import ca.antonious.browser.libraries.css.CssVerticalAlignment
+import ca.antonious.browser.libraries.css.*
 import ca.antonious.browser.libraries.graphics.core.*
 import ca.antonious.browser.libraries.html.HtmlElement
 import ca.antonious.browser.libraries.layout.core.InputEvent
 import ca.antonious.browser.libraries.web.DOMEvent
 import ca.antonious.browser.libraries.web.ResolvedStyle
 import ca.antonious.browser.libraries.web.resolveSize
+import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.min
 
@@ -82,7 +80,9 @@ class DOMParentLayoutNode(
         var y = 0f
 
         for (child in children) {
-
+            if ((child as? DOMParentLayoutNode)?.resolvedStyle?.positionType == CssPosition.absolute) {
+                continue
+            }
 
             when ((child as? DOMParentLayoutNode)?.resolvedStyle?.displayType ?: CssDisplay.inlineBlock) {
                 CssDisplay.block -> {
@@ -125,46 +125,83 @@ class DOMParentLayoutNode(
             }
         }
 
-        val widthConstraintToFill = if (resolvedStyle.displayType == CssDisplay.inlineBlock) {
-            realWidthConstraint
-        } else {
-            widthConstraint
-        }
+        if (resolvedStyle.positionType != CssPosition.absolute) {
+            val widthConstraintToFill = if (resolvedStyle.displayType == CssDisplay.inlineBlock) {
+                realWidthConstraint
+            } else {
+                widthConstraint
+            }
 
-        val heightConstraintToFill = if (resolvedStyle.displayType == CssDisplay.block) {
-            realHeightConstraint
-        } else {
-            heightConstraint
-        }
+            val heightConstraintToFill = if (resolvedStyle.displayType == CssDisplay.block) {
+                realHeightConstraint
+            } else {
+                heightConstraint
+            }
 
-        if (childrenWidth < widthConstraintToFill) {
-            when {
-                (resolvedStyle.margins.start is CssSize.Auto && resolvedStyle.margins.end is CssSize.Auto) ||
-                    (resolvedStyle.textAlignment == CssHorizontalAlignment.center) -> {
-                    val remainingMargin = (widthConstraintToFill - childrenWidth) / 2
-                    for (child in children) {
-                        child.frame.x += remainingMargin
+            if (childrenWidth < widthConstraintToFill) {
+                when {
+                    (resolvedStyle.margins.start is CssSize.Auto && resolvedStyle.margins.end is CssSize.Auto) ||
+                            (resolvedStyle.textAlignment == CssHorizontalAlignment.center) -> {
+                        val remainingMargin = (widthConstraintToFill - childrenWidth) / 2
+                        for (child in children) {
+                            child.frame.x += remainingMargin
+                        }
+                    }
+                }
+            }
+
+            if (childrenHeight < heightConstraintToFill) {
+                when {
+                    (resolvedStyle.margins.top is CssSize.Auto && resolvedStyle.margins.bottom is CssSize.Auto) ||
+                            (resolvedStyle.verticalAlignment == CssVerticalAlignment.middle) -> {
+                        val remainingMargin = (heightConstraintToFill - childrenHeight) / 2
+                        for (child in children) {
+                            child.frame.y += remainingMargin
+                        }
                     }
                 }
             }
         }
 
-        if (childrenHeight < heightConstraintToFill) {
-            when {
-                (resolvedStyle.margins.top is CssSize.Auto && resolvedStyle.margins.bottom is CssSize.Auto) ||
-                    (resolvedStyle.verticalAlignment == CssVerticalAlignment.middle) -> {
-                    val remainingMargin = (heightConstraintToFill - childrenHeight) / 2
-                    for (child in children) {
-                        child.frame.y += remainingMargin
-                    }
+        val calculatedWidth = (explicitWidth ?: childrenWidth) + explicitHorizontalMarginSize
+        val calculatedHeight = (explicitHeight ?: childrenHeight) + explicitVerticalMarginSize
+
+        // Now that we know our actual size we can position absolute elements relative to our bounds
+        for (child in children) {
+            if ((child as? DOMParentLayoutNode)?.resolvedStyle?.positionType == CssPosition.absolute) {
+                val childNode = child as DOMParentLayoutNode
+                val left = measuringTape.resolveSize(childNode.resolvedStyle.left)
+                val right = measuringTape.resolveSize(childNode.resolvedStyle.right)
+                val top = measuringTape.resolveSize(childNode.resolvedStyle.top)
+                val bottom = measuringTape.resolveSize(childNode.resolvedStyle.bottom)
+
+                val childWidthConstraint = calculatedWidth - (left ?: 0f) - (right ?: 0f)
+                val childHeightConstraint = calculatedHeight - (top ?: 0f) - (right ?: 0f)
+                val childMeasureResult = child.measure(measuringTape, childWidthConstraint, childHeightConstraint)
+
+                child.frame.x = when {
+                    left != null -> left
+                    right != null -> calculatedWidth - childMeasureResult.width
+                    else -> 0f
+                }
+
+                child.frame.y = when {
+                    top != null -> top
+                    bottom != null -> calculatedHeight - childMeasureResult.height
+                    else -> 0f
+                }
+
+                if (left != null && right != null) {
+                    child.frame.width = childWidthConstraint
+                }
+
+                if (top != null && bottom != null) {
+                    child.frame.height = childHeightConstraint
                 }
             }
         }
 
-        return Size(
-            width = (explicitWidth ?: childrenWidth) + explicitHorizontalMarginSize,
-            height = (explicitHeight ?: childrenHeight) + explicitVerticalMarginSize
-        ).also {
+        return Size(width = calculatedWidth, height = calculatedHeight).also {
             frame.width = it.width
             frame.height = it.height
         }

@@ -14,7 +14,12 @@ data class ResolvedStyle(
     var color: Color = Color.black,
     var textAlignment: CssHorizontalAlignment = CssHorizontalAlignment.left,
     var verticalAlignment: CssVerticalAlignment = CssVerticalAlignment.top,
-    var displayType: CssDisplay = CssDisplay.block
+    var displayType: CssDisplay = CssDisplay.block,
+    var positionType: CssPosition = CssPosition.static,
+    var left: CssSize = CssSize.Auto,
+    var right: CssSize = CssSize.Auto,
+    var top: CssSize = CssSize.Auto,
+    var bottom: CssSize = CssSize.Auto,
 )
 
 data class CssInsets(
