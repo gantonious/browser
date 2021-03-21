@@ -39,6 +39,10 @@ class CssStyleResolver {
         CssRule(
             selector = CssSelector.MatchesTag("img"),
             attributes = listOf(CssAttribute.Display(displayType = CssDisplay.inlineBlock))
+        ),
+        CssRule(
+            selector = CssSelector.MatchesTag("br"),
+            attributes = listOf(CssAttribute.Height(size = CssSize.Em(1)))
         )
     )
 
