@@ -22,7 +22,8 @@ class JavascriptParser(
 
         private val multiplicativeTokens = setOf(
             JavascriptTokenType.Operator.Multiply,
-            JavascriptTokenType.Operator.Divide
+            JavascriptTokenType.Operator.Divide,
+            JavascriptTokenType.Operator.Mod
         )
 
         private val comparisonTokens = setOf(
