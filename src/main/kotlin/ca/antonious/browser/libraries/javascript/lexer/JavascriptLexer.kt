@@ -129,8 +129,10 @@ class JavascriptLexer(private val source: String) {
                 currentChar == '/' && canEnterRegexGoal() -> {
                     advanceCursor()
                     val regexStart = cursor
+                    var isEscaped = false
 
-                    while (!isAtEnd() && getCurrentChar() != '/' || (getCurrentChar() == '/' && getPreviousChar() == '\\')) {
+                    while (!isAtEnd() && getCurrentChar() != '/' || isEscaped) {
+                        isEscaped = getCurrentChar() == '\\' && !isEscaped
                         advanceCursor()
                     }
 
