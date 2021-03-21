@@ -1,9 +1,6 @@
 package ca.antonious.browser.libraries.javascript.parser
 
-import ca.antonious.browser.libraries.javascript.ast.JavascriptExpression
-import ca.antonious.browser.libraries.javascript.ast.JavascriptProgram
-import ca.antonious.browser.libraries.javascript.ast.JavascriptStatement
-import ca.antonious.browser.libraries.javascript.ast.JavascriptValue
+import ca.antonious.browser.libraries.javascript.ast.*
 import ca.antonious.browser.libraries.javascript.interpreter.builtins.regex.JavascriptRegex
 import ca.antonious.browser.libraries.javascript.lexer.JavascriptToken
 import ca.antonious.browser.libraries.javascript.lexer.JavascriptTokenType
@@ -374,51 +371,44 @@ class JavascriptParser(
 
     private fun expectVarStatement(): JavascriptStatement.VarAssignment {
         expectToken<JavascriptTokenType.Var>()
-        val name = expectToken<JavascriptTokenType.Identifier>().name
-
-        if (maybeGetCurrentToken() !is JavascriptTokenType.Operator.Assignment) {
-            return JavascriptStatement.VarAssignment(
-                name = name,
-                expression = JavascriptExpression.Literal(value = JavascriptValue.Undefined)
-            )
-        }
-
-        expectToken<JavascriptTokenType.Operator.Assignment>()
-
-        return JavascriptStatement.VarAssignment(
-            name = name,
-            expression = expectExpression()
-        )
+        return JavascriptStatement.VarAssignment(assignments = expectAssignmentStatements())
     }
 
     private fun expectLetStatement(): JavascriptStatement.LetAssignment {
         expectToken<JavascriptTokenType.Let>()
-        val name = expectToken<JavascriptTokenType.Identifier>().name
-
-        if (maybeGetCurrentToken() !is JavascriptTokenType.Operator.Assignment) {
-            return JavascriptStatement.LetAssignment(
-                name = name,
-                expression = JavascriptExpression.Literal(value = JavascriptValue.Undefined)
-            )
-        }
-
-        expectToken<JavascriptTokenType.Operator.Assignment>()
-
-        return JavascriptStatement.LetAssignment(
-            name = name,
-            expression = expectExpression()
-        )
+        return JavascriptStatement.LetAssignment(assignments = expectAssignmentStatements())
     }
 
     private fun expectConstStatement(): JavascriptStatement.ConstAssignment {
         expectToken<JavascriptTokenType.Const>()
-        val name = expectToken<JavascriptTokenType.Identifier>().name
-        expectToken<JavascriptTokenType.Operator.Assignment>()
+        return JavascriptStatement.ConstAssignment(assignments = expectAssignmentStatements())
+    }
 
-        return JavascriptStatement.ConstAssignment(
-            name = name,
-            expression = expectExpression()
-        )
+    private fun expectAssignmentStatements(): List<AssignmentStatement> {
+        val statements = mutableListOf<AssignmentStatement>()
+
+        loop@ while (true) {
+            when (maybeGetCurrentToken()) {
+                is JavascriptTokenType.Comma -> expectToken<JavascriptTokenType.Comma>()
+                is JavascriptTokenType.Identifier -> {
+                    val identifier = expectToken<JavascriptTokenType.Identifier>()
+
+                    statements += if (maybeGetCurrentToken() is JavascriptTokenType.Operator.Assignment) {
+                        expectToken<JavascriptTokenType.Operator.Assignment>()
+                        AssignmentStatement(name = identifier.name, expression = expectSubExpression())
+                    } else {
+                        AssignmentStatement(name = identifier.name, expression = null)
+                    }
+
+                    if (maybeGetCurrentToken() !is JavascriptTokenType.Comma) {
+                        break@loop
+                    }
+                }
+                else -> break@loop
+            }
+        }
+
+        return statements
     }
 
     private fun expectExpression(): JavascriptExpression {
@@ -844,7 +834,7 @@ class JavascriptParser(
 
     private inline fun <reified T : JavascriptTokenType> expectToken(): T {
         if (getCurrentToken() !is T) {
-            throwUnexpectedTokenFound()
+            throwUnexpectedTokenFound(T::class.java.simpleName)
         }
 
         return (getCurrentToken() as T).also {
@@ -852,13 +842,13 @@ class JavascriptParser(
         }
     }
 
-    private fun throwUnexpectedTokenFound(): Nothing {
+    private fun throwUnexpectedTokenFound(expectedToken: String? = null): Nothing {
         val sourceInfo = tokens[cursor].sourceInfo
         val topLine =
             "($sourceFileName:${sourceInfo.line + 1}) column:${sourceInfo.column + 1} Uncaught SyntaxError: Unexpected token"
         val errorLines = sourceLines.subList(max(0, sourceInfo.line - 3), sourceInfo.line + 1)
 
-        val message = "$topLine\n${errorLines.joinToString("\n")}\n${" ".repeat(sourceInfo.column)}^"
+        val message = "$topLine${expectedToken?.let { ", expected: $it" } ?: ""}\n${errorLines.joinToString("\n")}\n${" ".repeat(sourceInfo.column)}^"
 
         throw UnexpectedTokenException(message)
     }

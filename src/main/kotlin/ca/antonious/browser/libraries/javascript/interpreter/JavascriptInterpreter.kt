@@ -197,15 +197,37 @@ class JavascriptInterpreter {
                 return JavascriptReference.Undefined
             }
             is JavascriptStatement.LetAssignment -> {
-                currentScope.setProperty(statement.name, interpret(statement.expression))
+                for (assignment in statement.assignments) {
+                    val value = if (assignment.expression == null) {
+                        JavascriptValue.Undefined
+                    } else {
+                        interpret(assignment.expression)
+                    }
+                    currentScope.setProperty(assignment.name, value)
+                }
+
                 return JavascriptReference.Undefined
             }
             is JavascriptStatement.ConstAssignment -> {
-                currentScope.setProperty(statement.name, interpret(statement.expression))
+                for (assignment in statement.assignments) {
+                    val value = if (assignment.expression == null) {
+                        JavascriptValue.Undefined
+                    } else {
+                        interpret(assignment.expression)
+                    }
+                    currentScope.setProperty(assignment.name, value)
+                }
                 return JavascriptReference.Undefined
             }
             is JavascriptStatement.VarAssignment -> {
-                currentScope.setProperty(statement.name, interpret(statement.expression))
+                for (assignment in statement.assignments) {
+                    val value = if (assignment.expression == null) {
+                        JavascriptValue.Undefined
+                    } else {
+                        interpret(assignment.expression)
+                    }
+                    currentScope.setProperty(assignment.name, value)
+                }
                 return JavascriptReference.Undefined
             }
             is JavascriptStatement.WhileLoop -> {
