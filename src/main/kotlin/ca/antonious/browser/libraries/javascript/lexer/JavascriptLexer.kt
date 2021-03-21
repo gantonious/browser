@@ -246,8 +246,14 @@ class JavascriptLexer(private val source: String) {
                 pushToken(JavascriptTokenType.Number(digitsString.toInt(2).toDouble()))
             }
             else -> {
-                val digitsStart = cursor
                 var decimalFound = false
+
+                if (peekLastChar() == '.') {
+                    dropLastToken()
+                    cursor -= 1
+                }
+
+                val digitsStart = cursor
 
                 digitLoop@ while (!isAtEnd()) {
                     val currentDigit = getCurrentChar()
@@ -266,6 +272,12 @@ class JavascriptLexer(private val source: String) {
 
     private fun pushToken(tokenType: JavascriptTokenType) {
         tokens += JavascriptToken(tokenType, SourceInfo(sourceRow, sourceColumnAtParse))
+    }
+
+    private fun dropLastToken() {
+        if (tokens.isNotEmpty()) {
+            tokens.removeAt(tokens.lastIndex)
+        }
     }
 
     private fun isAtEnd(): Boolean {
@@ -299,6 +311,14 @@ class JavascriptLexer(private val source: String) {
         }
 
         return source.subSequence(cursor, cursor + n)
+    }
+
+    private fun peekLastChar(): Char? {
+        if (cursor - 1 >= 0 && source.isNotEmpty()) {
+            return source[cursor - 1]
+        }
+
+        return null
     }
 
     private fun peekNextChar(): Char? {
