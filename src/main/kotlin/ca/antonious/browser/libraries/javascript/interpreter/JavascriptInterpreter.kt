@@ -232,7 +232,7 @@ class JavascriptInterpreter {
             }
             is JavascriptStatement.WhileLoop -> {
                 while (!hasControlFlowInterrupted() && interpretPrimitiveValueOf(statement.condition).isTruthy) {
-                    interpret(statement.body)
+                    statement.body?.let { interpret(it) }
                 }
                 return JavascriptReference.Undefined
             }
@@ -249,7 +249,7 @@ class JavascriptInterpreter {
                 }
 
                 while (!hasControlFlowInterrupted() && statement.conditionExpression?.let { interpretPrimitiveValueOf(it).isTruthy } != false) {
-                    interpret(statement.body)
+                    statement.body?.let { interpret(it) }
                     statement.updaterExpression?.let { interpret(it) }
                 }
 
@@ -262,7 +262,7 @@ class JavascriptInterpreter {
                 for (property in enumerableObject.properties.values) {
                     initializerReference.setter?.invoke(property)
                         ?: error("Uncaught SyntaxError: Invalid left-hand side in assignment")
-                    interpret(statement.body)
+                    statement.body?.let { interpret(it) }
                     if (hasControlFlowInterrupted()) {
                         break
                     }

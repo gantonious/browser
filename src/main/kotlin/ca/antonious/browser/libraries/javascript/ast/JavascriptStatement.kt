@@ -16,7 +16,7 @@ sealed class JavascriptStatement {
         data class ConditionAndStatement(val condition: JavascriptExpression, val body: JavascriptStatement)
     }
 
-    data class WhileLoop(val condition: JavascriptExpression, val body: Block) : JavascriptStatement()
+    data class WhileLoop(val condition: JavascriptExpression, val body: JavascriptStatement?) : JavascriptStatement()
     data class DoWhileLoop(val body: JavascriptStatement, val condition: JavascriptExpression) : JavascriptStatement()
     data class LetAssignment(val assignments: List<AssignmentStatement>) : JavascriptStatement()
     data class ConstAssignment(val assignments: List<AssignmentStatement>) : JavascriptStatement()
@@ -25,13 +25,13 @@ sealed class JavascriptStatement {
         val initializerStatement: JavascriptStatement?,
         val conditionExpression: JavascriptExpression?,
         val updaterExpression: JavascriptExpression?,
-        val body: JavascriptStatement
+        val body: JavascriptStatement?
     ) : JavascriptStatement()
 
     data class ForEachLoop(
         val initializerStatement: JavascriptStatement,
         val enumerableExpression: JavascriptExpression,
-        val body: JavascriptStatement
+        val body: JavascriptStatement?
     ) : JavascriptStatement()
 
     data class TryStatement(

@@ -261,7 +261,7 @@ class JavascriptParser(
 
         return JavascriptStatement.WhileLoop(
             condition = condition,
-            body = expectBlock()
+            body = expectBlockOrStatement()
         )
     }
 
@@ -292,7 +292,7 @@ class JavascriptParser(
             return JavascriptStatement.ForEachLoop(
                 initializerStatement = forExpression.lhs,
                 enumerableExpression = forExpression.rhs,
-                body = expectBlockOrStatement()
+                body = expectBlockOrStatementOrNothing()
             )
         }
 
@@ -330,7 +330,7 @@ class JavascriptParser(
             initializerStatement = initializerStatement,
             conditionExpression = conditionExpression,
             updaterExpression = updaterExpression,
-            body = expectBlockOrStatement()
+            body = expectBlockOrStatementOrNothing()
         )
     }
 
@@ -342,15 +342,22 @@ class JavascriptParser(
         return JavascriptStatement.ForEachLoop(
             initializerStatement = initializerStatement,
             enumerableExpression = enumerableExpression,
-            body = expectBlockOrStatement()
+            body = expectBlockOrStatementOrNothing()
         )
     }
 
     private fun expectBlockOrStatement(): JavascriptStatement {
-        return if (getCurrentToken() is JavascriptTokenType.OpenCurlyBracket) {
-            expectBlock()
-        } else {
-            expectStatement().also { maybeConsumeLineTerminator() }
+        return when {
+            getCurrentToken() is JavascriptTokenType.OpenCurlyBracket -> expectBlock()
+            else -> expectStatement().also { maybeConsumeLineTerminator() }
+        }
+    }
+
+    private fun expectBlockOrStatementOrNothing(): JavascriptStatement? {
+        return when {
+            getCurrentToken() is JavascriptTokenType.OpenCurlyBracket -> expectBlock()
+            getCurrentToken() is JavascriptTokenType.SemiColon -> null
+            else -> expectStatement().also { maybeConsumeLineTerminator() }
         }
     }
 
