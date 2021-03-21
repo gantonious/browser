@@ -440,6 +440,9 @@ class JavascriptInterpreter {
             }
             is JavascriptExpression.UnaryOperation -> {
                 return when (statement.operator) {
+                    is JavascriptTokenType.TypeOf -> {
+                        JavascriptValue.String(interpret(statement.expression).typeName).toReference()
+                    }
                     is JavascriptTokenType.Operator.Not -> {
                         JavascriptValue.Boolean(!interpret(statement.expression).isTruthy).toReference()
                     }

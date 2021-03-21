@@ -60,7 +60,8 @@ class JavascriptParser(
             JavascriptTokenType.Operator.Not,
             JavascriptTokenType.Operator.BitNot,
             JavascriptTokenType.Operator.Plus,
-            JavascriptTokenType.Operator.Minus
+            JavascriptTokenType.Operator.Minus,
+            JavascriptTokenType.TypeOf
         )
 
         private val equalityTokens = setOf(

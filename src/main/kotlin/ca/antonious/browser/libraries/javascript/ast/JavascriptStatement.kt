@@ -1,6 +1,8 @@
 package ca.antonious.browser.libraries.javascript.ast
 
+import ca.antonious.browser.libraries.javascript.interpreter.JavascriptFunction
 import ca.antonious.browser.libraries.javascript.interpreter.JavascriptObject
+import ca.antonious.browser.libraries.javascript.interpreter.NativeFunction
 import ca.antonious.browser.libraries.javascript.lexer.JavascriptTokenType
 
 data class JavascriptProgram(val body: List<JavascriptStatement>)
@@ -76,12 +78,12 @@ sealed class JavascriptExpression : JavascriptStatement() {
         val isPrefix: Boolean
     ) : JavascriptExpression()
 
-    data class AnonymousFunction(val name: String?, val parameterNames: List<String>, val body: Block) :
-        JavascriptExpression()
+    data class AnonymousFunction(val name: String?, val parameterNames: List<String>, val body: Block) : JavascriptExpression()
 }
 
 sealed class JavascriptValue {
     abstract val isTruthy: kotlin.Boolean
+    abstract val typeName: kotlin.String
     abstract fun coerceToNumber(): Double
     abstract fun isSameType(other: JavascriptValue): kotlin.Boolean
 
@@ -118,6 +120,7 @@ sealed class JavascriptValue {
 
     object Undefined : JavascriptValue() {
         override val isTruthy = false
+        override val typeName = "undefined"
         override fun toString() = "undefined"
         override fun coerceToNumber() = Double.NaN
         override fun isSameType(other: JavascriptValue) = other is Undefined
@@ -125,6 +128,7 @@ sealed class JavascriptValue {
 
     data class Boolean(val value: kotlin.Boolean) : JavascriptValue() {
         override val isTruthy = value
+        override val typeName = "boolean"
         override fun toString() = value.toString()
         override fun isSameType(other: JavascriptValue) = other is Boolean
 
@@ -139,6 +143,7 @@ sealed class JavascriptValue {
 
     data class Number(val value: Double) : JavascriptValue() {
         override val isTruthy = value != 0.0
+        override val typeName = "number"
         override fun toString() = if (value == value.toInt().toDouble()) {
             value.toInt().toString()
         } else {
@@ -151,6 +156,7 @@ sealed class JavascriptValue {
 
     data class String(val value: kotlin.String) : JavascriptValue() {
         override val isTruthy = value.isNotEmpty()
+        override val typeName = "string"
         override fun toString() = value
         override fun coerceToNumber() = value.toDoubleOrNull() ?: Double.NaN
         override fun isSameType(other: JavascriptValue) = other is String
@@ -161,5 +167,10 @@ sealed class JavascriptValue {
         override fun toString() = value.toString()
         override fun coerceToNumber() = Double.NaN
         override fun isSameType(other: JavascriptValue) = other is Object
+
+        override val typeName = when (value) {
+            is JavascriptFunction, is NativeFunction -> "function"
+            else -> "object"
+        }
     }
 }
