@@ -1,5 +1,8 @@
 package ca.antonious.browser.libraries.javascript.lexer
 
+import kotlin.math.max
+import kotlin.math.min
+
 class JavascriptLexer(private val source: String) {
 
     companion object {
@@ -180,7 +183,7 @@ class JavascriptLexer(private val source: String) {
                     }
 
                     val tokenForChar = singleCharTokenMap[currentChar]
-                        ?: error("Don't know how to handle current character $currentChar")
+                        ?: abort("Found unexpected character '$currentChar' when expecting token")
                     pushToken(tokenForChar)
 
                     advanceCursor()
@@ -277,7 +280,7 @@ class JavascriptLexer(private val source: String) {
 
     private fun getCurrentChar(): Char {
         if (isAtEnd()) {
-            error("Attempted to get currentChar when at end of source.")
+            abort("Attempted to get currentChar when at end of source.")
         }
 
         return source[cursor]
@@ -328,5 +331,23 @@ class JavascriptLexer(private val source: String) {
         return this == 'g' || this == 'i' ||
             this == 'm' || this == 's' ||
             this == 'u' || this == 'y'
+    }
+
+    private fun abort(errorMessage: String): Nothing {
+        val tab = " ".repeat(4)
+        val previewWindow = 30
+        val previewStart = max(0, cursor - previewWindow)
+        val previewEnd = min(source.length, cursor + previewWindow)
+        val cursorPositionInPreview = cursor - previewStart
+
+        val fullError = "Tokenizer error, ${errorMessage.decapitalize()}:\n" +
+                "${tab}at line:$sourceRow, column:$sourceColumnAtParse\n" +
+                "${tab}${source.substring(previewStart, previewEnd)}\n" +
+                tab + " ".repeat(cursorPositionInPreview) + "^\n" +
+                "${tab}Last 5 tokens: [\n${tab.repeat(2)}" +
+                    tokens.takeLast(5).reversed().joinToString(separator = "\n${tab.repeat(2)}") +
+                "\n${tab}]"
+
+        error(fullError)
     }
 }
