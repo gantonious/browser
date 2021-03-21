@@ -122,7 +122,7 @@ class JavascriptLexer(private val source: String) {
                     pushToken(JavascriptTokenType.String(source.substring(stringStart, cursor)))
                     advanceCursor()
                 }
-                currentChar == '/' -> {
+                currentChar == '/' && canEnterRegexGoal() -> {
                     advanceCursor()
                     val regexStart = cursor
 
@@ -300,6 +300,24 @@ class JavascriptLexer(private val source: String) {
         }
 
         return source[cursor + 1]
+    }
+
+    private fun canEnterRegexGoal(): Boolean {
+        val lastToken = tokens.lastOrNull() ?: return true
+
+        return when (lastToken.type) {
+            is JavascriptTokenType.Identifier,
+            is JavascriptTokenType.String,
+            is JavascriptTokenType.Boolean,
+            is JavascriptTokenType.Number,
+            is JavascriptTokenType.Undefined,
+            is JavascriptTokenType.PlusPlus,
+            is JavascriptTokenType.MinusMinus,
+            is JavascriptTokenType.CloseParentheses,
+            is JavascriptTokenType.CloseCurlyBracket,
+            is JavascriptTokenType.CloseBracket -> false
+            else -> true
+        }
     }
 
     private fun Char.isValidIdentifierStart(): Boolean {
