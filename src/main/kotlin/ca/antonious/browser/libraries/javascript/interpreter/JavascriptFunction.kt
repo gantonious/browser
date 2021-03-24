@@ -10,10 +10,13 @@ class JavascriptFunction(
     val parentScope: JavascriptScope
 ) : JavascriptObject() {
 
-    val functionPrototype = JavascriptObject()
+    val functionPrototype: JavascriptObject
+        get() {
+            return getProperty("prototype").valueAs<JavascriptValue.Object>()?.value ?: JavascriptObject()
+        }
 
     init {
-        setNonEnumerableProperty("prototype", JavascriptValue.Object(functionPrototype))
+        setNonEnumerableProperty("prototype", JavascriptValue.Object(JavascriptObject()))
     }
 
     override fun toString(): String {
