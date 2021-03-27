@@ -266,8 +266,8 @@ class JavascriptInterpreter {
                 val initializerReference = interpretAsReference(statement.initializerStatement)
                 val enumerableObject = interpretAsObject(statement.enumerableExpression)
 
-                for (property in enumerableObject.properties.values) {
-                    initializerReference.setter?.invoke(property)
+                for (propertyKey in enumerableObject.properties.keys) {
+                    initializerReference.setter?.invoke(JavascriptValue.String(propertyKey))
                         ?: error("Uncaught SyntaxError: Invalid left-hand side in assignment")
                     statement.body?.let { interpret(it) }
                     if (hasControlFlowInterrupted()) {
