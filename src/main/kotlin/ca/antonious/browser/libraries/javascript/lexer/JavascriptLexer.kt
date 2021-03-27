@@ -19,6 +19,7 @@ class JavascriptLexer(
             "true" to JavascriptTokenType.Boolean(true),
             "false" to JavascriptTokenType.Boolean(false),
             "undefined" to JavascriptTokenType.Undefined,
+            "null" to JavascriptTokenType.Null,
             "let" to JavascriptTokenType.Let,
             "const" to JavascriptTokenType.Const,
             "var" to JavascriptTokenType.Var,

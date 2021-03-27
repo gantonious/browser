@@ -817,6 +817,10 @@ class JavascriptParser(
                 val sourceInfo = expectSourceInfo<JavascriptTokenType>()
                 JavascriptExpression.Literal(sourceInfo = sourceInfo, value = JavascriptValue.Undefined)
             }
+            is JavascriptTokenType.Null -> {
+                val sourceInfo = expectSourceInfo<JavascriptTokenType>()
+                JavascriptExpression.Literal(sourceInfo = sourceInfo, value = JavascriptValue.Null)
+            }
             is JavascriptTokenType.Identifier -> {
                 val sourceInfo = expectSourceInfo<JavascriptTokenType>()
                 JavascriptExpression.Reference(sourceInfo = sourceInfo, name = currentToken.name)

@@ -117,9 +117,12 @@ sealed class JavascriptValue {
             val numberOperand = lhs.valueAs<Number>() ?: rhs.valueAs<Number>()
             val objectOperand = lhs.valueAs<Object>() ?: rhs.valueAs<Object>()
             val undefinedOperand = lhs.valueAs<Undefined>() ?: rhs.valueAs<Undefined>()
+            val nullOperand = lhs.valueAs<Null>() ?: rhs.valueAs<Null>()
 
             return when {
+                undefinedOperand != null && nullOperand != null -> true
                 undefinedOperand != null -> false
+                nullOperand != null -> false
                 numberOperand != null && stringOperand != null -> numberOperand.value == stringOperand.coerceToNumber()
                 numberOperand != null && booleanOperand != null -> numberOperand.value == booleanOperand.coerceToNumber()
                 numberOperand != null && objectOperand != null -> false
@@ -138,6 +141,14 @@ sealed class JavascriptValue {
         override fun toString() = "undefined"
         override fun coerceToNumber() = Double.NaN
         override fun isSameType(other: JavascriptValue) = other is Undefined
+    }
+
+    object Null : JavascriptValue() {
+        override val isTruthy = false
+        override val typeName = "object"
+        override fun toString() = "null"
+        override fun coerceToNumber() = 0.0
+        override fun isSameType(other: JavascriptValue) = other is Null
     }
 
     data class Boolean(val value: kotlin.Boolean) : JavascriptValue() {

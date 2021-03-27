@@ -42,6 +42,7 @@ sealed class JavascriptTokenType {
     data class Number(val value: Double) : JavascriptTokenType()
     data class Boolean(val value: kotlin.Boolean) : JavascriptTokenType()
     object Undefined : JavascriptTokenType()
+    object Null : JavascriptTokenType()
 
     sealed class Operator : JavascriptTokenType() {
         object Plus : Operator()
