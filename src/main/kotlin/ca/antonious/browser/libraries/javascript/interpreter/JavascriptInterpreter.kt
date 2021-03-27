@@ -12,6 +12,7 @@ import ca.antonious.browser.libraries.javascript.interpreter.builtins.string.Str
 import ca.antonious.browser.libraries.javascript.interpreter.builtins.string.StringObject
 import ca.antonious.browser.libraries.javascript.lexer.JavascriptLexer
 import ca.antonious.browser.libraries.javascript.lexer.JavascriptTokenType
+import ca.antonious.browser.libraries.javascript.lexer.SourceInfo
 import ca.antonious.browser.libraries.javascript.parser.JavascriptParser
 import java.util.Stack
 import kotlin.random.Random
@@ -70,7 +71,8 @@ class JavascriptInterpreter {
                     thisBinding = globalObject,
                     scopeObject = JavascriptObject(),
                     parentScope = null
-                )
+                ),
+                sourceInfo = SourceInfo(0, 0)
             )
         )
     }
@@ -87,12 +89,12 @@ class JavascriptInterpreter {
     }
 
     fun interpret(program: JavascriptProgram): JavascriptValue {
-        val value = interpret(JavascriptStatement.Block(program.body))
+        val value = interpret(JavascriptStatement.Block(sourceInfo = SourceInfo(0, 0), program.body))
 
         return if (hasControlFlowInterruptedDueTo<ControlFlowInterruption.Error>()) {
             val tab = " ".repeat(4)
             val error = consumeControlFlowInterrupt<ControlFlowInterruption.Error>()
-            val errorMessage = "Uncaught ${error.value}\n$tab" + error.trace.joinToString("\n$tab") { "at ${it.name}()"}
+            val errorMessage = "Uncaught ${error.value}\n$tab" + error.trace.joinToString("\n$tab") { "at ${it.name}(jquery.js:${it.sourceInfo.line + 1}:${it.sourceInfo.column + 1})"}
 
             error(errorMessage)
         } else {
@@ -105,6 +107,7 @@ class JavascriptInterpreter {
     }
 
     private fun interpretAsReference(statement: JavascriptStatement): JavascriptReference {
+        stack.peek().sourceInfo = statement.sourceInfo
         when (statement) {
             is JavascriptStatement.LabeledStatement -> {
                 return interpretAsReference(statement.statement)
@@ -161,6 +164,7 @@ class JavascriptInterpreter {
                 return when (val objectToCall = (valueToCall as? JavascriptValue.Object)?.value) {
                     is JavascriptFunction -> {
                         enterFunction(
+                            sourceInfo = statement.sourceInfo,
                             functionName = objectToCall.name,
                             parameterNames = objectToCall.parameterNames,
                             passedParameters = statement.parameters,
@@ -285,7 +289,7 @@ class JavascriptInterpreter {
                     val scopeParameters = if (statement.errorName == null) {
                         emptyList()
                     } else {
-                        listOf(JavascriptExpression.Literal(error.value))
+                        listOf(JavascriptExpression.Literal(SourceInfo(0, 0), error.value))
                     }
 
                     enterScope(scopeParameterNames, scopeParameters)
@@ -542,9 +546,10 @@ class JavascriptInterpreter {
                     is JavascriptTokenType.Operator.Minus -> {
                         interpret(
                             JavascriptExpression.BinaryOperation(
+                                sourceInfo = statement.sourceInfo,
                                 operator = JavascriptTokenType.Operator.Multiply,
                                 lhs = statement.expression,
-                                rhs = JavascriptExpression.Literal(JavascriptValue.Number(-1.0))
+                                rhs = JavascriptExpression.Literal(sourceInfo = statement.sourceInfo, value = JavascriptValue.Number(-1.0))
                             )
                         ).toReference()
                     }
@@ -555,9 +560,10 @@ class JavascriptInterpreter {
                         val reference = interpretAsReference(statement.expression)
                         val newValue = interpret(
                             JavascriptExpression.BinaryOperation(
+                                sourceInfo = statement.sourceInfo,
                                 operator = JavascriptTokenType.Operator.Plus,
-                                lhs = JavascriptExpression.Literal(reference.value),
-                                rhs = JavascriptExpression.Literal(JavascriptValue.Number(1.0))
+                                lhs = JavascriptExpression.Literal(sourceInfo = statement.sourceInfo, value = reference.value),
+                                rhs = JavascriptExpression.Literal(sourceInfo = statement.sourceInfo, value = JavascriptValue.Number(1.0))
                             )
                         )
                         reference.setter?.invoke(newValue)
@@ -573,9 +579,10 @@ class JavascriptInterpreter {
                         val reference = interpretAsReference(statement.expression)
                         val newValue = interpret(
                             JavascriptExpression.BinaryOperation(
+                                sourceInfo = statement.sourceInfo,
                                 operator = JavascriptTokenType.Operator.Minus,
-                                lhs = JavascriptExpression.Literal(reference.value),
-                                rhs = JavascriptExpression.Literal(JavascriptValue.Number(1.0))
+                                lhs = JavascriptExpression.Literal(sourceInfo = statement.sourceInfo, value = reference.value),
+                                rhs = JavascriptExpression.Literal(sourceInfo = statement.sourceInfo, value = JavascriptValue.Number(1.0))
                             )
                         )
 
@@ -660,6 +667,7 @@ class JavascriptInterpreter {
                                 val objectThis = JavascriptObject(prototype = constructor.functionPrototype)
 
                                 enterFunction(
+                                    sourceInfo = statement.sourceInfo,
                                     functionName = constructor.name,
                                     parameterNames = constructor.parameterNames,
                                     passedParameters = statement.function.parameters,
@@ -711,8 +719,10 @@ class JavascriptInterpreter {
                 is JavascriptValue.Object -> {
                     interpret(
                         JavascriptExpression.FunctionCall(
+                            sourceInfo = expression.sourceInfo,
                             expression = JavascriptExpression.DotAccess(
-                                expression = JavascriptExpression.Literal(value),
+                                sourceInfo = expression.sourceInfo,
+                                expression = JavascriptExpression.Literal(expression.sourceInfo, value),
                                 propertyName = "valueOf"
                             ),
                             parameters = emptyList()
@@ -751,8 +761,9 @@ class JavascriptInterpreter {
 
         val valueToAssign = interpret(
             JavascriptExpression.BinaryOperation(
+                sourceInfo = binaryExpression.sourceInfo,
                 operator = newOperator,
-                lhs = JavascriptExpression.Literal(interpretPrimitiveValueOf(JavascriptExpression.Literal(reference.value))),
+                lhs = JavascriptExpression.Literal(binaryExpression.sourceInfo, interpretPrimitiveValueOf(JavascriptExpression.Literal(binaryExpression.sourceInfo, reference.value))),
                 rhs = binaryExpression.rhs
             )
         )
@@ -764,6 +775,7 @@ class JavascriptInterpreter {
     }
 
     private fun enterFunction(
+        sourceInfo: SourceInfo,
         functionName: String,
         parameterNames: List<String>,
         passedParameters: List<JavascriptExpression>,
@@ -778,7 +790,7 @@ class JavascriptInterpreter {
                         parameterName,
                         interpret(
                             passedParameters.getOrElse(index) {
-                                JavascriptExpression.Literal(value = JavascriptValue.Undefined)
+                                JavascriptExpression.Literal(sourceInfo = sourceInfo,value = JavascriptValue.Undefined)
                             }
                         )
                     )
@@ -790,7 +802,8 @@ class JavascriptInterpreter {
         stack.push(
             JavascriptStackFrame(
                 name = functionName,
-                scope = functionScope
+                scope = functionScope,
+                sourceInfo = sourceInfo
             )
         )
     }
@@ -811,7 +824,7 @@ class JavascriptInterpreter {
                         parameterName,
                         interpret(
                             passedParameters.getOrElse(index) {
-                                JavascriptExpression.Literal(value = JavascriptValue.Undefined)
+                                JavascriptExpression.Literal(sourceInfo = SourceInfo(0, 0), value = JavascriptValue.Undefined)
                             }
                         )
                     )

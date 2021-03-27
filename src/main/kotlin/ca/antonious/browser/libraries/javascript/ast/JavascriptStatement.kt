@@ -4,24 +4,28 @@ import ca.antonious.browser.libraries.javascript.interpreter.JavascriptFunction
 import ca.antonious.browser.libraries.javascript.interpreter.JavascriptObject
 import ca.antonious.browser.libraries.javascript.interpreter.NativeFunction
 import ca.antonious.browser.libraries.javascript.lexer.JavascriptTokenType
+import ca.antonious.browser.libraries.javascript.lexer.SourceInfo
 
 data class JavascriptProgram(val body: List<JavascriptStatement>)
 
-sealed class JavascriptStatement {
-    data class LabeledStatement(val label: String, val statement: JavascriptStatement) : JavascriptStatement()
-    data class Block(val body: List<JavascriptStatement>) : JavascriptStatement()
-    data class Function(val name: String, val parameterNames: List<String>, val body: Block) : JavascriptStatement()
-    data class Return(val expression: JavascriptExpression?) : JavascriptStatement()
-    data class IfStatement(val conditions: List<ConditionAndStatement>) : JavascriptStatement() {
+sealed class JavascriptStatement() {
+    abstract val sourceInfo: SourceInfo
+
+    data class LabeledStatement(override val sourceInfo: SourceInfo, val label: String, val statement: JavascriptStatement) : JavascriptStatement()
+    data class Block(override val sourceInfo: SourceInfo, val body: List<JavascriptStatement>) : JavascriptStatement()
+    data class Function(override val sourceInfo: SourceInfo, val name: String, val parameterNames: List<String>, val body: Block) : JavascriptStatement()
+    data class Return(override val sourceInfo: SourceInfo, val expression: JavascriptExpression?) : JavascriptStatement()
+    data class IfStatement(override val sourceInfo: SourceInfo, val conditions: List<ConditionAndStatement>) : JavascriptStatement() {
         data class ConditionAndStatement(val condition: JavascriptExpression, val body: JavascriptStatement)
     }
 
-    data class WhileLoop(val condition: JavascriptExpression, val body: JavascriptStatement?) : JavascriptStatement()
-    data class DoWhileLoop(val body: JavascriptStatement, val condition: JavascriptExpression) : JavascriptStatement()
-    data class LetAssignment(val assignments: List<AssignmentStatement>) : JavascriptStatement()
-    data class ConstAssignment(val assignments: List<AssignmentStatement>) : JavascriptStatement()
-    data class VarAssignment(val assignments: List<AssignmentStatement>) : JavascriptStatement()
+    data class WhileLoop(override val sourceInfo: SourceInfo, val condition: JavascriptExpression, val body: JavascriptStatement?) : JavascriptStatement()
+    data class DoWhileLoop(override val sourceInfo: SourceInfo, val body: JavascriptStatement, val condition: JavascriptExpression) : JavascriptStatement()
+    data class LetAssignment(override val sourceInfo: SourceInfo, val assignments: List<AssignmentStatement>) : JavascriptStatement()
+    data class ConstAssignment(override val sourceInfo: SourceInfo, val assignments: List<AssignmentStatement>) : JavascriptStatement()
+    data class VarAssignment(override val sourceInfo: SourceInfo, val assignments: List<AssignmentStatement>) : JavascriptStatement()
     data class ForLoop(
+        override val sourceInfo: SourceInfo,
         val initializerStatement: JavascriptStatement?,
         val conditionExpression: JavascriptExpression?,
         val updaterExpression: JavascriptExpression?,
@@ -29,58 +33,66 @@ sealed class JavascriptStatement {
     ) : JavascriptStatement()
 
     data class ForEachLoop(
+        override val sourceInfo: SourceInfo,
         val initializerStatement: JavascriptStatement,
         val enumerableExpression: JavascriptExpression,
         val body: JavascriptStatement?
     ) : JavascriptStatement()
 
     data class TryStatement(
+        override val sourceInfo: SourceInfo,
         val tryBlock: Block,
         val catchBlock: Block?,
         val errorName: String?,
         val finallyBlock: Block?
     ) : JavascriptStatement()
 
-    data class Throw(val expression: JavascriptExpression) : JavascriptStatement()
+    data class Throw(
+        override val sourceInfo: SourceInfo,
+        val expression: JavascriptExpression
+    ) : JavascriptStatement()
 }
 
 data class AssignmentStatement(val name: String, val expression: JavascriptExpression?)
 
 sealed class JavascriptExpression : JavascriptStatement() {
-    data class NewCall(val function: FunctionCall) : JavascriptExpression()
-    data class FunctionCall(val expression: JavascriptExpression, val parameters: List<JavascriptExpression>) :
+    data class NewCall(override val sourceInfo: SourceInfo, val function: FunctionCall) : JavascriptExpression()
+    data class FunctionCall(override val sourceInfo: SourceInfo, val expression: JavascriptExpression, val parameters: List<JavascriptExpression>) :
         JavascriptExpression()
 
-    data class DotAccess(val propertyName: String, val expression: JavascriptExpression) : JavascriptExpression()
-    data class IndexAccess(val indexExpression: JavascriptExpression, val expression: JavascriptExpression) :
+    data class DotAccess(override val sourceInfo: SourceInfo, val propertyName: String, val expression: JavascriptExpression) : JavascriptExpression()
+    data class IndexAccess(override val sourceInfo: SourceInfo, val indexExpression: JavascriptExpression, val expression: JavascriptExpression) :
         JavascriptExpression()
 
-    data class Reference(val name: String) : JavascriptExpression()
-    data class ObjectLiteral(val fields: List<Field>) : JavascriptExpression() {
+    data class Reference(override val sourceInfo: SourceInfo, val name: String) : JavascriptExpression()
+    data class ObjectLiteral(override val sourceInfo: SourceInfo, val fields: List<Field>) : JavascriptExpression() {
         data class Field(val name: String, val rhs: JavascriptExpression)
     }
 
-    data class ArrayLiteral(val items: List<JavascriptExpression>) : JavascriptExpression()
-    data class Literal(val value: JavascriptValue) : JavascriptExpression()
+    data class ArrayLiteral(override val sourceInfo: SourceInfo, val items: List<JavascriptExpression>) : JavascriptExpression()
+    data class Literal(override val sourceInfo: SourceInfo, val value: JavascriptValue) : JavascriptExpression()
     data class TernaryOperation(
+        override val sourceInfo: SourceInfo,
         val condition: JavascriptExpression,
         val ifTruthy: JavascriptExpression,
         val ifNot: JavascriptExpression
     ) : JavascriptExpression()
 
     data class BinaryOperation(
+        override val sourceInfo: SourceInfo,
         val operator: JavascriptTokenType,
         val lhs: JavascriptExpression,
         val rhs: JavascriptExpression
     ) : JavascriptExpression()
 
     data class UnaryOperation(
+        override val sourceInfo: SourceInfo,
         val operator: JavascriptTokenType,
         val expression: JavascriptExpression,
         val isPrefix: Boolean
     ) : JavascriptExpression()
 
-    data class AnonymousFunction(val name: String?, val parameterNames: List<String>, val body: Block) : JavascriptExpression()
+    data class AnonymousFunction(override val sourceInfo: SourceInfo, val name: String?, val parameterNames: List<String>, val body: Block) : JavascriptExpression()
 }
 
 sealed class JavascriptValue {

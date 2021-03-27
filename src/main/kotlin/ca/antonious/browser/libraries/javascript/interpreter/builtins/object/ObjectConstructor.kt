@@ -7,6 +7,7 @@ import ca.antonious.browser.libraries.javascript.interpreter.builtins.array.Java
 import ca.antonious.browser.libraries.javascript.interpreter.builtins.number.NumberObject
 import ca.antonious.browser.libraries.javascript.interpreter.builtins.string.StringObject
 import ca.antonious.browser.libraries.javascript.interpreter.setNonEnumerableNativeFunction
+import ca.antonious.browser.libraries.javascript.lexer.SourceInfo
 
 class ObjectConstructor : NativeFunction(
     functionPrototype = ObjectPrototype,
@@ -67,7 +68,7 @@ class ObjectConstructor : NativeFunction(
 
         setNonEnumerableNativeFunction("getPrototypeOf") { executionContext ->
             val javascriptObject = executionContext.interpreter.interpretAsObject(
-                JavascriptExpression.Literal(executionContext.arguments.first())
+                JavascriptExpression.Literal(SourceInfo(0, 0), executionContext.arguments.first())
             )
 
             if (javascriptObject.prototype != null) {

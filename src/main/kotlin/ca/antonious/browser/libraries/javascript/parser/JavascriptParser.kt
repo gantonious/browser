@@ -4,6 +4,7 @@ import ca.antonious.browser.libraries.javascript.ast.*
 import ca.antonious.browser.libraries.javascript.interpreter.builtins.regex.JavascriptRegex
 import ca.antonious.browser.libraries.javascript.lexer.JavascriptToken
 import ca.antonious.browser.libraries.javascript.lexer.JavascriptTokenType
+import ca.antonious.browser.libraries.javascript.lexer.SourceInfo
 import java.util.Stack
 import kotlin.math.max
 
@@ -118,8 +119,8 @@ class JavascriptParser(
     }
 
     private fun expectThrowStatement(): JavascriptStatement {
-        expectToken<JavascriptTokenType.Throw>()
-        return JavascriptStatement.Throw(expression = expectExpression())
+        val sourceInfo = expectSourceInfo<JavascriptTokenType.Throw>()
+        return JavascriptStatement.Throw(sourceInfo = sourceInfo, expression = expectExpression())
     }
 
     private fun expectTryStatement(): JavascriptStatement {
@@ -127,7 +128,7 @@ class JavascriptParser(
         var catchBlock: JavascriptStatement.Block? = null
         var finallyBlock: JavascriptStatement.Block? = null
 
-        expectToken<JavascriptTokenType.Try>()
+        val sourceInfo = expectSourceInfo<JavascriptTokenType.Try>()
         val tryBlock = expectBlock()
 
         when (getCurrentToken()) {
@@ -153,6 +154,7 @@ class JavascriptParser(
         }
 
         return JavascriptStatement.TryStatement(
+            sourceInfo = sourceInfo,
             tryBlock = tryBlock,
             catchBlock = catchBlock,
             errorName = errorName,
@@ -167,9 +169,9 @@ class JavascriptParser(
 
     private fun expectLabeledStatement(): JavascriptStatement {
         return if (maybeGetNextToken() is JavascriptTokenType.Colon) {
-            val label = expectToken<JavascriptTokenType.Identifier>()
+            val (label, sourceInfo) = expectTokenAndSourceInfo<JavascriptTokenType.Identifier>()
             expectToken<JavascriptTokenType.Colon>()
-            return JavascriptStatement.LabeledStatement(label = label.name, statement = expectStatement())
+            return JavascriptStatement.LabeledStatement(sourceInfo = sourceInfo, label = label.name, statement = expectStatement())
         } else {
             expectExpression()
         }
@@ -178,7 +180,7 @@ class JavascriptParser(
     private fun expectIfStatement(): JavascriptStatement.IfStatement {
         val conditions = mutableListOf<JavascriptStatement.IfStatement.ConditionAndStatement>()
 
-        expectToken<JavascriptTokenType.If>()
+        val sourceInfo = expectSourceInfo<JavascriptTokenType.If>()
         expectToken<JavascriptTokenType.OpenParentheses>()
         val mainCondition = expectExpression()
         expectToken<JavascriptTokenType.CloseParentheses>()
@@ -205,19 +207,18 @@ class JavascriptParser(
                 }
                 else -> {
                     JavascriptStatement.IfStatement.ConditionAndStatement(
-                        condition = JavascriptExpression.Literal(JavascriptValue.Boolean(true)),
+                        condition = JavascriptExpression.Literal(SourceInfo(0, 0), JavascriptValue.Boolean(true)),
                         body = expectBlockOrStatement()
                     )
                 }
             }
         }
 
-        return JavascriptStatement.IfStatement(conditions = conditions)
+        return JavascriptStatement.IfStatement(sourceInfo = sourceInfo, conditions = conditions)
     }
 
     private fun expectFunctionDeclaration(): JavascriptStatement.Function {
-        expectToken<JavascriptTokenType.Function>()
-
+        val sourceInfo = expectSourceInfo<JavascriptTokenType.Function>()
         val functionName = expectToken<JavascriptTokenType.Identifier>()
         expectToken<JavascriptTokenType.OpenParentheses>()
 
@@ -235,6 +236,7 @@ class JavascriptParser(
         expectToken<JavascriptTokenType.CloseParentheses>()
 
         return JavascriptStatement.Function(
+            sourceInfo = sourceInfo,
             name = functionName.name,
             parameterNames = parameterNames.map { it.name },
             body = expectBlock()
@@ -242,24 +244,24 @@ class JavascriptParser(
     }
 
     private fun expectReturnStatement(): JavascriptStatement.Return {
-        expectToken<JavascriptTokenType.Return>()
+        val sourceInfo = expectSourceInfo<JavascriptTokenType.Return>()
 
         return when (maybeGetCurrentToken()) {
             is JavascriptTokenType.SemiColon -> {
                 advanceCursor()
-                JavascriptStatement.Return(expression = null)
+                JavascriptStatement.Return(sourceInfo = sourceInfo, expression = null)
             }
             is JavascriptTokenType.CloseCurlyBracket, null -> {
-                JavascriptStatement.Return(expression = null)
+                JavascriptStatement.Return(sourceInfo = sourceInfo, expression = null)
             }
             else -> {
-                JavascriptStatement.Return(expression = expectExpression())
+                JavascriptStatement.Return(sourceInfo = sourceInfo, expression = expectExpression())
             }
         }
     }
 
     private fun expectWhileLoop(): JavascriptStatement.WhileLoop {
-        expectToken<JavascriptTokenType.While>()
+        val sourceInfo = expectSourceInfo<JavascriptTokenType.While>()
 
         expectToken<JavascriptTokenType.OpenParentheses>()
         val condition = expectExpression()
@@ -268,28 +270,29 @@ class JavascriptParser(
         maybeConsumeLineTerminator()
 
         return JavascriptStatement.WhileLoop(
+            sourceInfo = sourceInfo,
             condition = condition,
             body = expectBlockOrStatement()
         )
     }
 
     private fun expectDoWhileLoop(): JavascriptStatement {
-        expectToken<JavascriptTokenType.Do>()
+        val sourceInfo = expectSourceInfo<JavascriptTokenType.Do>()
         val body = expectBlockOrStatement()
         expectToken<JavascriptTokenType.While>()
         expectToken<JavascriptTokenType.OpenParentheses>()
         val condition = expectExpression()
         expectToken<JavascriptTokenType.CloseParentheses>()
 
-        return JavascriptStatement.DoWhileLoop(body = body, condition = condition)
+        return JavascriptStatement.DoWhileLoop(sourceInfo = sourceInfo, body = body, condition = condition)
     }
 
     private fun expectForLoop(): JavascriptStatement {
-        expectToken<JavascriptTokenType.For>()
+        val sourceInfo = expectSourceInfo<JavascriptTokenType.For>()
         expectToken<JavascriptTokenType.OpenParentheses>()
 
         if (getCurrentToken() is JavascriptTokenType.SemiColon) {
-            return expectCStyleForLoop(initializerStatement = null)
+            return expectCStyleForLoop(sourceInfo = sourceInfo, initializerStatement = null)
         }
 
         checkpoint()
@@ -298,6 +301,7 @@ class JavascriptParser(
         if (forExpression is JavascriptExpression.BinaryOperation && forExpression.operator is JavascriptTokenType.In) {
             expectToken<JavascriptTokenType.CloseParentheses>()
             return JavascriptStatement.ForEachLoop(
+                sourceInfo = sourceInfo,
                 initializerStatement = forExpression.lhs,
                 enumerableExpression = forExpression.rhs,
                 body = expectBlockOrStatementOrNothing()
@@ -309,13 +313,13 @@ class JavascriptParser(
         val initializerStatement = expectStatement()
 
         return when (getCurrentToken()) {
-            is JavascriptTokenType.SemiColon -> expectCStyleForLoop(initializerStatement)
-            is JavascriptTokenType.In -> expectForEachLoop(initializerStatement)
+            is JavascriptTokenType.SemiColon -> expectCStyleForLoop(sourceInfo, initializerStatement)
+            is JavascriptTokenType.In -> expectForEachLoop(sourceInfo, initializerStatement)
             else -> throwUnexpectedTokenFound()
         }
     }
 
-    private fun expectCStyleForLoop(initializerStatement: JavascriptStatement?): JavascriptStatement {
+    private fun expectCStyleForLoop(sourceInfo: SourceInfo, initializerStatement: JavascriptStatement?): JavascriptStatement {
         expectToken<JavascriptTokenType.SemiColon>()
 
         val conditionExpression = if (getCurrentToken() is JavascriptTokenType.SemiColon) {
@@ -335,6 +339,7 @@ class JavascriptParser(
         expectToken<JavascriptTokenType.CloseParentheses>()
 
         return JavascriptStatement.ForLoop(
+            sourceInfo = sourceInfo,
             initializerStatement = initializerStatement,
             conditionExpression = conditionExpression,
             updaterExpression = updaterExpression,
@@ -342,12 +347,13 @@ class JavascriptParser(
         )
     }
 
-    private fun expectForEachLoop(initializerStatement: JavascriptStatement): JavascriptStatement {
+    private fun expectForEachLoop(sourceInfo: SourceInfo, initializerStatement: JavascriptStatement): JavascriptStatement {
         expectToken<JavascriptTokenType.In>()
         val enumerableExpression = expectExpression()
         expectToken<JavascriptTokenType.CloseParentheses>()
 
         return JavascriptStatement.ForEachLoop(
+            sourceInfo = sourceInfo,
             initializerStatement = initializerStatement,
             enumerableExpression = enumerableExpression,
             body = expectBlockOrStatementOrNothing()
@@ -372,7 +378,7 @@ class JavascriptParser(
     private fun expectBlock(): JavascriptStatement.Block {
         val statements = mutableListOf<JavascriptStatement>()
 
-        expectToken<JavascriptTokenType.OpenCurlyBracket>()
+        val sourceInfo = expectSourceInfo<JavascriptTokenType.OpenCurlyBracket>()
         maybeConsumeLineTerminator()
 
         while (getCurrentToken() !is JavascriptTokenType.CloseCurlyBracket) {
@@ -382,22 +388,22 @@ class JavascriptParser(
 
         expectToken<JavascriptTokenType.CloseCurlyBracket>()
 
-        return JavascriptStatement.Block(statements)
+        return JavascriptStatement.Block(sourceInfo = sourceInfo, body = statements)
     }
 
     private fun expectVarStatement(): JavascriptStatement.VarAssignment {
-        expectToken<JavascriptTokenType.Var>()
-        return JavascriptStatement.VarAssignment(assignments = expectAssignmentStatements())
+        val sourceInfo = expectSourceInfo<JavascriptTokenType.Var>()
+        return JavascriptStatement.VarAssignment(sourceInfo = sourceInfo, assignments = expectAssignmentStatements())
     }
 
     private fun expectLetStatement(): JavascriptStatement.LetAssignment {
-        expectToken<JavascriptTokenType.Let>()
-        return JavascriptStatement.LetAssignment(assignments = expectAssignmentStatements())
+        val sourceInfo = expectSourceInfo<JavascriptTokenType.Let>()
+        return JavascriptStatement.LetAssignment(sourceInfo = sourceInfo, assignments = expectAssignmentStatements())
     }
 
     private fun expectConstStatement(): JavascriptStatement.ConstAssignment {
-        expectToken<JavascriptTokenType.Const>()
-        return JavascriptStatement.ConstAssignment(assignments = expectAssignmentStatements())
+        val sourceInfo = expectSourceInfo<JavascriptTokenType.Const>()
+        return JavascriptStatement.ConstAssignment(sourceInfo = sourceInfo, assignments = expectAssignmentStatements())
     }
 
     private fun expectAssignmentStatements(): List<AssignmentStatement> {
@@ -439,8 +445,10 @@ class JavascriptParser(
         var expression = expectTernaryExpression()
 
         while (maybeGetCurrentToken() is JavascriptTokenType.Comma) {
+            val (token, sourceInfo) = expectTokenAndSourceInfo<JavascriptTokenType>()
             expression = JavascriptExpression.BinaryOperation(
-                operator = expectToken(),
+                sourceInfo = sourceInfo,
+                operator = token,
                 lhs = expression,
                 rhs = expectTernaryExpression()
             )
@@ -453,8 +461,9 @@ class JavascriptParser(
         val expression = expectBitwiseOrExpression()
 
         if (maybeGetCurrentToken() is JavascriptTokenType.QuestionMark) {
-            expectToken<JavascriptTokenType.QuestionMark>()
+            val sourceInfo = expectSourceInfo<JavascriptTokenType.QuestionMark>()
             return JavascriptExpression.TernaryOperation(
+                sourceInfo = sourceInfo,
                 condition = expression,
                 ifTruthy = expectTernaryExpression().also { expectToken<JavascriptTokenType.Colon>() },
                 ifNot = expectTernaryExpression()
@@ -468,8 +477,11 @@ class JavascriptParser(
         var expression = expectBitwiseAndExpression()
 
         while (maybeGetCurrentToken() is JavascriptTokenType.Operator.Or) {
+            val (token, sourceInfo) = expectTokenAndSourceInfo<JavascriptTokenType>()
+
             expression = JavascriptExpression.BinaryOperation(
-                operator = expectToken(),
+                sourceInfo = sourceInfo,
+                operator = token,
                 lhs = expression,
                 rhs = expectBitwiseAndExpression()
             )
@@ -482,8 +494,11 @@ class JavascriptParser(
         var expression = expectAssignmentExpression()
 
         while (maybeGetCurrentToken() is JavascriptTokenType.Operator.And) {
+            val (token, sourceInfo) = expectTokenAndSourceInfo<JavascriptTokenType>()
+
             expression = JavascriptExpression.BinaryOperation(
-                operator = expectToken(),
+                sourceInfo = sourceInfo,
+                operator = token,
                 lhs = expression,
                 rhs = expectAssignmentExpression()
             )
@@ -496,8 +511,11 @@ class JavascriptParser(
         var expression = expectLogicalOrExpression()
 
         while (maybeGetCurrentToken() in assignmentToken) {
+            val (token, sourceInfo) = expectTokenAndSourceInfo<JavascriptTokenType>()
+
             expression = JavascriptExpression.BinaryOperation(
-                operator = expectToken(),
+                sourceInfo = sourceInfo,
+                operator = token,
                 lhs = expression,
                 rhs = expectLogicalOrExpression()
             )
@@ -510,8 +528,11 @@ class JavascriptParser(
         var expression = expectXorExpression()
 
         while (maybeGetCurrentToken() is JavascriptTokenType.Operator.OrOr) {
+            val (token, sourceInfo) = expectTokenAndSourceInfo<JavascriptTokenType>()
+
             expression = JavascriptExpression.BinaryOperation(
-                operator = expectToken(),
+                sourceInfo = sourceInfo,
+                operator = token,
                 lhs = expression,
                 rhs = expectXorExpression()
             )
@@ -524,8 +545,11 @@ class JavascriptParser(
         var expression = expectLogicalAndExpression()
 
         while (maybeGetCurrentToken() is JavascriptTokenType.Operator.Xor) {
+            val (token, sourceInfo) = expectTokenAndSourceInfo<JavascriptTokenType>()
+
             expression = JavascriptExpression.BinaryOperation(
-                operator = expectToken(),
+                sourceInfo = sourceInfo,
+                operator = token,
                 lhs = expression,
                 rhs = expectLogicalAndExpression()
             )
@@ -538,8 +562,11 @@ class JavascriptParser(
         var expression = expectEqualityExpression()
 
         while (maybeGetCurrentToken() is JavascriptTokenType.Operator.AndAnd) {
+            val (token, sourceInfo) = expectTokenAndSourceInfo<JavascriptTokenType>()
+
             expression = JavascriptExpression.BinaryOperation(
-                operator = expectToken(),
+                sourceInfo = sourceInfo,
+                operator = token,
                 lhs = expression,
                 rhs = expectEqualityExpression()
             )
@@ -552,8 +579,11 @@ class JavascriptParser(
         var expression = expectComparisonExpression()
 
         while (maybeGetCurrentToken() in equalityTokens) {
+            val (token, sourceInfo) = expectTokenAndSourceInfo<JavascriptTokenType>()
+
             expression = JavascriptExpression.BinaryOperation(
-                operator = expectToken(),
+                sourceInfo = sourceInfo,
+                operator = token,
                 lhs = expression,
                 rhs = expectComparisonExpression()
             )
@@ -566,8 +596,11 @@ class JavascriptParser(
         var expression = expectBitShiftExpression()
 
         while (maybeGetCurrentToken() in comparisonTokens) {
+            val (token, sourceInfo) = expectTokenAndSourceInfo<JavascriptTokenType>()
+
             expression = JavascriptExpression.BinaryOperation(
-                operator = expectToken(),
+                sourceInfo = sourceInfo,
+                operator = token,
                 lhs = expression,
                 rhs = expectBitShiftExpression()
             )
@@ -580,8 +613,11 @@ class JavascriptParser(
         var expression = expectAdditiveExpression()
 
         while (maybeGetCurrentToken() in bitShiftTokens) {
+            val (token, sourceInfo) = expectTokenAndSourceInfo<JavascriptTokenType>()
+
             expression = JavascriptExpression.BinaryOperation(
-                operator = expectToken(),
+                sourceInfo = sourceInfo,
+                operator = token,
                 lhs = expression,
                 rhs = expectAdditiveExpression()
             )
@@ -594,8 +630,11 @@ class JavascriptParser(
         var expression = expectMultiplicativeExpression()
 
         while (maybeGetCurrentToken() in additiveTokens) {
+            val (token, sourceInfo) = expectTokenAndSourceInfo<JavascriptTokenType>()
+
             expression = JavascriptExpression.BinaryOperation(
-                operator = expectToken(),
+                sourceInfo = sourceInfo,
+                operator = token,
                 lhs = expression,
                 rhs = expectMultiplicativeExpression()
             )
@@ -608,8 +647,11 @@ class JavascriptParser(
         var expression = expectPrefixExpression()
 
         while (maybeGetCurrentToken() in multiplicativeTokens) {
+            val (token, sourceInfo) = expectTokenAndSourceInfo<JavascriptTokenType>()
+
             expression = JavascriptExpression.BinaryOperation(
-                operator = expectToken(),
+                sourceInfo = sourceInfo,
+                operator = token,
                 lhs = expression,
                 rhs = expectPrefixExpression()
             )
@@ -619,17 +661,19 @@ class JavascriptParser(
     }
 
     private fun expectPrefixExpression(): JavascriptExpression {
-        val prefixTokenStack = Stack<JavascriptTokenType>()
+        val prefixTokenStack = Stack<Pair<JavascriptTokenType, SourceInfo>>()
 
         while (maybeGetCurrentToken() in prefixTokens) {
-            prefixTokenStack.push(expectToken())
+            prefixTokenStack.push(expectTokenAndSourceInfo())
         }
 
         var expression = expectPostfixIncrementExpression()
 
         while (prefixTokenStack.isNotEmpty()) {
+            val (token, sourceInfo) = prefixTokenStack.pop()
             expression = JavascriptExpression.UnaryOperation(
-                operator = prefixTokenStack.pop(),
+                sourceInfo = sourceInfo,
+                operator = token,
                 expression = expression,
                 isPrefix = true
             )
@@ -642,8 +686,11 @@ class JavascriptParser(
         val expression = expectPostfixExpression()
 
         if (maybeGetCurrentToken() in incrementTokens) {
+            val (token, sourceInfo) = expectTokenAndSourceInfo<JavascriptTokenType>()
+
             return JavascriptExpression.UnaryOperation(
-                operator = expectToken(),
+                sourceInfo = sourceInfo,
+                operator = token,
                 expression = expression,
                 isPrefix = false
             )
@@ -677,17 +724,28 @@ class JavascriptParser(
     }
 
     private fun expectNewExpression(): JavascriptExpression.NewCall {
-        expectToken<JavascriptTokenType.New>()
-        val identifier = expectToken<JavascriptTokenType.Identifier>()
+        val newSourceInfo = expectSourceInfo<JavascriptTokenType.New>()
+        val (identifier, identifierSourceInfo) = expectTokenAndSourceInfo<JavascriptTokenType.Identifier>()
 
         return if (maybeGetCurrentToken() is JavascriptTokenType.OpenParentheses) {
             JavascriptExpression.NewCall(
-                function = expectFunctionCallOn(JavascriptExpression.Reference(identifier.name))
+                sourceInfo = newSourceInfo,
+                function = expectFunctionCallOn(
+                    JavascriptExpression.Reference(
+                        sourceInfo = identifierSourceInfo,
+                        name = identifier.name
+                    )
+                )
             )
         } else {
             JavascriptExpression.NewCall(
+                sourceInfo = newSourceInfo,
                 function = JavascriptExpression.FunctionCall(
-                    expression = JavascriptExpression.Reference(identifier.name),
+                    sourceInfo = newSourceInfo,
+                    expression = JavascriptExpression.Reference(
+                        sourceInfo = identifierSourceInfo,
+                        name = identifier.name
+                    ),
                     parameters = emptyList()
                 )
             )
@@ -695,7 +753,7 @@ class JavascriptParser(
     }
 
     private fun expectFunctionCallOn(expression: JavascriptExpression): JavascriptExpression.FunctionCall {
-        expectToken<JavascriptTokenType.OpenParentheses>()
+        val sourceInfo = expectSourceInfo<JavascriptTokenType.OpenParentheses>()
         val arguments = mutableListOf<JavascriptExpression>()
 
         if (getCurrentToken() !is JavascriptTokenType.CloseParentheses) {
@@ -710,26 +768,29 @@ class JavascriptParser(
         expectToken<JavascriptTokenType.CloseParentheses>()
 
         return JavascriptExpression.FunctionCall(
+            sourceInfo = sourceInfo,
             expression = expression,
             parameters = arguments
         )
     }
 
     private fun expectIndexAccessOn(expression: JavascriptExpression): JavascriptExpression.IndexAccess {
-        expectToken<JavascriptTokenType.OpenBracket>()
+        val sourceInfo = expectSourceInfo<JavascriptTokenType.OpenBracket>()
         val index = expectSubExpression()
         expectToken<JavascriptTokenType.CloseBracket>()
 
         return JavascriptExpression.IndexAccess(
+            sourceInfo = sourceInfo,
             indexExpression = index,
             expression = expression
         )
     }
 
     private fun expectDotAccessOn(expression: JavascriptExpression): JavascriptExpression.DotAccess {
-        expectToken<JavascriptTokenType.Dot>()
+        val sourceInfo = expectSourceInfo<JavascriptTokenType.Dot>()
 
         return JavascriptExpression.DotAccess(
+            sourceInfo = sourceInfo,
             expression = expression,
             propertyName = expectToken<JavascriptTokenType.Identifier>().name
         )
@@ -742,28 +803,29 @@ class JavascriptParser(
             is JavascriptTokenType.OpenBracket -> expectArrayLiteral()
             is JavascriptTokenType.Function -> expectAnonymousFunctionExpression()
             is JavascriptTokenType.Number -> {
-                advanceCursor()
-                JavascriptExpression.Literal(value = JavascriptValue.Number(currentToken.value))
+                val sourceInfo = expectSourceInfo<JavascriptTokenType>()
+                JavascriptExpression.Literal(sourceInfo = sourceInfo, value = JavascriptValue.Number(currentToken.value))
             }
             is JavascriptTokenType.String -> {
-                advanceCursor()
-                JavascriptExpression.Literal(value = JavascriptValue.String(currentToken.value))
+                val sourceInfo = expectSourceInfo<JavascriptTokenType>()
+                JavascriptExpression.Literal(sourceInfo = sourceInfo, value = JavascriptValue.String(currentToken.value))
             }
             is JavascriptTokenType.Boolean -> {
-                advanceCursor()
-                JavascriptExpression.Literal(value = JavascriptValue.Boolean(currentToken.value))
+                val sourceInfo = expectSourceInfo<JavascriptTokenType>()
+                JavascriptExpression.Literal(sourceInfo = sourceInfo, value = JavascriptValue.Boolean(currentToken.value))
             }
             is JavascriptTokenType.Undefined -> {
-                advanceCursor()
-                JavascriptExpression.Literal(value = JavascriptValue.Undefined)
+                val sourceInfo = expectSourceInfo<JavascriptTokenType>()
+                JavascriptExpression.Literal(sourceInfo = sourceInfo, value = JavascriptValue.Undefined)
             }
             is JavascriptTokenType.Identifier -> {
-                advanceCursor()
-                JavascriptExpression.Reference(name = currentToken.name)
+                val sourceInfo = expectSourceInfo<JavascriptTokenType>()
+                JavascriptExpression.Reference(sourceInfo = sourceInfo, name = currentToken.name)
             }
             is JavascriptTokenType.RegularExpression -> {
-                advanceCursor()
+                val sourceInfo = expectSourceInfo<JavascriptTokenType>()
                 JavascriptExpression.Literal(
+                    sourceInfo = sourceInfo,
                     value = JavascriptValue.Object(
                         JavascriptRegex(
                             currentToken.regex,
@@ -779,7 +841,7 @@ class JavascriptParser(
     private fun expectArrayLiteral(): JavascriptExpression {
         val values = mutableListOf<JavascriptExpression>()
 
-        expectToken<JavascriptTokenType.OpenBracket>()
+        val sourceInfo = expectSourceInfo<JavascriptTokenType.OpenBracket>()
 
         if (getCurrentToken() !is JavascriptTokenType.CloseBracket) {
             values += expectSubExpression()
@@ -796,12 +858,12 @@ class JavascriptParser(
 
         expectToken<JavascriptTokenType.CloseBracket>()
 
-        return JavascriptExpression.ArrayLiteral(values)
+        return JavascriptExpression.ArrayLiteral(sourceInfo, values)
     }
 
     private fun expectObjectLiteral(): JavascriptExpression {
         val fields = mutableListOf<JavascriptExpression.ObjectLiteral.Field>()
-        expectToken<JavascriptTokenType.OpenCurlyBracket>()
+        val sourceInfo = expectSourceInfo<JavascriptTokenType.OpenCurlyBracket>()
 
         if (getCurrentToken() !is JavascriptTokenType.CloseCurlyBracket) {
             fields += expectObjectField()
@@ -818,7 +880,7 @@ class JavascriptParser(
 
         expectToken<JavascriptTokenType.CloseCurlyBracket>()
 
-        return JavascriptExpression.ObjectLiteral(fields)
+        return JavascriptExpression.ObjectLiteral(sourceInfo, fields)
     }
 
     private fun expectObjectField(): JavascriptExpression.ObjectLiteral.Field {
@@ -862,7 +924,7 @@ class JavascriptParser(
     }
 
     private fun expectAnonymousFunctionExpression(): JavascriptExpression {
-        expectToken<JavascriptTokenType.Function>()
+        val sourceInfo = expectSourceInfo<JavascriptTokenType.Function>()
         val name = tryGetToken<JavascriptTokenType.Identifier>()?.name
         expectToken<JavascriptTokenType.OpenParentheses>()
 
@@ -880,6 +942,7 @@ class JavascriptParser(
         expectToken<JavascriptTokenType.CloseParentheses>()
 
         return JavascriptExpression.AnonymousFunction(
+            sourceInfo = sourceInfo,
             name = name,
             parameterNames = parameterNames.map { it.name },
             body = expectBlock()
@@ -890,14 +953,23 @@ class JavascriptParser(
         cursor += 1
     }
 
-    private inline fun <reified T : JavascriptTokenType> expectToken(): T {
+    private inline fun <reified T : JavascriptTokenType> expectTokenAndSourceInfo(): Pair<T, SourceInfo> {
         if (getCurrentToken() !is T) {
             throwUnexpectedTokenFound(T::class.java.simpleName)
         }
 
-        return (getCurrentToken() as T).also {
+        val token = tokens[cursor]
+        return (token.type as T to token.sourceInfo).also {
             advanceCursor()
         }
+    }
+
+    private inline fun <reified T : JavascriptTokenType> expectToken(): T {
+        return expectTokenAndSourceInfo<T>().first
+    }
+
+    private inline fun <reified T : JavascriptTokenType> expectSourceInfo(): SourceInfo {
+        return expectTokenAndSourceInfo<T>().second
     }
 
     private fun throwUnexpectedTokenFound(expectedToken: String? = null): Nothing {
@@ -976,9 +1048,11 @@ class JavascriptParser(
             val lhsBinaryExpression = currentExpression.lhs as JavascriptExpression.BinaryOperation
 
             currentExpression = JavascriptExpression.BinaryOperation(
+                sourceInfo = lhsBinaryExpression.sourceInfo,
                 operator = lhsBinaryExpression.operator,
                 lhs = lhsBinaryExpression.lhs,
                 rhs = JavascriptExpression.BinaryOperation(
+                    sourceInfo = currentExpression.sourceInfo,
                     operator = currentExpression.operator,
                     lhs = lhsBinaryExpression.rhs,
                     rhs = currentExpression.rhs
