@@ -116,11 +116,28 @@ class JavascriptInterpreter {
                 return interpretAsReference(statement.statement)
             }
             is JavascriptStatement.Block -> {
-                var result: JavascriptReference = JavascriptReference.Undefined
+                val hoistedStatements = mutableListOf<JavascriptStatement>()
+                val normalStatements = mutableListOf<JavascriptStatement>()
+
                 for (child in statement.body) {
+                    when (child) {
+                        is JavascriptStatement.Function -> hoistedStatements += child
+                        else -> normalStatements += child
+                    }
+                }
+                var result: JavascriptReference = JavascriptReference.Undefined
+
+                for (child in hoistedStatements) {
                     result = interpretAsReference(child)
                     if (hasControlFlowInterrupted()) {
-                        break
+                        return result
+                    }
+                }
+
+                for (child in normalStatements) {
+                    result = interpretAsReference(child)
+                    if (hasControlFlowInterrupted()) {
+                        return result
                     }
                 }
 
