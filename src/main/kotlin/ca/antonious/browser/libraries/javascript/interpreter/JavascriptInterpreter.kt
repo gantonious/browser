@@ -82,8 +82,8 @@ class JavascriptInterpreter {
     private val currentScope: JavascriptScope
         get() = stack.peek().scope
 
-    fun interpret(javascript: String): JavascriptValue {
-        val tokens = JavascriptLexer(javascript).lex()
+    fun interpret(javascript: String, filename: String = "unknown"): JavascriptValue {
+        val tokens = JavascriptLexer(javascript, filename).lex()
         val program = JavascriptParser(tokens, javascript).parse()
         return interpret(program)
     }
@@ -94,7 +94,9 @@ class JavascriptInterpreter {
         return if (hasControlFlowInterruptedDueTo<ControlFlowInterruption.Error>()) {
             val tab = " ".repeat(4)
             val error = consumeControlFlowInterrupt<ControlFlowInterruption.Error>()
-            val errorMessage = "Uncaught ${error.value}\n$tab" + error.trace.joinToString("\n$tab") { "at ${it.name}(jquery.js:${it.sourceInfo.line + 1}:${it.sourceInfo.column + 1})"}
+            val errorMessage = "Uncaught ${error.value}\n$tab" + error.trace.joinToString("\n$tab") {
+                "at ${it.name}(${it.sourceInfo.filename}:${it.sourceInfo.line + 1}:${it.sourceInfo.column + 1})"
+            }
 
             error(errorMessage)
         } else {

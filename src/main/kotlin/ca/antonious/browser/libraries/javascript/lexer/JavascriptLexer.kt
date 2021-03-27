@@ -3,7 +3,10 @@ package ca.antonious.browser.libraries.javascript.lexer
 import kotlin.math.max
 import kotlin.math.min
 
-class JavascriptLexer(private val source: String) {
+class JavascriptLexer(
+    private val source: String,
+    private val sourceFilename: String
+) {
 
     companion object {
         private val keywordTokenMap = mapOf(
@@ -272,7 +275,7 @@ class JavascriptLexer(private val source: String) {
     }
 
     private fun pushToken(tokenType: JavascriptTokenType) {
-        tokens += JavascriptToken(tokenType, SourceInfo(sourceRow, sourceColumnAtParse))
+        tokens += JavascriptToken(tokenType, SourceInfo(sourceRow, sourceColumnAtParse, sourceFilename))
     }
 
     private fun dropLastToken() {

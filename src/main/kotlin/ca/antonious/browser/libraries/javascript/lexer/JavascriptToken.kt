@@ -83,4 +83,4 @@ data class JavascriptToken(
     val sourceInfo: SourceInfo
 )
 
-data class SourceInfo(val line: Int, val column: Int)
+data class SourceInfo(val line: Int, val column: Int, val filename: String = "unknown")

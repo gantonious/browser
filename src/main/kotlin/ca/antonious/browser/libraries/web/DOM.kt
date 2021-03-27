@@ -177,7 +177,7 @@ class DOM {
                             javascriptInterpreter.interpret(script)
                         } else {
                             httpClient.execute(HttpRequest(resolveUrl(src), HttpMethod.Get)).onSuccess { response ->
-                                javascriptInterpreter.interpret(response.body)
+                                javascriptInterpreter.interpret(response.body, filename = src)
                                 javascriptInterpreter.interpret("window.onload()")
                             }
                         }

@@ -10,8 +10,7 @@ import kotlin.math.max
 
 class JavascriptParser(
     private val tokens: List<JavascriptToken>,
-    source: String,
-    val sourceFileName: String = ""
+    source: String
 ) {
     private val sourceLines = source.split("\n")
 
@@ -975,7 +974,7 @@ class JavascriptParser(
     private fun throwUnexpectedTokenFound(expectedToken: String? = null): Nothing {
         val sourceInfo = tokens[cursor].sourceInfo
         val topLine =
-            "($sourceFileName:${sourceInfo.line + 1}) column:${sourceInfo.column + 1} Uncaught SyntaxError: Unexpected token"
+            "(${sourceInfo.filename}:${sourceInfo.line + 1}) column:${sourceInfo.column + 1} Uncaught SyntaxError: Unexpected token"
         val errorLines = sourceLines.subList(max(0, sourceInfo.line - 3), sourceInfo.line + 1)
 
         val message = "$topLine${expectedToken?.let { ", expected: $it" } ?: ""}\n${errorLines.joinToString("\n")}\n${" ".repeat(sourceInfo.column)}^"
