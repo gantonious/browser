@@ -35,6 +35,10 @@ open class JavascriptObject(
     }
 
     open fun setProperty(key: String, value: JavascriptValue) {
+        if (key in nonEnumerableProperties) {
+            nonEnumerableProperties[key] = value
+            return
+        }
         properties[key] = value
     }
 
