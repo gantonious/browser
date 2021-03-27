@@ -110,6 +110,7 @@ class JavascriptInterpreter {
 
     private fun interpretAsReference(statement: JavascriptStatement): JavascriptReference {
         stack.peek().sourceInfo = statement.sourceInfo
+
         when (statement) {
             is JavascriptStatement.LabeledStatement -> {
                 return interpretAsReference(statement.statement)
@@ -801,6 +802,8 @@ class JavascriptInterpreter {
             parentScope = parentScope
         )
 
+        stack.peek().sourceInfo = sourceInfo
+
         stack.push(
             JavascriptStackFrame(
                 name = functionName,
@@ -871,7 +874,7 @@ class JavascriptInterpreter {
         interruptControlFlowWith(
             ControlFlowInterruption.Error(
                 value = error,
-                trace = ArrayList(stack).reversed()
+                trace = stack.map { it.copy() }.reversed()
             )
         )
     }
