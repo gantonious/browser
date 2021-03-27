@@ -785,17 +785,18 @@ class JavascriptInterpreter {
         parentScope: JavascriptScope,
         thisBinding: JavascriptObject? = null
     ) {
+        val interpretedParameters = passedParameters.map { interpret(it) }
         val functionScope = JavascriptScope(
             thisBinding = thisBinding ?: parentScope.thisBinding,
             scopeObject = JavascriptObject().apply {
+                setProperty("arguments", JavascriptValue.Object(JavascriptArray(interpretedParameters)))
+
                 parameterNames.forEachIndexed { index, parameterName ->
                     setProperty(
                         parameterName,
-                        interpret(
-                            passedParameters.getOrElse(index) {
-                                JavascriptExpression.Literal(sourceInfo = sourceInfo,value = JavascriptValue.Undefined)
-                            }
-                        )
+                        interpretedParameters.getOrElse(index) {
+                            JavascriptValue.Undefined
+                        }
                     )
                 }
             },
