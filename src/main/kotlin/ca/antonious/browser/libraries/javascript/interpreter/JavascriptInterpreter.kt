@@ -517,6 +517,7 @@ class JavascriptInterpreter {
                     )
                     is JavascriptTokenType.Comma -> {
                         interpret(statement.lhs)
+                        if (hasControlFlowInterrupted()) return JavascriptReference.Undefined
                         interpretAsReference(statement.rhs)
                     }
                     else -> {
