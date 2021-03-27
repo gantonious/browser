@@ -639,13 +639,17 @@ class JavascriptInterpreter {
                 return statement.value.toReference()
             }
             is JavascriptExpression.ObjectLiteral -> {
-                return JavascriptValue.Object(
-                    JavascriptObject().apply {
-                        statement.fields.forEach {
-                            setProperty(it.name, interpret(it.rhs))
-                        }
+                val newObject = JavascriptObject()
+
+                for (field in statement.fields) {
+                    newObject.setProperty(field.name, interpret(field.rhs))
+
+                    if (hasControlFlowInterrupted()) {
+                        return JavascriptReference.Undefined
                     }
-                ).toReference()
+                }
+
+                return JavascriptValue.Object(newObject).toReference()
             }
             is JavascriptExpression.ArrayLiteral -> {
                 return JavascriptValue.Object(
