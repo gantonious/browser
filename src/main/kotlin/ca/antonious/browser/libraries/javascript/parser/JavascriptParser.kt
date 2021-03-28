@@ -724,27 +724,19 @@ class JavascriptParser(
 
     private fun expectNewExpression(): JavascriptExpression.NewCall {
         val newSourceInfo = expectSourceInfo<JavascriptTokenType.New>()
-        val (identifier, identifierSourceInfo) = expectTokenAndSourceInfo<JavascriptTokenType.Identifier>()
+        val newTarget = expectPostfixExpression()
 
-        return if (maybeGetCurrentToken() is JavascriptTokenType.OpenParentheses) {
+        return if (newTarget is JavascriptExpression.FunctionCall) {
             JavascriptExpression.NewCall(
                 sourceInfo = newSourceInfo,
-                function = expectFunctionCallOn(
-                    JavascriptExpression.Reference(
-                        sourceInfo = identifierSourceInfo,
-                        name = identifier.name
-                    )
-                )
+                function = newTarget
             )
         } else {
             JavascriptExpression.NewCall(
                 sourceInfo = newSourceInfo,
                 function = JavascriptExpression.FunctionCall(
                     sourceInfo = newSourceInfo,
-                    expression = JavascriptExpression.Reference(
-                        sourceInfo = identifierSourceInfo,
-                        name = identifier.name
-                    ),
+                    expression = newTarget,
                     parameters = emptyList()
                 )
             )
