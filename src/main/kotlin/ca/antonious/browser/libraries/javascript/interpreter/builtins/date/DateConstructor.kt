@@ -6,6 +6,7 @@ import java.text.DateFormat
 import java.util.Date
 
 class DateConstructor : NativeFunction(
+    functionPrototype = DatePrototype,
     body = { executionContext ->
         val date = if (executionContext.arguments.isEmpty()) {
             Date()
