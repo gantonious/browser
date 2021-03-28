@@ -5,7 +5,7 @@ import ca.antonious.browser.libraries.javascript.interpreter.builtins.function.J
 import ca.antonious.browser.libraries.javascript.interpreter.JavascriptObject
 import ca.antonious.browser.libraries.javascript.interpreter.builtins.function.NativeFunction
 import ca.antonious.browser.libraries.javascript.interpreter.builtins.array.JavascriptArray
-import ca.antonious.browser.libraries.javascript.interpreter.builtins.regex.JavascriptRegex
+import ca.antonious.browser.libraries.javascript.interpreter.builtins.regex.RegExpObject
 import ca.antonious.browser.libraries.javascript.interpreter.builtins.function.setNonEnumerableNativeFunction
 
 object StringPrototype : JavascriptObject() {
@@ -14,7 +14,7 @@ object StringPrototype : JavascriptObject() {
             val stringObject = executionContext.thisBinding as? StringObject
                 ?: return@setNonEnumerableNativeFunction JavascriptValue.Undefined
 
-            val regex = executionContext.arguments.first().valueAs<JavascriptValue.Object>()?.value as JavascriptRegex
+            val regex = executionContext.arguments.first().valueAs<JavascriptValue.Object>()?.value as RegExpObject
             JavascriptValue.Object(
                 JavascriptArray(
                     Regex(regex.regex).findAll(stringObject.value).map { JavascriptValue.String(it.value) }.toList()
@@ -61,7 +61,7 @@ object StringPrototype : JavascriptObject() {
                 is JavascriptValue.Object -> {
                     when (val objectValue = textToMatch.value) {
                         is StringObject -> objectValue.value
-                        is JavascriptRegex -> objectValue.regex
+                        is RegExpObject -> objectValue.regex
                         else -> objectValue.toString()
                     }
                 }
@@ -91,7 +91,7 @@ object StringPrototype : JavascriptObject() {
                 is JavascriptValue.Object -> {
                     when (val objectValue = textToMatch.value) {
                         is StringObject -> objectValue.value
-                        is JavascriptRegex -> objectValue.regex
+                        is RegExpObject -> objectValue.regex
                         else -> objectValue.toString()
                     }
                 }

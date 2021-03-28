@@ -1,7 +1,7 @@
 package ca.antonious.browser.libraries.javascript.parser
 
 import ca.antonious.browser.libraries.javascript.ast.*
-import ca.antonious.browser.libraries.javascript.interpreter.builtins.regex.JavascriptRegex
+import ca.antonious.browser.libraries.javascript.interpreter.builtins.regex.RegExpObject
 import ca.antonious.browser.libraries.javascript.lexer.JavascriptToken
 import ca.antonious.browser.libraries.javascript.lexer.JavascriptTokenType
 import ca.antonious.browser.libraries.javascript.lexer.SourceInfo
@@ -830,7 +830,7 @@ class JavascriptParser(
                 JavascriptExpression.Literal(
                     sourceInfo = sourceInfo,
                     value = JavascriptValue.Object(
-                        JavascriptRegex(
+                        RegExpObject(
                             currentToken.regex,
                             currentToken.flags
                         )
