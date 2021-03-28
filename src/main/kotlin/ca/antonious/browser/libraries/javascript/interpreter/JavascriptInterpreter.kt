@@ -17,6 +17,7 @@ import ca.antonious.browser.libraries.javascript.lexer.JavascriptLexer
 import ca.antonious.browser.libraries.javascript.lexer.JavascriptTokenType
 import ca.antonious.browser.libraries.javascript.lexer.SourceInfo
 import ca.antonious.browser.libraries.javascript.parser.JavascriptParser
+import java.io.File
 import java.util.Stack
 import kotlin.random.Random
 
@@ -86,6 +87,10 @@ class JavascriptInterpreter {
 
     private val currentScope: JavascriptScope
         get() = stack.peek().scope
+
+    fun interpret(file: File): JavascriptValue {
+        return interpret(file.readText(), file.name)
+    }
 
     fun interpret(javascript: String, filename: String = "unknown"): JavascriptValue {
         val tokens = JavascriptLexer(javascript, filename).lex()
