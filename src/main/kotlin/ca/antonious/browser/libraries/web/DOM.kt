@@ -33,10 +33,53 @@ class DOM {
     private val cssParser = CssParser()
 
     private val javascriptInterpreter = JavascriptInterpreter().apply {
+        val documentObject = JavascriptValue.Object(
+            JavascriptObject().apply {
+                setNonEnumerableNativeFunction("getElementsByClassName") { executionContext ->
+                    val className = executionContext.arguments.first() as JavascriptValue.String
+                    val matchingNodes =
+                        findNodesWithClass(className.value, rootNode.children.map { it as DOMLayoutNode })
+                    JavascriptValue.Object(
+                        JavascriptArray(
+                            matchingNodes.map {
+                                JavascriptValue.Object(
+                                    JavascriptHtmlElement(it)
+                                )
+                            }
+                        )
+                    )
+                }
+
+                setNonEnumerableNativeFunction("getElementById") { executionContext ->
+                    val id = executionContext.arguments.first() as JavascriptValue.String
+                    val node = findNodeWithId(id.value, rootNode.children.map { it as DOMLayoutNode })
+
+                    if (node == null) {
+                        JavascriptValue.Undefined
+                    } else {
+                        JavascriptValue.Object(JavascriptHtmlElement(node))
+                    }
+                }
+
+                setNonEnumerableNativeFunction("createElement") { executionContext ->
+                    val tagName = executionContext.arguments.first() as JavascriptValue.String
+                    val element = HtmlElement.Node(name = tagName.value)
+                    val layoutNode = DOMParentLayoutNode(
+                        parent = null,
+                        domEventHandler = ::handleEvent,
+                        htmlNode = element
+                    )
+
+                    JavascriptValue.Object(JavascriptHtmlElement(layoutNode))
+                }
+            }
+        )
+
         globalObject.setProperty(
             key = "window",
             value = JavascriptValue.Object(
                 JavascriptObject().apply {
+                    setProperty("document", documentObject)
                     setNonEnumerableNativeFunction("onload") { JavascriptValue.Undefined }
                 }
             )
@@ -44,47 +87,7 @@ class DOM {
 
         globalObject.setProperty(
             key = "document",
-            value = JavascriptValue.Object(
-                JavascriptObject().apply {
-                    setNonEnumerableNativeFunction("getElementsByClassName") { executionContext ->
-                        val className = executionContext.arguments.first() as JavascriptValue.String
-                        val matchingNodes =
-                            findNodesWithClass(className.value, rootNode.children.map { it as DOMLayoutNode })
-                        JavascriptValue.Object(
-                            JavascriptArray(
-                                matchingNodes.map {
-                                    JavascriptValue.Object(
-                                        JavascriptHtmlElement(it)
-                                    )
-                                }
-                            )
-                        )
-                    }
-
-                    setNonEnumerableNativeFunction("getElementById") { executionContext ->
-                        val id = executionContext.arguments.first() as JavascriptValue.String
-                        val node = findNodeWithId(id.value, rootNode.children.map { it as DOMLayoutNode })
-
-                        if (node == null) {
-                            JavascriptValue.Undefined
-                        } else {
-                            JavascriptValue.Object(JavascriptHtmlElement(node))
-                        }
-                    }
-
-                    setNonEnumerableNativeFunction("createElement") { executionContext ->
-                        val tagName = executionContext.arguments.first() as JavascriptValue.String
-                        val element = HtmlElement.Node(name = tagName.value)
-                        val layoutNode = DOMParentLayoutNode(
-                            parent = null,
-                            domEventHandler = ::handleEvent,
-                            htmlNode = element
-                        )
-
-                        JavascriptValue.Object(JavascriptHtmlElement(layoutNode))
-                    }
-                }
-            )
+            value = documentObject
         )
     }
 
