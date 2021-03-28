@@ -5,7 +5,7 @@ import ca.antonious.browser.libraries.javascript.interpreter.JavascriptObject
 import ca.antonious.browser.libraries.javascript.interpreter.builtins.function.NativeFunction
 
 class JavascriptArray(initialValues: List<JavascriptValue> = emptyList()) : JavascriptObject() {
-    private val array = initialValues.toMutableList()
+    val array = initialValues.toMutableList()
 
     override fun getProperty(key: String): JavascriptValue {
         return when (key) {

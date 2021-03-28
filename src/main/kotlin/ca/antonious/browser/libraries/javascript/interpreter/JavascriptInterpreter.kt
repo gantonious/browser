@@ -739,7 +739,11 @@ class JavascriptInterpreter {
     }
 
     fun interpretAsObject(expression: JavascriptExpression): JavascriptObject {
-        return when (val value = interpret(expression)) {
+        return interpretAsObject(value = interpret(expression))
+    }
+
+    fun interpretAsObject(value: JavascriptValue): JavascriptObject {
+        return when (value) {
             is JavascriptValue.Object -> value.value
             is JavascriptValue.String -> StringObject(value = value.value)
             is JavascriptValue.Number -> NumberObject(value = value.value)
@@ -881,7 +885,7 @@ class JavascriptInterpreter {
         return controlFlowInterruption is T
     }
 
-    private fun throwError(error: JavascriptValue) {
+    fun throwError(error: JavascriptValue) {
         interruptControlFlowWith(
             ControlFlowInterruption.Error(
                 value = error,
