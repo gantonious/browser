@@ -82,5 +82,33 @@ object StringPrototype : JavascriptObject() {
 
             JavascriptValue.String(stringObject.value.replace(Regex(patternToMatch), valueToReplace))
         }
+
+        setNonEnumerableNativeFunction("split") { executionContext ->
+            val stringObject = executionContext.thisBinding as? StringObject
+                ?: return@setNonEnumerableNativeFunction JavascriptValue.Undefined
+
+            val patternToMatch = when (val textToMatch = executionContext.arguments.first()) {
+                is JavascriptValue.Object -> {
+                    when (val objectValue = textToMatch.value) {
+                        is StringObject -> objectValue.value
+                        is JavascriptRegex -> objectValue.regex
+                        else -> objectValue.toString()
+                    }
+                }
+                else -> textToMatch.toString()
+            }
+
+            val limit = if (executionContext.arguments.size >= 2) {
+                executionContext.arguments[1].coerceToNumber().toInt()
+            } else {
+                0
+            }
+
+            JavascriptValue.Object(
+                JavascriptArray(
+                    stringObject.value.split(Regex(patternToMatch), limit).map { JavascriptValue.String(it) }
+                )
+            )
+        }
     }
 }
