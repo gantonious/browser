@@ -6,6 +6,7 @@ import ca.antonious.browser.libraries.javascript.ast.JavascriptStatement
 import ca.antonious.browser.libraries.javascript.ast.JavascriptValue
 import ca.antonious.browser.libraries.javascript.interpreter.builtins.`object`.ObjectConstructor
 import ca.antonious.browser.libraries.javascript.interpreter.builtins.array.JavascriptArray
+import ca.antonious.browser.libraries.javascript.interpreter.builtins.date.DateConstructor
 import ca.antonious.browser.libraries.javascript.interpreter.builtins.function.*
 import ca.antonious.browser.libraries.javascript.interpreter.builtins.number.NumberConstructor
 import ca.antonious.browser.libraries.javascript.interpreter.builtins.number.NumberObject
@@ -25,6 +26,7 @@ class JavascriptInterpreter {
         setNonEnumerableProperty("String", JavascriptValue.Object(StringConstructor()))
         setNonEnumerableProperty("Number", JavascriptValue.Object(NumberConstructor()))
         setNonEnumerableProperty("RegExp", JavascriptValue.Object(RegExpConstructor()))
+        setNonEnumerableProperty("Date", JavascriptValue.Object(DateConstructor()))
 
         setNonEnumerableNativeFunction("getInput") { executionContext ->
             val inputText = executionContext.arguments.firstOrNull() as? JavascriptValue.String
