@@ -715,10 +715,18 @@ class JavascriptInterpreter {
                                     else -> JavascriptValue.Object(objectThis)
                                 }.toReference()
                             }
-                            else -> error("TypeError: Value is not a constructor")
+                            else -> {
+                                val constructorDescription = describeFunctionTarget(statement.function.expression)
+                                throwError(JavascriptValue.String("TypeError: $constructorDescription is not a constructor"))
+                                JavascriptReference.Undefined
+                            }
                         }
                     }
-                    else -> error("TypeError: Value is not a constructor")
+                    else -> {
+                        val constructorDescription = describeFunctionTarget(statement.function.expression)
+                        throwError(JavascriptValue.String("TypeError: $constructorDescription is not a constructor"))
+                        JavascriptReference.Undefined
+                    }
                 }
             }
         }
