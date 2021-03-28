@@ -184,9 +184,17 @@ class JavascriptInterpreter {
 
                 return when (val objectToCall = (valueToCall as? JavascriptValue.Object)?.value) {
                     is FunctionObject -> {
+                        val arguments = statement.parameters.map {
+                            interpretPrimitiveValueOf(it).also {
+                                if (hasControlFlowInterrupted()) {
+                                    return JavascriptReference.Undefined
+                                }
+                            }
+                        }
+
                         val nativeExecutionContext = NativeExecutionContext(
                             callLocation = statement.sourceInfo,
-                            arguments = statement.parameters.map { interpretPrimitiveValueOf(it) },
+                            arguments = arguments,
                             thisBinding = thisBinding,
                             interpreter = this
                         )
@@ -682,10 +690,18 @@ class JavascriptInterpreter {
                     is JavascriptValue.Object -> {
                         when (val constructor = value.value) {
                             is FunctionObject -> {
+                                val arguments = statement.function.parameters.map {
+                                    interpretPrimitiveValueOf(it).also {
+                                        if (hasControlFlowInterrupted()) {
+                                            return JavascriptReference.Undefined
+                                        }
+                                    }
+                                }
+
                                 val objectThis = JavascriptObject(prototype = constructor.functionPrototype)
                                 val nativeExecutionContext = NativeExecutionContext(
                                     callLocation = statement.sourceInfo,
-                                    arguments = statement.function.parameters.map { interpretPrimitiveValueOf(it) },
+                                    arguments = arguments,
                                     thisBinding = objectThis,
                                     interpreter = this
                                 )
