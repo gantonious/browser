@@ -1,8 +1,8 @@
 package ca.antonious.browser.libraries.javascript.ast
 
-import ca.antonious.browser.libraries.javascript.interpreter.JavascriptFunction
+import ca.antonious.browser.libraries.javascript.interpreter.builtins.function.JavascriptFunction
 import ca.antonious.browser.libraries.javascript.interpreter.JavascriptObject
-import ca.antonious.browser.libraries.javascript.interpreter.NativeFunction
+import ca.antonious.browser.libraries.javascript.interpreter.builtins.function.NativeFunction
 import ca.antonious.browser.libraries.javascript.lexer.JavascriptTokenType
 import ca.antonious.browser.libraries.javascript.lexer.SourceInfo
 

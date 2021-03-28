@@ -13,7 +13,7 @@ import ca.antonious.browser.libraries.javascript.ast.JavascriptValue
 import ca.antonious.browser.libraries.javascript.interpreter.JavascriptInterpreter
 import ca.antonious.browser.libraries.javascript.interpreter.JavascriptObject
 import ca.antonious.browser.libraries.javascript.interpreter.builtins.array.JavascriptArray
-import ca.antonious.browser.libraries.javascript.interpreter.setNonEnumerableNativeFunction
+import ca.antonious.browser.libraries.javascript.interpreter.builtins.function.setNonEnumerableNativeFunction
 import ca.antonious.browser.libraries.layout.builtins.BlockNode
 import ca.antonious.browser.libraries.layout.core.Key
 import ca.antonious.browser.libraries.web.javascript.JavascriptHtmlElement

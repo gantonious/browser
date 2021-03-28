@@ -4,7 +4,7 @@ import ca.antonious.browser.libraries.javascript.ast.JavascriptValue
 import ca.antonious.browser.libraries.javascript.interpreter.JavascriptObject
 import ca.antonious.browser.libraries.javascript.interpreter.builtins.number.NumberObject
 import ca.antonious.browser.libraries.javascript.interpreter.builtins.string.StringObject
-import ca.antonious.browser.libraries.javascript.interpreter.setNonEnumerableNativeFunction
+import ca.antonious.browser.libraries.javascript.interpreter.builtins.function.setNonEnumerableNativeFunction
 
 object ObjectPrototype : JavascriptObject(prototype = null) {
     init {

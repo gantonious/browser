@@ -1,7 +1,7 @@
 package ca.antonious.browser.libraries.javascript.interpreter.builtins.string
 
 import ca.antonious.browser.libraries.javascript.ast.JavascriptValue
-import ca.antonious.browser.libraries.javascript.interpreter.NativeFunction
+import ca.antonious.browser.libraries.javascript.interpreter.builtins.function.NativeFunction
 
 class StringConstructor : NativeFunction(
     functionPrototype = StringPrototype,

@@ -2,7 +2,7 @@ package ca.antonious.browser.libraries.javascript.interpreter.builtins.array
 
 import ca.antonious.browser.libraries.javascript.ast.JavascriptValue
 import ca.antonious.browser.libraries.javascript.interpreter.JavascriptObject
-import ca.antonious.browser.libraries.javascript.interpreter.NativeFunction
+import ca.antonious.browser.libraries.javascript.interpreter.builtins.function.NativeFunction
 
 class JavascriptArray(initialValues: List<JavascriptValue> = emptyList()) : JavascriptObject() {
     private val array = initialValues.toMutableList()

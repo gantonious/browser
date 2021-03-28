@@ -6,6 +6,7 @@ import ca.antonious.browser.libraries.javascript.ast.JavascriptStatement
 import ca.antonious.browser.libraries.javascript.ast.JavascriptValue
 import ca.antonious.browser.libraries.javascript.interpreter.builtins.`object`.ObjectConstructor
 import ca.antonious.browser.libraries.javascript.interpreter.builtins.array.JavascriptArray
+import ca.antonious.browser.libraries.javascript.interpreter.builtins.function.*
 import ca.antonious.browser.libraries.javascript.interpreter.builtins.number.NumberConstructor
 import ca.antonious.browser.libraries.javascript.interpreter.builtins.number.NumberObject
 import ca.antonious.browser.libraries.javascript.interpreter.builtins.string.StringConstructor
@@ -182,28 +183,21 @@ class JavascriptInterpreter {
                 }
 
                 return when (val objectToCall = (valueToCall as? JavascriptValue.Object)?.value) {
-                    is JavascriptFunction -> {
-                        enterFunction(
-                            sourceInfo = statement.sourceInfo,
-                            functionName = objectToCall.name,
-                            parameterNames = objectToCall.parameterNames,
-                            passedParameters = statement.parameters,
-                            parentScope = objectToCall.parentScope,
-                            thisBinding = thisBinding
-                        )
-                        interpret(objectToCall.body)
-                        exitFunction()
-
-                        maybeConsumeControlFlowInterrupt<ControlFlowInterruption.Return>()?.value ?: JavascriptValue.Undefined
-                    }
-                    is NativeFunction -> {
+                    is FunctionObject -> {
                         val nativeExecutionContext = NativeExecutionContext(
+                            callLocation = statement.sourceInfo,
                             arguments = statement.parameters.map { interpretPrimitiveValueOf(it) },
                             thisBinding = thisBinding,
                             interpreter = this
                         )
 
-                        objectToCall.body.invoke(nativeExecutionContext)
+                        val returnValue = objectToCall.call(nativeExecutionContext)
+
+                        if (hasControlFlowInterrupted()) {
+                            JavascriptValue.Undefined
+                        } else {
+                            returnValue
+                        }
                     }
                     else -> {
                         throwError(JavascriptValue.String("TypeError: '$valueToCall' is not a function"))
@@ -481,8 +475,7 @@ class JavascriptInterpreter {
 
                         val prototypeToFind = when (val value = interpret(statement.rhs)) {
                             is JavascriptValue.Object -> when (val constructor = value.value) {
-                                is JavascriptFunction -> constructor.functionPrototype
-                                is NativeFunction -> constructor.functionPrototype
+                                is FunctionObject -> constructor.functionPrototype
                                 else -> {
                                     throwError(JavascriptValue.String("TypeError: Right-hand side of 'instanceof' is not callable"))
                                     return JavascriptReference.Undefined
@@ -688,45 +681,21 @@ class JavascriptInterpreter {
                 return when (val value = interpret(statement.function.expression)) {
                     is JavascriptValue.Object -> {
                         when (val constructor = value.value) {
-                            is JavascriptFunction -> {
-                                val objectThis = JavascriptObject(prototype = constructor.functionPrototype)
-
-                                enterFunction(
-                                    sourceInfo = statement.sourceInfo,
-                                    functionName = constructor.name,
-                                    parameterNames = constructor.parameterNames,
-                                    passedParameters = statement.function.parameters,
-                                    parentScope = constructor.parentScope,
-                                    thisBinding = objectThis
-                                )
-
-                                interpret(constructor.body)
-
-                                exitFunction()
-
-                                val returnValue = maybeConsumeControlFlowInterrupt<ControlFlowInterruption.Return>()
-                                    ?: JavascriptValue.Undefined
-
-                                if (returnValue is JavascriptValue.Object) {
-                                    returnValue
-                                } else {
-                                    JavascriptValue.Object(objectThis)
-                                }.toReference()
-                            }
-                            is NativeFunction -> {
+                            is FunctionObject -> {
                                 val objectThis = JavascriptObject(prototype = constructor.functionPrototype)
                                 val nativeExecutionContext = NativeExecutionContext(
+                                    callLocation = statement.sourceInfo,
                                     arguments = statement.function.parameters.map { interpretPrimitiveValueOf(it) },
                                     thisBinding = objectThis,
                                     interpreter = this
                                 )
 
-                                val returnValue = constructor.body.invoke(nativeExecutionContext)
+                                val returnValue = constructor.call(nativeExecutionContext)
 
-                                if (returnValue is JavascriptValue.Object) {
-                                    returnValue
-                                } else {
-                                    JavascriptValue.Object(objectThis)
+                                when {
+                                    hasControlFlowInterrupted() -> JavascriptValue.Undefined
+                                    returnValue is JavascriptValue.Object -> returnValue
+                                    else -> JavascriptValue.Object(objectThis)
                                 }.toReference()
                             }
                             else -> error("TypeError: Value is not a constructor")
@@ -799,26 +768,45 @@ class JavascriptInterpreter {
         return valueToAssign.toReference()
     }
 
+    fun interpretFunction(
+        callLocation: SourceInfo,
+        arguments: List<JavascriptValue>,
+        thisBinding: JavascriptObject,
+        javascriptFunction: JavascriptFunction
+    ): JavascriptValue {
+        enterFunction(
+            sourceInfo = callLocation,
+            passedParameters = arguments,
+            thisBinding = thisBinding,
+            functionName = javascriptFunction.name,
+            parameterNames = javascriptFunction.parameterNames,
+            parentScope = javascriptFunction.parentScope
+        )
+
+        interpret(javascriptFunction.body)
+
+        exitFunction()
+
+        return maybeConsumeControlFlowInterrupt<ControlFlowInterruption.Return>()?.value ?: JavascriptValue.Undefined
+    }
+
     private fun enterFunction(
         sourceInfo: SourceInfo,
         functionName: String,
         parameterNames: List<String>,
-        passedParameters: List<JavascriptExpression>,
+        passedParameters: List<JavascriptValue>,
         parentScope: JavascriptScope,
         thisBinding: JavascriptObject? = null
     ) {
-        val interpretedParameters = passedParameters.map { interpret(it) }
         val functionScope = JavascriptScope(
             thisBinding = thisBinding ?: parentScope.thisBinding,
             scopeObject = JavascriptObject().apply {
-                setProperty("arguments", JavascriptValue.Object(JavascriptArray(interpretedParameters)))
+                setProperty("arguments", JavascriptValue.Object(JavascriptArray(passedParameters)))
 
                 parameterNames.forEachIndexed { index, parameterName ->
                     setProperty(
                         parameterName,
-                        interpretedParameters.getOrElse(index) {
-                            JavascriptValue.Undefined
-                        }
+                        passedParameters.getOrElse(index) { JavascriptValue.Undefined }
                     )
                 }
             },
