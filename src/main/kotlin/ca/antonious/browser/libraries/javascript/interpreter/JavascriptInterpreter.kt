@@ -208,7 +208,8 @@ class JavascriptInterpreter {
                         }
                     }
                     else -> {
-                        throwError(JavascriptValue.String("TypeError: '$valueToCall' is not a function"))
+                        val functionTargetDescription = describeFunctionTarget(statement.expression)
+                        throwError(JavascriptValue.String("TypeError: $functionTargetDescription is not a function"))
                         JavascriptValue.Undefined
                     }
                 }.toReference()
@@ -846,6 +847,17 @@ class JavascriptInterpreter {
 
     private fun exitFunction() {
         stack.pop()
+    }
+
+    private fun describeFunctionTarget(target: JavascriptExpression): String {
+        return when (target) {
+            is JavascriptExpression.DotAccess -> "${describeFunctionTarget(target.expression)}.${target.propertyName}"
+            is JavascriptExpression.Reference -> target.name
+            else -> when (val value = interpret(target)) {
+                is JavascriptValue.String -> "\"${value.toString()}\""
+                else -> value.toString()
+            }
+        }
     }
 
     private fun enterScope(
