@@ -7,7 +7,7 @@ abstract class FunctionObject(
     functionPrototype: JavascriptObject = JavascriptObject()
 ) : JavascriptObject(prototype = FunctionPrototype) {
 
-    var boundThis: JavascriptObject? = null
+    open var boundThis: JavascriptObject? = null
 
     val functionPrototype: JavascriptObject
         get() {

@@ -47,5 +47,16 @@ object FunctionPrototype : JavascriptObject() {
 
             functionObject.call(applyExecutionContext)
         }
+
+        setNonEnumerableNativeFunction("bind") { executionContext ->
+            val functionObject = executionContext.thisBinding as? FunctionObject
+                ?: return@setNonEnumerableNativeFunction JavascriptValue.Undefined
+
+            val boundThis = executionContext.interpreter.interpretAsObject(executionContext.arguments.first())
+
+            JavascriptValue.Object(
+                BoundFunction(boundThis = functionObject.boundThis ?: boundThis, wrappedFunction = functionObject)
+            )
+        }
     }
 }
