@@ -67,10 +67,15 @@ function test(name, tests) {
       runTime: new Date() - testStartTime,
     });
   } catch (error) {
+    const errorMessage =
+      error instanceof AssertionError
+        ? error.reason
+        : "Unexpected error: " + error;
+
     __testContext.results.push({
       status: "fail",
       testName: name,
-      message: error.reason || error + "",
+      message: errorMessage,
       runTime: new Date() - testStartTime,
     });
   }

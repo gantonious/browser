@@ -36,30 +36,44 @@ private fun JavascriptValue.toTestResults(): List<TestResult> {
 }
 
 private fun printTestResults(testResults: List<TestResult>) {
-    val passedTests = testResults.filter { it.passed }
     val failedTests = testResults.filterNot { it.passed }
     val passCount = testResults.size - failedTests.size
 
-    passedTests.forEach { pass ->
-        println("${" PASS ".greenBackground()} ${pass.name} (${pass.runtime}ms)")
-    }
-
-    failedTests.forEach { failure ->
-        println("${" FAIL ".redBackground()} ${failure.name} (${failure.runtime}ms)")
-        val failureLines = "       " + (failure.failureMessage ?: "").split("\\n").joinToString("\n       ")
-        println(failureLines)
-    }
-
-    println()
-    print("Tests: ")
-    
-    if (passCount > 0) {
-        print("$passCount passed ".green())
+    testResults.forEach { result ->
+        if (result.passed) {
+            println("${" PASS ".greenBackground()} ${result.name} (${result.runtime}ms)")
+        } else {
+            println("${" FAIL ".redBackground()} ${result.name} (${result.runtime}ms)")
+        }
     }
 
     if (failedTests.isNotEmpty()) {
-        print("${failedTests.size} failed".red())
+        println()
+        println("Failures:\n")
+
+        failedTests.forEach { result ->
+            println("${" FAIL ".redBackground()} ${result.name} (${result.runtime}ms)")
+            val failureLines = "       " + (result.failureMessage ?: "").split("\\n").joinToString("\n       ")
+            println(failureLines)
+        }
     }
+
+    println()
+    println("Runtime: ${testResults.sumBy { it.runtime.toInt() }}ms")
+    print("Results: ")
+
+    val summaryText = mutableListOf<String>()
+    if (passCount > 0) {
+        summaryText += "$passCount passed".green()
+    }
+
+    if (failedTests.isNotEmpty()) {
+        summaryText += "${failedTests.size} failed".red()
+    }
+
+    summaryText += "${testResults.size} total"
+
+    println(summaryText.joinToString(", "))
 
     println()
 }
