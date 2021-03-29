@@ -92,7 +92,18 @@ sealed class JavascriptExpression : JavascriptStatement() {
         val isPrefix: Boolean
     ) : JavascriptExpression()
 
-    data class AnonymousFunction(override val sourceInfo: SourceInfo, val name: String?, val parameterNames: List<String>, val body: Block) : JavascriptExpression()
+    data class AnonymousFunction(
+        override val sourceInfo: SourceInfo,
+        val name: String?,
+        val parameterNames: List<String>,
+        val body: Block
+    ) : JavascriptExpression()
+
+    data class ArrowFunction(
+        override val sourceInfo: SourceInfo,
+        val parameterNames: List<String>,
+        val body: JavascriptStatement
+    ) : JavascriptExpression()
 }
 
 sealed class JavascriptValue {

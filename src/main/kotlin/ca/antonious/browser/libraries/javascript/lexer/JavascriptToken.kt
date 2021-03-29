@@ -7,6 +7,7 @@ sealed class JavascriptTokenType {
     object Colon : JavascriptTokenType()
     object SemiColon : JavascriptTokenType()
     object QuestionMark : JavascriptTokenType()
+    object Arrow : JavascriptTokenType()
     object OpenParentheses : JavascriptTokenType()
     object CloseParentheses : JavascriptTokenType()
     object OpenCurlyBracket : JavascriptTokenType()

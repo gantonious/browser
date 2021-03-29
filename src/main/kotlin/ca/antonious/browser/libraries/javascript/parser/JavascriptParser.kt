@@ -294,7 +294,7 @@ class JavascriptParser(
             return expectCStyleForLoop(sourceInfo = sourceInfo, initializerStatement = null)
         }
 
-        checkpoint()
+        val savedCursorPosition = cursor
         val forExpression = expectStatement()
 
         if (forExpression is JavascriptExpression.BinaryOperation && forExpression.operator is JavascriptTokenType.In) {
@@ -307,7 +307,7 @@ class JavascriptParser(
             )
         }
 
-        revertToCheckpoint()
+        cursor = savedCursorPosition
 
         val initializerStatement = expectStatement()
 
@@ -371,6 +371,13 @@ class JavascriptParser(
             getCurrentToken() is JavascriptTokenType.OpenCurlyBracket -> expectBlock()
             getCurrentToken() is JavascriptTokenType.SemiColon -> null
             else -> expectStatement().also { maybeConsumeLineTerminator() }
+        }
+    }
+
+    private fun expectBlockOrExpression(): JavascriptStatement {
+        return when {
+            getCurrentToken() is JavascriptTokenType.OpenCurlyBracket -> expectBlock()
+            else -> expectExpression()
         }
     }
 
@@ -912,10 +919,47 @@ class JavascriptParser(
     }
 
     private fun expectGroupExpression(): JavascriptExpression {
+        val savedCursorPosition = cursor
         expectToken<JavascriptTokenType.OpenParentheses>()
+
+        if (getCurrentToken() is JavascriptTokenType.CloseParentheses) {
+            cursor = savedCursorPosition
+            return expectArrowFunction()
+        }
+
         val expression = expectExpression()
         expectToken<JavascriptTokenType.CloseParentheses>()
-        return expression
+
+        return if (maybeGetCurrentToken() is JavascriptTokenType.Arrow) {
+            cursor = savedCursorPosition
+            expectArrowFunction()
+        } else {
+            expression
+        }
+    }
+
+    private fun expectArrowFunction(): JavascriptExpression {
+        val sourceInfo = expectSourceInfo<JavascriptTokenType.OpenParentheses>()
+
+        val parameterNames = mutableListOf<JavascriptTokenType.Identifier>()
+
+        if (getCurrentToken() !is JavascriptTokenType.CloseParentheses) {
+            parameterNames += expectToken<JavascriptTokenType.Identifier>()
+
+            while (getCurrentToken() !is JavascriptTokenType.CloseParentheses) {
+                expectToken<JavascriptTokenType.Comma>()
+                parameterNames += expectToken<JavascriptTokenType.Identifier>()
+            }
+        }
+
+        expectToken<JavascriptTokenType.CloseParentheses>()
+        expectToken<JavascriptTokenType.Arrow>()
+
+        return JavascriptExpression.ArrowFunction(
+            sourceInfo = sourceInfo,
+            parameterNames = parameterNames.map { it.name },
+            body = expectBlockOrExpression()
+        )
     }
 
     private fun expectAnonymousFunctionExpression(): JavascriptExpression {
@@ -1018,14 +1062,6 @@ class JavascriptParser(
 
     private fun isAtEnd(): Boolean {
         return cursor >= tokens.size
-    }
-
-    private fun checkpoint() {
-        savedCursor = cursor
-    }
-
-    private fun revertToCheckpoint() {
-        cursor = savedCursor
     }
 
     private fun JavascriptExpression.convertToRightToLeftAssociativity(): JavascriptExpression {

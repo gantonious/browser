@@ -81,7 +81,8 @@ class JavascriptLexer(
             "==" to JavascriptTokenType.Operator.Equals,
             "!=" to JavascriptTokenType.Operator.NotEquals,
             "<<" to JavascriptTokenType.Operator.LeftShift,
-            ">>" to JavascriptTokenType.Operator.RightShift
+            ">>" to JavascriptTokenType.Operator.RightShift,
+            "=>" to JavascriptTokenType.Arrow
         )
 
         private val threeCharTokenMap = mapOf(

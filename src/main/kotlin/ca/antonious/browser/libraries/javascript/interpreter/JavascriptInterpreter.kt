@@ -204,7 +204,7 @@ class JavascriptInterpreter {
                         val nativeExecutionContext = NativeExecutionContext(
                             callLocation = statement.sourceInfo,
                             arguments = arguments,
-                            thisBinding = thisBinding,
+                            thisBinding = objectToCall.boundThis ?: thisBinding,
                             interpreter = this
                         )
 
@@ -693,6 +693,31 @@ class JavascriptInterpreter {
                         body = statement.body,
                         parentScope = currentScope
                     )
+                ).toReference()
+            }
+            is JavascriptExpression.ArrowFunction -> {
+                return JavascriptValue.Object(
+                    JavascriptFunction(
+                        name = "anonymous",
+                        parameterNames = statement.parameterNames,
+                        body = if (statement.body is JavascriptStatement.Block) {
+                            statement.body
+                        } else {
+                            val expression = statement.body as JavascriptExpression
+                            JavascriptStatement.Block(
+                                sourceInfo = expression.sourceInfo,
+                                body = listOf(
+                                    JavascriptStatement.Return(
+                                        sourceInfo = expression.sourceInfo,
+                                        expression = expression
+                                    )
+                                )
+                            )
+                        },
+                        parentScope = currentScope
+                    ).apply {
+                        boundThis = stack.peek().scope.thisBinding
+                    }
                 ).toReference()
             }
             is JavascriptExpression.NewCall -> {

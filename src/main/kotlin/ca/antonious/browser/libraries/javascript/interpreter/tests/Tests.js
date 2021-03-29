@@ -1,4 +1,4 @@
-test("Test addition", function () {
+test("Test addition", () => {
     function CustomFunction() { }
     function CustomValueOf() { }
     CustomValueOf.prototype.valueOf = function() { return 2 };

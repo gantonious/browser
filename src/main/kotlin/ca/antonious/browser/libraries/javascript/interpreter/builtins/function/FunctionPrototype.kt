@@ -14,7 +14,7 @@ object FunctionPrototype : JavascriptObject() {
             val argumentsArray =executionContext.arguments.drop(1)
 
             val callExecutionContext = executionContext.copy(
-                thisBinding = thisBindingOverride,
+                thisBinding = functionObject.boundThis ?: thisBindingOverride,
                 arguments = argumentsArray,
             )
 
@@ -41,7 +41,7 @@ object FunctionPrototype : JavascriptObject() {
             }
 
             val applyExecutionContext = executionContext.copy(
-                thisBinding = thisBindingOverride,
+                thisBinding = functionObject.boundThis ?: thisBindingOverride,
                 arguments = argumentsArray.array,
             )
 
