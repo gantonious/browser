@@ -172,8 +172,11 @@ class JavascriptInterpreter {
                     JavascriptValue.Undefined
                 }
 
-                interruptControlFlowWith(ControlFlowInterruption.Return(value))
+                if (hasControlFlowInterrupted()) {
+                    return JavascriptReference.Undefined
+                }
 
+                interruptControlFlowWith(ControlFlowInterruption.Return(value))
                 return JavascriptReference.Undefined
             }
             is JavascriptStatement.Throw -> {
