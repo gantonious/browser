@@ -16,7 +16,7 @@ fun main() {
         }
 
         try {
-            val tokens = JavascriptLexer(lineToExecute).lex()
+            val tokens = JavascriptLexer(lineToExecute, sourceFilename = "REPL").lex()
             val program = JavascriptParser(tokens, lineToExecute).parse()
             println(
                 when (val value = interpreter.interpret(program)) {
