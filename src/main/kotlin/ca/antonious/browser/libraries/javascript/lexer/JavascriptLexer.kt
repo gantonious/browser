@@ -133,6 +133,20 @@ class JavascriptLexer(
                     pushToken(JavascriptTokenType.String(source.substring(stringStart, cursor)))
                     advanceCursor()
                 }
+                currentChar == '/' && peekNextChar() == '/' -> {
+                    while (!isAtEnd() && getCurrentChar() != '\n') {
+                        advanceCursor()
+                    }
+                }
+                currentChar == '/' && peekNextChar() == '*' -> {
+                    advanceCursor()
+                    advanceCursor()
+
+                    while (!isAtEnd() && !(peekLastChar() == '*' && getCurrentChar() == '/')) {
+                        advanceCursor()
+                    }
+                    advanceCursor()
+                }
                 currentChar == '/' && canEnterRegexGoal() -> {
                     advanceCursor()
                     val regexStart = cursor
