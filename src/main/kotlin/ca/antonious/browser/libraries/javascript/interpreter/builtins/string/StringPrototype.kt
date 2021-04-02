@@ -110,5 +110,14 @@ object StringPrototype : JavascriptObject() {
                 )
             )
         }
+
+        setNonEnumerableNativeFunction("concat") { executionContext ->
+            val stringObject = executionContext.thisBinding as? StringObject
+                ?: return@setNonEnumerableNativeFunction JavascriptValue.Undefined
+
+            val stringsToConcat = executionContext.arguments.map { it.toString() }
+
+            JavascriptValue.String(value = (listOf(stringObject.value) + stringsToConcat).joinToString())
+        }
     }
 }
