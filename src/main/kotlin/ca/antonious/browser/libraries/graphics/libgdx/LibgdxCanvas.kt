@@ -1,12 +1,11 @@
 package ca.antonious.browser.libraries.graphics.libgdx
 
-import ca.antonious.browser.libraries.graphics.core.Canvas
-import ca.antonious.browser.libraries.graphics.core.Font
-import ca.antonious.browser.libraries.graphics.core.Paint
-import ca.antonious.browser.libraries.graphics.core.Rect
+import ca.antonious.browser.libraries.graphics.core.*
 
-class LibgdxCanvas : Canvas {
+class LibgdxCanvas(override val size: Size) : Canvas {
     val drawCalls = mutableListOf<LibgdxDrawCall>()
+
+    override val globalCanvas = this
 
     override fun drawRect(rect: Rect, paint: Paint) {
         drawCalls += LibgdxDrawCall.DrawRect(rect, paint)

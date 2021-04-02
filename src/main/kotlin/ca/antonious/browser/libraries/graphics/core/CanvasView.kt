@@ -5,6 +5,9 @@ class CanvasView(
     private val bounds: Rect
 ) : Canvas {
 
+    override val globalCanvas = backingCanvas.globalCanvas
+    override val size = Size(bounds.width, bounds.height)
+
     override fun drawRect(rect: Rect, paint: Paint) {
         backingCanvas.drawRect(Rect(rect.x + bounds.x, rect.y + bounds.y, rect.width, rect.height), paint)
     }

@@ -214,10 +214,19 @@ class DOMParentLayoutNode(
             frame.width - marginInsets.start - marginInsets.end,
             frame.height - marginInsets.top - marginInsets.bottom
         )
-        canvas.drawRect(
-            drawRect,
-            Paint(color = resolvedStyle.backgroundColor)
-        )
+
+        if (htmlNode.name == "body") {
+            canvas.globalCanvas.drawRect(
+                canvas.globalCanvas.size.toRect(),
+                Paint(color = resolvedStyle.backgroundColor)
+            )
+        } else {
+            canvas.drawRect(
+                drawRect,
+                Paint(color = resolvedStyle.backgroundColor)
+            )
+        }
+
         children.forEach {
             it.drawTo(
                 canvas.subRegion(it.frame.copy(
@@ -248,4 +257,8 @@ class DOMParentLayoutNode(
             }
         }
     }
+}
+
+private fun Size.toRect(): Rect {
+    return Rect(0f, 0f, width, height)
 }

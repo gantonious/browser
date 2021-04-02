@@ -55,6 +55,9 @@ class CssAttributeParser {
             "background-color" -> {
                 attributes += CssAttribute.BackgroundColor(color = attributeValue.toColor())
             }
+            "background" -> {
+                attributes += CssAttribute.BackgroundColor(color = attributeValue.toColor())
+            }
             "color" -> {
                 attributes += CssAttribute.Color(color = attributeValue.toColor())
             }

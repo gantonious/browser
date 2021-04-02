@@ -1,6 +1,7 @@
 package ca.antonious.browser.libraries.layout.libgdx
 
 import ca.antonious.browser.libraries.graphics.core.Point
+import ca.antonious.browser.libraries.graphics.core.Size
 import ca.antonious.browser.libraries.graphics.libgdx.LibgdxCanvas
 import ca.antonious.browser.libraries.graphics.libgdx.LibgdxDrawCall
 import ca.antonious.browser.libraries.graphics.libgdx.LibgdxFontProvider
@@ -78,7 +79,7 @@ private class LibgdxLayoutRunnerApplication(val rootNode: LayoutNode) : Applicat
             heightConstraint = camera.viewportHeight
         )
 
-        val canvas = LibgdxCanvas()
+        val canvas = LibgdxCanvas(Size(camera.viewportWidth, camera.viewportHeight))
         rootNode.drawTo(canvas)
 
         shapeRenderer.begin(ShapeRenderer.ShapeType.Filled)
