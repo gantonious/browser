@@ -184,10 +184,18 @@ class JavascriptInterpreter {
                 val (valueToCall, thisBinding) = when (statement.expression) {
                     is JavascriptExpression.DotAccess -> {
                         val objectToInvoke = interpretAsObject(statement.expression.expression)
+                        if (hasControlFlowInterrupted()) {
+                            return JavascriptReference.Undefined
+                        }
+
                         objectToInvoke.getProperty(statement.expression.propertyName) to objectToInvoke
                     }
                     else -> {
-                        interpret(statement.expression) to currentScope.thisBinding
+                        val valueToCallAndThisBinding = interpret(statement.expression) to currentScope.thisBinding
+                        if (hasControlFlowInterrupted()) {
+                            return JavascriptReference.Undefined
+                        }
+                        valueToCallAndThisBinding
                     }
                 }
 
