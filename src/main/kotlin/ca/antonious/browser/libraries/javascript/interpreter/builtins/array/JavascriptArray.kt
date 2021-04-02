@@ -25,6 +25,19 @@ class JavascriptArray(initialValues: List<JavascriptValue> = emptyList()) : Java
                     }
                 }
             )
+            "sort" -> JavascriptValue.Object(
+                value = NativeFunction {
+                    array.sortBy { it.coerceToNumber() }
+                    JavascriptValue.Object(this)
+                }
+            )
+            "join" -> JavascriptValue.Object(
+                value = NativeFunction { executionContext ->
+                    val separator = executionContext.arguments.first().toString()
+                    array.sortBy { it.coerceToNumber() }
+                    JavascriptValue.String(array.joinToString(separator))
+                }
+            )
             else -> {
                 val keyAsNumber = key.toDoubleOrNull()?.toInt()
 
