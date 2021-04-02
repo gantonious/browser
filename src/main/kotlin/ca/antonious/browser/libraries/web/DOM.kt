@@ -2,6 +2,7 @@ package ca.antonious.browser.libraries.web
 
 import ca.antonious.browser.libraries.css.CssAttributeParser
 import ca.antonious.browser.libraries.css.CssParser
+import ca.antonious.browser.libraries.graphics.images.ImageLoader
 import ca.antonious.browser.libraries.html.HtmlElement
 import ca.antonious.browser.libraries.html.HtmlParser
 import ca.antonious.browser.libraries.http.HttpClient
@@ -17,6 +18,7 @@ import ca.antonious.browser.libraries.javascript.interpreter.builtins.function.s
 import ca.antonious.browser.libraries.layout.builtins.BlockNode
 import ca.antonious.browser.libraries.layout.core.Key
 import ca.antonious.browser.libraries.web.javascript.JavascriptHtmlElement
+import ca.antonious.browser.libraries.web.layout.DOMImageNode
 import ca.antonious.browser.libraries.web.layout.DOMLayoutNode
 import ca.antonious.browser.libraries.web.layout.DOMParentLayoutNode
 import ca.antonious.browser.libraries.web.layout.DOMTextNode
@@ -31,6 +33,7 @@ class DOM {
 
     private val htmlParser = HtmlParser()
     private val cssParser = CssParser()
+    private val imageLoader = ImageLoader()
 
     private val javascriptInterpreter = JavascriptInterpreter().apply {
         val documentObject = JavascriptValue.Object(
@@ -144,6 +147,16 @@ class DOM {
                 is HtmlElement.Node -> {
                     when (htmlElement.name) {
                         "head" -> processHead(htmlElement)
+                        "img" -> {
+                            val layoutNode = DOMImageNode(
+                                parent = parent,
+                                imgNode = htmlElement,
+                                resolvedUrl = resolveUrl(htmlElement.attributes["src"] ?: "").toString(),
+                                imageLoader = imageLoader
+                            )
+
+                            layoutTree += layoutNode
+                        }
                         else -> {
                             val layoutNode = DOMParentLayoutNode(
                                 parent = parent,

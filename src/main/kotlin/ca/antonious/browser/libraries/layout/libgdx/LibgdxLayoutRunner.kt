@@ -14,9 +14,7 @@ import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.InputProcessor
 import com.badlogic.gdx.backends.lwjgl.LwjglApplication
 import com.badlogic.gdx.backends.lwjgl.LwjglApplicationConfiguration
-import com.badlogic.gdx.graphics.Color
-import com.badlogic.gdx.graphics.GL20
-import com.badlogic.gdx.graphics.OrthographicCamera
+import com.badlogic.gdx.graphics.*
 import com.badlogic.gdx.graphics.g2d.SpriteBatch
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer
 import com.badlogic.gdx.utils.Align
@@ -105,6 +103,28 @@ private class LibgdxLayoutRunnerApplication(val rootNode: LayoutNode) : Applicat
                 Align.left,
                 true
             )
+        }
+
+        canvas.drawCalls.filterIsInstance<LibgdxDrawCall.DrawBitmap>().forEach { drawBitmapCall ->
+            try {
+                val pixmap = Pixmap(drawBitmapCall.bitmap.bytes, 0, drawBitmapCall.bitmap.height * drawBitmapCall.bitmap.width)
+                val texture = Texture(pixmap)
+                spriteBatch.draw(
+                    texture,
+                    drawBitmapCall.x,
+                    drawBitmapCall.y,
+                    drawBitmapCall.bitmap.width.toFloat(),
+                    drawBitmapCall.bitmap.height.toFloat(),
+                    0,
+                    0,
+                    drawBitmapCall.bitmap.width,
+                    drawBitmapCall.bitmap.height,
+                    false,
+                    true
+                )
+            } catch (ex: Exception) {
+                
+            }
         }
         spriteBatch.end()
     }

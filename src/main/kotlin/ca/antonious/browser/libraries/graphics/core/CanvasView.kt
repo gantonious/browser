@@ -15,6 +15,10 @@ class CanvasView(
     override fun drawText(text: String, x: Float, y: Float, width: Float, paint: Paint, font: Font) {
         backingCanvas.drawText(text, bounds.x + x, bounds.y + y, width, paint, font)
     }
+
+    override fun drawBitmap(bitmap: Bitmap, x: Float, y: Float) {
+        backingCanvas.drawBitmap(bitmap, bounds.x + x, bounds.y + y)
+    }
 }
 
 fun Canvas.subRegion(bounds: Rect): Canvas {

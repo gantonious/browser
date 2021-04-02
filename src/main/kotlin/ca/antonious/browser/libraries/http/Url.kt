@@ -6,12 +6,21 @@ data class Uri(
     val port: Int,
     val path: String
 ) {
+
     fun uriForPath(path: String): Uri {
-        return if (path.endsWith("/")) {
-            copy(path = "${this.path.removeSuffix("/")}/${path.removePrefix("/")}")
-        } else {
-            copy(path = "${this.path}/${path.removePrefix("/")}")
+        return when {
+            path.startsWith("http") -> path.toUri()
+            path.endsWith("/") -> {
+                copy(path = "${this.path.removeSuffix("/")}/${path.removePrefix("/")}")
+            }
+            else -> {
+                copy(path = "${this.path}/${path.removePrefix("/")}")
+            }
         }
+    }
+
+    override fun toString(): String {
+        return "${scheme}://$host:$port/$path"
     }
 }
 
