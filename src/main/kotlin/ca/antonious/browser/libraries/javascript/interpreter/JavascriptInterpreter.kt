@@ -894,7 +894,9 @@ class JavascriptInterpreter {
     private fun describeFunctionTarget(target: JavascriptExpression): String {
         return when (target) {
             is JavascriptExpression.DotAccess -> "${describeFunctionTarget(target.expression)}.${target.propertyName}"
+            is JavascriptExpression.IndexAccess -> "${describeFunctionTarget(target.expression)}[${describeFunctionTarget(target.expression)}]"
             is JavascriptExpression.Reference -> target.name
+            is JavascriptExpression.FunctionCall -> "${describeFunctionTarget(target.expression)}(${target.parameters.map { describeFunctionTarget(it) }.joinToString(", ")})"
             else -> when (val value = interpret(target)) {
                 is JavascriptValue.String -> "\"${value.toString()}\""
                 else -> value.toString()
