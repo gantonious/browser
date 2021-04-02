@@ -148,13 +148,19 @@ class DOM {
                     when (htmlElement.name) {
                         "head" -> processHead(htmlElement)
                         "img" -> {
-                            val layoutNode = DOMImageNode(
+                            val layoutNode = DOMParentLayoutNode(
                                 parent = parent,
+                                htmlNode = htmlElement,
+                                domEventHandler = ::handleEvent
+                            )
+                            val imageNode = DOMImageNode(
+                                parent = layoutNode,
                                 imgNode = htmlElement,
                                 resolvedUrl = resolveUrl(htmlElement.attributes["src"] ?: "").toString(),
                                 imageLoader = imageLoader
                             )
 
+                            layoutNode.setChildren(children = listOf(imageNode))
                             layoutTree += layoutNode
                         }
                         else -> {

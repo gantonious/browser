@@ -21,15 +21,15 @@ class CssAttributeParser {
 
         when (attributeName) {
             "width" -> {
-                attributes += CssAttribute.Width(size = parseSize(attributeValue))
+                attributes += CssAttribute.Width(size = attributeValue.toCssSize())
             }
             "height" -> {
-                attributes += CssAttribute.Height(size = parseSize(attributeValue))
+                attributes += CssAttribute.Height(size = attributeValue.toCssSize())
             }
             "margin" -> {
                 val marginValues = attributeValue.trim().split(" ")
                     .map { it.trim() }
-                    .map { parseSize(it) }
+                    .map { it.toCssSize() }
 
                 when (marginValues.size) {
                     1 -> {
@@ -84,6 +84,7 @@ class CssAttributeParser {
             "display" -> {
                 attributes += CssAttribute.Display(
                     displayType = when (attributeValue.trim()) {
+                        "inline",
                         "inline-block" -> CssDisplay.inlineBlock
                         "none" -> CssDisplay.none
                         else -> CssDisplay.block
@@ -99,36 +100,22 @@ class CssAttributeParser {
                 )
             }
             "font-size" -> {
-                attributes += CssAttribute.FontSize(size = parseSize(attributeValue))
+                attributes += CssAttribute.FontSize(size = attributeValue.toCssSize())
             }
             "left" -> {
-                attributes += CssAttribute.Left(size = parseSize(attributeValue))
+                attributes += CssAttribute.Left(size = attributeValue.toCssSize())
             }
             "right" -> {
-                attributes += CssAttribute.Right(size = parseSize(attributeValue))
+                attributes += CssAttribute.Right(size = attributeValue.toCssSize())
             }
             "top" -> {
-                attributes += CssAttribute.Top(size = parseSize(attributeValue))
+                attributes += CssAttribute.Top(size = attributeValue.toCssSize())
             }
             "bottom" -> {
-                attributes += CssAttribute.Bottom(size = parseSize(attributeValue))
+                attributes += CssAttribute.Bottom(size = attributeValue.toCssSize())
             }
         }
 
         return attributes
-    }
-
-    private fun parseSize(size: String): CssSize {
-        if (size.endsWith("em")) {
-            return CssSize.Em(size.replace("em", "").trim().toInt())
-        } else if (size.endsWith("px")) {
-            return CssSize.Pixel(size.replace("px", "").trim().toInt())
-        } else if (size.endsWith("%")) {
-            return CssSize.Percent(size.replace("%", "").trim().toFloat() / 100f)
-        } else if (size.toIntOrNull() != null) {
-            return CssSize.Pixel(size.toInt())
-        }
-
-        return CssSize.Auto
     }
 }

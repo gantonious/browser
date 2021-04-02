@@ -101,6 +101,14 @@ class CssStyleResolver {
             }
         }
 
+        domParentLayoutNode.htmlNode.attributes["width"]?.let {
+            resolvedStyle.width = it.toCssSize()
+        }
+
+        domParentLayoutNode.htmlNode.attributes["height"]?.let {
+            resolvedStyle.height = it.toCssSize()
+        }
+
         if (!hasModifiedWidth && resolvedStyle.positionType == CssPosition.absolute) {
             resolvedStyle.width = CssSize.Auto
         }

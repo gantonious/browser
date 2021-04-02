@@ -1,5 +1,7 @@
 package ca.antonious.browser.libraries.graphics.core
 
+import ca.antonious.browser.libraries.css.CssAttribute
+
 class CanvasView(
     private val backingCanvas: Canvas,
     private val bounds: Rect
@@ -16,8 +18,8 @@ class CanvasView(
         backingCanvas.drawText(text, bounds.x + x, bounds.y + y, width, paint, font)
     }
 
-    override fun drawBitmap(bitmap: Bitmap, x: Float, y: Float) {
-        backingCanvas.drawBitmap(bitmap, bounds.x + x, bounds.y + y)
+    override fun drawBitmap(bitmap: Bitmap, x: Float, y: Float, width: Float, height: Float) {
+        backingCanvas.drawBitmap(bitmap, bounds.x + x, bounds.y + y, width, height)
     }
 }
 

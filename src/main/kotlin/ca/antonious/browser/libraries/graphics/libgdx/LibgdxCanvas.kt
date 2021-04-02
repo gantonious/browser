@@ -15,8 +15,8 @@ class LibgdxCanvas(override val size: Size) : Canvas {
         drawCalls += LibgdxDrawCall.DrawText(text, x, y, width, paint, font)
     }
 
-    override fun drawBitmap(bitmap: Bitmap, x: Float, y: Float) {
-        drawCalls += LibgdxDrawCall.DrawBitmap(bitmap, x, y)
+    override fun drawBitmap(bitmap: Bitmap, x: Float, y: Float, width: Float, height: Float) {
+        drawCalls += LibgdxDrawCall.DrawBitmap(bitmap, x, y, width, height)
     }
 }
 
@@ -38,6 +38,8 @@ sealed class LibgdxDrawCall {
     data class DrawBitmap(
         val bitmap: Bitmap,
         val x: Float,
-        val y: Float
+        val y: Float,
+        val width: Float,
+        val height: Float
     ) : LibgdxDrawCall()
 }

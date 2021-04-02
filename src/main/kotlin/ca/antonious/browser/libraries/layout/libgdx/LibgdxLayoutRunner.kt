@@ -113,8 +113,8 @@ private class LibgdxLayoutRunnerApplication(val rootNode: LayoutNode) : Applicat
                     texture,
                     drawBitmapCall.x,
                     drawBitmapCall.y,
-                    drawBitmapCall.bitmap.width.toFloat(),
-                    drawBitmapCall.bitmap.height.toFloat(),
+                    drawBitmapCall.width,
+                    drawBitmapCall.height,
                     0,
                     0,
                     drawBitmapCall.bitmap.width,
@@ -123,7 +123,7 @@ private class LibgdxLayoutRunnerApplication(val rootNode: LayoutNode) : Applicat
                     true
                 )
             } catch (ex: Exception) {
-                
+
             }
         }
         spriteBatch.end()
