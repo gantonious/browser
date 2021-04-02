@@ -37,6 +37,7 @@ private class LibgdxLayoutRunnerApplication(val rootNode: LayoutNode) : Applicat
     private val fontProvider = LibgdxFontProvider()
 
     private val inputEventsToProcess = mutableListOf<InputEvent>()
+    private var textureCache = mutableMapOf<Int, Texture>()
 
     override fun create() {
         Gdx.input.inputProcessor = this
@@ -107,8 +108,13 @@ private class LibgdxLayoutRunnerApplication(val rootNode: LayoutNode) : Applicat
 
         canvas.drawCalls.filterIsInstance<LibgdxDrawCall.DrawBitmap>().forEach { drawBitmapCall ->
             try {
-                val pixmap = Pixmap(drawBitmapCall.bitmap.bytes, 0, drawBitmapCall.bitmap.height * drawBitmapCall.bitmap.width)
-                val texture = Texture(pixmap)
+                val texture = textureCache[drawBitmapCall.bitmap.hashCode()] ?: kotlin.run {
+                    val pixmap = Pixmap(drawBitmapCall.bitmap.bytes, 0, drawBitmapCall.bitmap.height * drawBitmapCall.bitmap.width)
+                    val texture = Texture(pixmap)
+                    textureCache[drawBitmapCall.bitmap.hashCode()] = texture
+                    texture
+                }
+
                 spriteBatch.draw(
                     texture,
                     drawBitmapCall.x,
