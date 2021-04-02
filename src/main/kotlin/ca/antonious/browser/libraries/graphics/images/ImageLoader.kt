@@ -15,7 +15,7 @@ class ImageLoader {
             try {
                 val image = ImageIO.read(URI.create(url).toURL())
                 val byteArrayOutputStream = ByteArrayOutputStream()
-                ImageIO.write(image, "bmp", byteArrayOutputStream)
+                ImageIO.write(image, "png", byteArrayOutputStream)
                 byteArrayOutputStream.flush()
                 val bytes = byteArrayOutputStream.toByteArray()
                 byteArrayOutputStream.close()
