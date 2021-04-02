@@ -99,7 +99,7 @@ class JavascriptInterpreter {
     }
 
     fun interpret(program: JavascriptProgram): JavascriptValue {
-        val value = interpret(JavascriptStatement.Block(sourceInfo = SourceInfo(0, 0), program.body))
+        val value = interpret(JavascriptStatement.Block(sourceInfo = SourceInfo(0, 0), program.body, createsScope = false))
 
         return if (hasControlFlowInterruptedDueTo<ControlFlowInterruption.Error>()) {
             val tab = " ".repeat(4)
@@ -129,6 +129,8 @@ class JavascriptInterpreter {
                 val hoistedStatements = mutableListOf<JavascriptStatement>()
                 val normalStatements = mutableListOf<JavascriptStatement>()
 
+                if (statement.createsScope) enterScope()
+
                 for (child in statement.body) {
                     when (child) {
                         is JavascriptStatement.Function -> hoistedStatements += child
@@ -140,6 +142,7 @@ class JavascriptInterpreter {
                 for (child in hoistedStatements) {
                     result = interpretAsReference(child)
                     if (hasControlFlowInterrupted()) {
+                        if (statement.createsScope) exitScope()
                         return result
                     }
                 }
@@ -147,9 +150,12 @@ class JavascriptInterpreter {
                 for (child in normalStatements) {
                     result = interpretAsReference(child)
                     if (hasControlFlowInterrupted()) {
+                        if (statement.createsScope) exitScope()
                         return result
                     }
                 }
+
+                if (statement.createsScope) exitScope()
 
                 return result
             }
@@ -336,7 +342,7 @@ class JavascriptInterpreter {
                     }
 
                     enterScope(scopeParameterNames, scopeParameters)
-                    interpret(statement.catchBlock)
+                    interpret(statement.catchBlock.copy(createsScope = false))
                     exitScope()
                 }
 
@@ -916,8 +922,8 @@ class JavascriptInterpreter {
     }
 
     private fun enterScope(
-        parameterNames: List<String>,
-        passedParameters: List<JavascriptExpression>
+        parameterNames: List<String> = emptyList(),
+        passedParameters: List<JavascriptExpression> = emptyList()
     ) {
         stack.peek().scope = JavascriptScope(
             thisBinding = stack.peek().scope.thisBinding,

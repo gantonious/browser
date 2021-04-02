@@ -12,7 +12,7 @@ sealed class JavascriptStatement() {
     abstract val sourceInfo: SourceInfo
 
     data class LabeledStatement(override val sourceInfo: SourceInfo, val label: String, val statement: JavascriptStatement) : JavascriptStatement()
-    data class Block(override val sourceInfo: SourceInfo, val body: List<JavascriptStatement>) : JavascriptStatement()
+    data class Block(override val sourceInfo: SourceInfo, val body: List<JavascriptStatement>, val createsScope: Boolean = true) : JavascriptStatement()
     data class Function(override val sourceInfo: SourceInfo, val name: String, val parameterNames: List<String>, val body: Block) : JavascriptStatement()
     data class Return(override val sourceInfo: SourceInfo, val expression: JavascriptExpression?) : JavascriptStatement()
     data class IfStatement(override val sourceInfo: SourceInfo, val conditions: List<ConditionAndStatement>) : JavascriptStatement() {
