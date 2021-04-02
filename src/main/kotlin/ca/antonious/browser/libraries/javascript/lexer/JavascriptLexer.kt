@@ -143,6 +143,10 @@ class JavascriptLexer(
                     advanceCursor()
 
                     while (!isAtEnd() && !(peekLastChar() == '*' && getCurrentChar() == '/')) {
+                        if (getCurrentChar() == '\n') {
+                            sourceRow += 1
+                            sourceColumn = 0
+                        }
                         advanceCursor()
                     }
                     advanceCursor()
