@@ -5,6 +5,7 @@ import ca.antonious.browser.libraries.javascript.interpreter.builtins.function.N
 import ca.antonious.browser.libraries.javascript.interpreter.builtins.string.StringObject
 
 class RegExpConstructor : NativeFunction(
+    functionPrototype = RegExpPrototype,
     body = { executionContext ->
         val pattern = when (val patternObject = executionContext.interpreter.interpretAsObject(executionContext.arguments.first())) {
             is RegExpObject -> patternObject.regex
