@@ -191,7 +191,7 @@ class DOM {
                                 val href = htmlElement.attributes["href"] ?: ""
                                 val styleSheetUrl = resolveUrl(href)
                                 httpClient.execute(HttpRequest(styleSheetUrl, HttpMethod.Get)).onSuccess { response ->
-                                    cssStyleResolver.addRules(cssParser.parse(response.body))
+                                    cssStyleResolver.addRules(cssParser.parse(response.body.replace(Regex("\\/\\*.*\\/"), "")))
                                     resolveStyles(rootNode.children.map { it as DOMLayoutNode })
                                 }
                             }

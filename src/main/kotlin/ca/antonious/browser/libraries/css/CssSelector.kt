@@ -32,6 +32,18 @@ sealed class CssSelector {
         }
     }
 
+    data class MatchesId(val id: String) : CssSelector() {
+        override fun matches(domElement: DOMParentLayoutNode): Boolean {
+            return when (domElement.htmlElement) {
+                is HtmlElement.Node -> {
+                    domElement.htmlElement.attributes["id"] == id
+                }
+                else -> false
+            }
+        }
+    }
+
+
     data class MatchesParent(val parentSelectors: List<CssSelector>) : CssSelector() {
         override fun matches(domElement: DOMParentLayoutNode): Boolean {
             val currentElementSelector = parentSelectors.last()

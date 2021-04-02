@@ -68,6 +68,19 @@ class CssParser {
             tryParseStateSelector()
         }
 
+        fun parseIdSelector() {
+            advanceCursor()
+            var id = ""
+
+            while (currentCharacter() !in selectorTextTerminators) {
+                id += currentCharacter()
+                advanceCursor()
+            }
+
+            currentSelector = CssSelector.MatchesId(id = id)
+            tryParseStateSelector()
+        }
+
         fun parseTagSelector() {
             var tagName = ""
 
@@ -83,6 +96,7 @@ class CssParser {
         fun parseSelector() {
             when (currentCharacter()) {
                 '.' -> parseClassSelector()
+                '#' -> parseIdSelector()
                 else -> parseTagSelector()
             }
         }
@@ -173,6 +187,23 @@ class CssParser {
                         advanceCursor()
                     }
                 }
+                '/' -> {
+                    advanceCursor()
+                    if (currentCharacter() == '/') {
+                        while (currentCharacter() != '\n') {
+                            advanceCursor()
+                        }
+                        advanceCursor()
+                    }
+
+                    if (currentCharacter() == '*') {
+                        while (!(lastCharacter() == '*' && currentCharacter() == '/')) {
+                            advanceCursor()
+                        }
+                        advanceCursor()
+                    }
+                }
+                '{' -> parseCssAttributes()
                 else -> parseSelector()
             }
         }
