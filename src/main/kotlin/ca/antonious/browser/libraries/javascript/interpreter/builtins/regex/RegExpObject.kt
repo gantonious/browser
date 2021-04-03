@@ -2,8 +2,11 @@ package ca.antonious.browser.libraries.javascript.interpreter.builtins.regex
 
 import ca.antonious.browser.libraries.javascript.ast.JavascriptValue
 import ca.antonious.browser.libraries.javascript.interpreter.JavascriptObject
+import ca.antonious.browser.libraries.javascript.interpreter.builtins.array.JavascriptArray
 
-class RegExpObject(val regex: String, val flags: String) : JavascriptObject(RegExpPrototype) {
+class RegExpObject(val regex: String, flags: String) : JavascriptObject(RegExpPrototype) {
+
+    val flags = flags.windowed(1)
 
     override fun getProperty(key: String): JavascriptValue {
         return when (key) {
@@ -14,5 +17,21 @@ class RegExpObject(val regex: String, val flags: String) : JavascriptObject(RegE
 
     override fun toString(): String {
         return "/$regex/$flags"
+    }
+
+    fun exec(input: String): JavascriptValue {
+        val regex = Regex(regex)
+        val matchResult = regex.find(input, 0) ?: return JavascriptValue.Null
+        val matchedValues = mutableListOf(matchResult.value).apply {
+            addAll(matchResult.groupValues)
+        }
+
+        return JavascriptValue.Object(
+            JavascriptArray(matchedValues.map { JavascriptValue.String(it) }).apply {
+                setProperty("index", JavascriptValue.Number(matchResult.range.first.toDouble()))
+                setProperty("input", JavascriptValue.String(input))
+                setProperty("groups", JavascriptValue.Undefined)
+            }
+        )
     }
 }

@@ -14,5 +14,14 @@ object RegExpPrototype : JavascriptObject() {
 
             JavascriptValue.Boolean(Regex(regexObject.regex).matches(valueToTest))
         }
+
+        setNonEnumerableNativeFunction("exec") { executionContext ->
+            val regexObject = executionContext.thisBinding as? RegExpObject
+                ?: return@setNonEnumerableNativeFunction JavascriptValue.Undefined
+
+            val valueToTest = executionContext.arguments.first().toString()
+
+            regexObject.exec(valueToTest)
+        }
     }
 }
