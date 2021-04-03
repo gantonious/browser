@@ -1,4 +1,4 @@
-package ca.antonious.browser.libraries.javascript.interpreter.tests
+package ca.antonious.browser.libraries.javascript.interpreter.testrunner
 
 import ca.antonious.browser.libraries.javascript.ast.JavascriptValue
 import ca.antonious.browser.libraries.javascript.interpreter.JavascriptInterpreter
@@ -8,8 +8,10 @@ import java.io.File
 fun main() {
     val interpreter = JavascriptInterpreter()
     interpreter.interpret(File("TestUtils.js"))
-    interpreter.interpret(File("Tests.js"))
 
+    File("Tests").listFiles()?.forEach {
+        interpreter.interpret(it)
+    }
 
     val results = interpreter.interpret("__testContext.results").toTestResults()
     printTestResults(results)
