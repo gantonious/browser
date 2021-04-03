@@ -364,178 +364,61 @@ class JavascriptInterpreter {
             }
             is JavascriptExpression.BinaryOperation -> {
                 return when (statement.operator) {
-                    is JavascriptTokenType.Operator.Plus -> {
-                        val lhsValue = interpretPrimitiveValueOf(statement.lhs)
-                        val rhsValue = interpretPrimitiveValueOf(statement.rhs)
-
-                        if (lhsValue is JavascriptValue.String || rhsValue is JavascriptValue.String) {
-                            JavascriptValue.String(lhsValue.toString() + rhsValue.toString()).toReference()
-                        } else {
-                            JavascriptValue.Number(lhsValue.coerceToNumber() + rhsValue.coerceToNumber()).toReference()
-                        }
-                    }
-                    is JavascriptTokenType.Operator.Minus -> {
-                        JavascriptValue.Number(
-                            interpretPrimitiveValueOf(statement.lhs).coerceToNumber() -
-                                interpretPrimitiveValueOf(statement.rhs).coerceToNumber()
-                        ).toReference()
-                    }
-                    is JavascriptTokenType.Operator.Multiply -> {
-                        JavascriptValue.Number(
-                            interpretPrimitiveValueOf(statement.lhs).coerceToNumber() *
-                                interpretPrimitiveValueOf(statement.rhs).coerceToNumber()
-                        ).toReference()
-                    }
-                    is JavascriptTokenType.Operator.Divide -> {
-                        JavascriptValue.Number(
-                            interpretPrimitiveValueOf(statement.lhs).coerceToNumber() /
-                                interpretPrimitiveValueOf(statement.rhs).coerceToNumber()
-                        ).toReference()
-                    }
-                    is JavascriptTokenType.Operator.Xor -> {
-                        val result = (
-                            interpretPrimitiveValueOf(statement.lhs).coerceToNumber().toInt() xor
-                                interpretPrimitiveValueOf(statement.rhs).coerceToNumber().toInt()
-                            ).toDouble()
-
-                        JavascriptValue.Number(result).toReference()
-                    }
-                    is JavascriptTokenType.Operator.Or -> {
-                        val result = (
-                                interpretPrimitiveValueOf(statement.lhs).coerceToNumber().toInt() or
-                                        interpretPrimitiveValueOf(statement.rhs).coerceToNumber().toInt()
-                                ).toDouble()
-
-                        JavascriptValue.Number(result).toReference()
-                    }
-                    is JavascriptTokenType.Operator.And -> {
-                        val result = (
-                                interpretPrimitiveValueOf(statement.lhs).coerceToNumber().toInt() and
-                                        interpretPrimitiveValueOf(statement.rhs).coerceToNumber().toInt()
-                                ).toDouble()
-
-                        JavascriptValue.Number(result).toReference()
-                    }
-                    is JavascriptTokenType.Operator.Mod -> {
-                        JavascriptValue.Number(
-                            interpretPrimitiveValueOf(statement.lhs).coerceToNumber() %
-                                interpretPrimitiveValueOf(statement.rhs).coerceToNumber()
-                        ).toReference()
-                    }
-                    is JavascriptTokenType.Operator.LeftShift -> {
-                        val result = (
-                            interpretPrimitiveValueOf(statement.lhs).coerceToNumber().toInt() shl
-                                interpretPrimitiveValueOf(statement.rhs).coerceToNumber().toInt()
-                        ).toDouble()
-
-                        JavascriptValue.Number(result).toReference()
-                    }
-                    is JavascriptTokenType.Operator.RightShift -> {
-                        val result = (
-                                interpretPrimitiveValueOf(statement.lhs).coerceToNumber().toInt() shr
-                                        interpretPrimitiveValueOf(statement.rhs).coerceToNumber().toInt()
-                                ).toDouble()
-
-                        JavascriptValue.Number(result).toReference()
-                    }
-                    is JavascriptTokenType.Operator.LessThanOrEqual -> {
-                        JavascriptValue.Boolean(
-                            interpretPrimitiveValueOf(statement.lhs).coerceToNumber() <=
-                                interpretPrimitiveValueOf(statement.rhs).coerceToNumber()
-                        ).toReference()
-                    }
-                    is JavascriptTokenType.Operator.LessThan -> {
-                        JavascriptValue.Boolean(
-                            interpretPrimitiveValueOf(statement.lhs).coerceToNumber() <
-                                interpretPrimitiveValueOf(statement.rhs).coerceToNumber()
-                        ).toReference()
-                    }
-                    is JavascriptTokenType.Operator.GreaterThanOrEqual -> {
-                        JavascriptValue.Boolean(
-                            interpretPrimitiveValueOf(statement.lhs).coerceToNumber() >=
-                                interpretPrimitiveValueOf(statement.rhs).coerceToNumber()
-                        ).toReference()
-                    }
-                    is JavascriptTokenType.Operator.GreaterThan -> {
-                        JavascriptValue.Boolean(
-                            interpretPrimitiveValueOf(statement.lhs).coerceToNumber() >
-                                interpretPrimitiveValueOf(statement.rhs).coerceToNumber()
-                        ).toReference()
-                    }
                     is JavascriptTokenType.Operator.OrOr -> {
                         val lhsValue = interpretPrimitiveValueOf(statement.lhs)
+                        if (hasControlFlowInterrupted()) return JavascriptReference.Undefined
+
                         if (lhsValue.isTruthy) {
                             lhsValue.toReference()
                         } else {
-                            interpretPrimitiveValueOf(statement.rhs).toReference()
+                            val rhsValue = interpretPrimitiveValueOf(statement.rhs).toReference()
+                            if (hasControlFlowInterrupted()) {
+                                JavascriptReference.Undefined
+                            } else {
+                                rhsValue
+                            }
                         }
                     }
                     is JavascriptTokenType.Operator.AndAnd -> {
                         val lhsValue = interpretPrimitiveValueOf(statement.lhs)
+                        if (hasControlFlowInterrupted()) return JavascriptReference.Undefined
+
                         if (lhsValue.isTruthy) {
-                            interpretPrimitiveValueOf(statement.rhs).toReference()
+                            val rhsValue = interpretPrimitiveValueOf(statement.rhs).toReference()
+                            if (hasControlFlowInterrupted()) {
+                                JavascriptReference.Undefined
+                            } else {
+                                rhsValue
+                            }
+
                         } else {
                             lhsValue.toReference()
                         }
                     }
                     is JavascriptTokenType.Operator.StrictEquals -> {
-                        JavascriptValue.Boolean(interpret(statement.lhs) == interpret(statement.rhs)).toReference()
+                        val lhsValue = interpret(statement.lhs)
+                        if (hasControlFlowInterrupted()) return JavascriptReference.Undefined
+                        val rhsValue = interpret(statement.rhs)
+                        if (hasControlFlowInterrupted()) return JavascriptReference.Undefined
+
+                        JavascriptValue.Boolean(lhsValue == rhsValue).toReference()
                     }
                     is JavascriptTokenType.Operator.StrictNotEquals -> {
-                        JavascriptValue.Boolean(interpret(statement.lhs) != interpret(statement.rhs)).toReference()
-                    }
-                    is JavascriptTokenType.Operator.Equals -> {
-                        JavascriptValue.Boolean(
-                            JavascriptValue.looselyEquals(
-                                interpretPrimitiveValueOf(statement.lhs),
-                                interpretPrimitiveValueOf(statement.rhs)
-                            )
-                        ).toReference()
-                    }
-                    is JavascriptTokenType.Operator.NotEquals -> {
-                        JavascriptValue.Boolean(
-                            !JavascriptValue.looselyEquals(
-                                interpretPrimitiveValueOf(statement.lhs),
-                                interpretPrimitiveValueOf(statement.rhs)
-                            )
-                        ).toReference()
-                    }
-                    is JavascriptTokenType.In -> {
-                        val valueToTest = interpret(statement.lhs)
-                        JavascriptValue.Boolean(
-                            interpretAsObject(statement.rhs).properties.keys.any { key ->
-                                JavascriptValue.looselyEquals(JavascriptValue.String(key), valueToTest)
-                            }
-                        ).toReference()
-                    }
-                    is JavascriptTokenType.InstanceOf -> {
-                        val objectToTest = interpret(statement.lhs)
+                        val lhsValue = interpret(statement.lhs)
+                        if (hasControlFlowInterrupted()) return JavascriptReference.Undefined
+                        val rhsValue = interpret(statement.rhs)
+                        if (hasControlFlowInterrupted()) return JavascriptReference.Undefined
 
-                        val prototypeToFind = when (val value = interpret(statement.rhs)) {
-                            is JavascriptValue.Object -> when (val constructor = value.value) {
-                                is FunctionObject -> constructor.functionPrototype
-                                else -> {
-                                    throwError(JavascriptValue.String("TypeError: Right-hand side of 'instanceof' is not callable"))
-                                    return JavascriptReference.Undefined
-                                }
-                            }
-                            else -> {
-                                throwError(JavascriptValue.String("TypeError: Right-hand side of 'instanceof' is not an object"))
-                                return JavascriptReference.Undefined
-                            }
-                        }
-
-                        val isInstanceOf = when (objectToTest) {
-                            is JavascriptValue.Object -> objectToTest.value.prototypeChain.contains(prototypeToFind)
-                            else -> false
-                        }
-
-                        JavascriptValue.Boolean(isInstanceOf).toReference()
+                        JavascriptValue.Boolean(lhsValue != rhsValue).toReference()
                     }
                     is JavascriptTokenType.Operator.Assignment -> {
                         val valueToAssign = interpret(statement.rhs)
+                        if (hasControlFlowInterrupted()) return JavascriptReference.Undefined
+
                         interpretAsReference(statement.lhs).setter?.invoke(valueToAssign)
                             ?: error("Uncaught SyntaxError: Invalid left-hand side in assignment")
+
+                        if (hasControlFlowInterrupted()) return JavascriptReference.Undefined
 
                         valueToAssign.toReference()
                     }
@@ -568,9 +451,7 @@ class JavascriptInterpreter {
                         if (hasControlFlowInterrupted()) return JavascriptReference.Undefined
                         interpretAsReference(statement.rhs)
                     }
-                    else -> {
-                        error("${statement.operator} is unsupported for binary operations.")
-                    }
+                    else -> interpretBinaryOperator(binaryExpression = statement)
                 }
             }
             is JavascriptExpression.UnaryOperation -> {
@@ -824,6 +705,121 @@ class JavascriptInterpreter {
             is JavascriptValue.Number -> NumberObject(value = value.value)
             else -> JavascriptObject()
         }
+    }
+
+    private fun interpretBinaryOperator(
+        binaryExpression: JavascriptExpression.BinaryOperation
+    ): JavascriptReference {
+        val lhsValue = interpretPrimitiveValueOf(binaryExpression.lhs)
+        if (hasControlFlowInterrupted()) return JavascriptReference.Undefined
+
+        val rhsValue = interpretPrimitiveValueOf(binaryExpression.rhs)
+        if (hasControlFlowInterrupted()) return JavascriptReference.Undefined
+
+        return when (binaryExpression.operator) {
+            is JavascriptTokenType.Operator.Plus -> {
+                if (lhsValue is JavascriptValue.String || rhsValue is JavascriptValue.String) {
+                    JavascriptValue.String(lhsValue.toString() + rhsValue.toString())
+                } else {
+                    JavascriptValue.Number(lhsValue.coerceToNumber() + rhsValue.coerceToNumber())
+                }
+            }
+            is JavascriptTokenType.Operator.Minus -> {
+                JavascriptValue.Number(lhsValue.coerceToNumber() - rhsValue.coerceToNumber())
+            }
+            is JavascriptTokenType.Operator.Multiply -> {
+                JavascriptValue.Number(lhsValue.coerceToNumber() * rhsValue.coerceToNumber())
+            }
+            is JavascriptTokenType.Operator.Divide -> {
+                JavascriptValue.Number(lhsValue.coerceToNumber() / rhsValue.coerceToNumber())
+            }
+            is JavascriptTokenType.Operator.Xor -> {
+                val result = (
+                    lhsValue.coerceToNumber().toInt() xor rhsValue.coerceToNumber().toInt()
+                ).toDouble()
+
+                JavascriptValue.Number(result)
+            }
+            is JavascriptTokenType.Operator.Or -> {
+                val result = (
+                    lhsValue.coerceToNumber().toInt() or rhsValue.coerceToNumber().toInt()
+                ).toDouble()
+
+                JavascriptValue.Number(result)
+            }
+            is JavascriptTokenType.Operator.And -> {
+                val result = (
+                    lhsValue.coerceToNumber().toInt() and rhsValue.coerceToNumber().toInt()
+                ).toDouble()
+
+                JavascriptValue.Number(result)
+            }
+            is JavascriptTokenType.Operator.Mod -> {
+                JavascriptValue.Number(lhsValue.coerceToNumber() % rhsValue.coerceToNumber())
+            }
+            is JavascriptTokenType.Operator.LeftShift -> {
+                val result = (
+                    lhsValue.coerceToNumber().toInt() shl rhsValue.coerceToNumber().toInt()
+                ).toDouble()
+
+                JavascriptValue.Number(result)
+            }
+            is JavascriptTokenType.Operator.RightShift -> {
+                val result = (
+                    lhsValue.coerceToNumber().toInt() shr rhsValue.coerceToNumber().toInt()
+                ).toDouble()
+
+                JavascriptValue.Number(result)
+            }
+            is JavascriptTokenType.Operator.LessThanOrEqual -> {
+                JavascriptValue.Boolean(lhsValue.coerceToNumber() <= rhsValue.coerceToNumber())
+            }
+            is JavascriptTokenType.Operator.LessThan -> {
+                JavascriptValue.Boolean(lhsValue.coerceToNumber() < rhsValue.coerceToNumber())
+            }
+            is JavascriptTokenType.Operator.GreaterThanOrEqual -> {
+                JavascriptValue.Boolean(lhsValue.coerceToNumber() >= rhsValue.coerceToNumber())
+            }
+            is JavascriptTokenType.Operator.GreaterThan -> {
+                JavascriptValue.Boolean(lhsValue.coerceToNumber() > rhsValue.coerceToNumber())
+            }
+            is JavascriptTokenType.Operator.Equals -> {
+                JavascriptValue.Boolean(JavascriptValue.looselyEquals(lhsValue, rhsValue))
+            }
+            is JavascriptTokenType.Operator.NotEquals -> {
+                JavascriptValue.Boolean(!JavascriptValue.looselyEquals(lhsValue, rhsValue))
+            }
+            is JavascriptTokenType.In -> {
+                JavascriptValue.Boolean(
+                    interpretAsObject(rhsValue).properties.keys.any { key ->
+                        JavascriptValue.looselyEquals(JavascriptValue.String(key), lhsValue)
+                    }
+                )
+            }
+            is JavascriptTokenType.InstanceOf -> {
+                val prototypeToFind = when (rhsValue) {
+                    is JavascriptValue.Object -> when (val constructor = rhsValue.value) {
+                        is FunctionObject -> constructor.functionPrototype
+                        else -> {
+                            throwError(JavascriptValue.String("TypeError: Right-hand side of 'instanceof' is not callable"))
+                            return JavascriptReference.Undefined
+                        }
+                    }
+                    else -> {
+                        throwError(JavascriptValue.String("TypeError: Right-hand side of 'instanceof' is not an object"))
+                        return JavascriptReference.Undefined
+                    }
+                }
+
+                val isInstanceOf = when (lhsValue) {
+                    is JavascriptValue.Object -> lhsValue.value.prototypeChain.contains(prototypeToFind)
+                    else -> false
+                }
+
+                JavascriptValue.Boolean(isInstanceOf)
+            }
+            else -> error("Attempted to interpret unknown binary operator: ${binaryExpression.operator}")
+        }.toReference()
     }
 
     private fun interpretOperatorAssignAsReference(
