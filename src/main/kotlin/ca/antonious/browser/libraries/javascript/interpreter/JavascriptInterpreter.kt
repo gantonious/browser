@@ -23,6 +23,7 @@ import kotlin.random.Random
 
 class JavascriptInterpreter {
     val globalObject = JavascriptObject().apply {
+        setNonEnumerableProperty("global", JavascriptValue.Object(this))
         setNonEnumerableProperty("Object", JavascriptValue.Object(ObjectConstructor()))
         setNonEnumerableProperty("String", JavascriptValue.Object(StringConstructor()))
         setNonEnumerableProperty("Number", JavascriptValue.Object(NumberConstructor()))
