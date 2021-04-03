@@ -200,7 +200,7 @@ class JavascriptInterpreter {
                         objectToInvoke.getProperty(statement.expression.propertyName) to objectToInvoke
                     }
                     else -> {
-                        val valueToCallAndThisBinding = interpret(statement.expression) to currentScope.thisBinding
+                        val valueToCallAndThisBinding = interpret(statement.expression) to globalObject
                         if (hasControlFlowInterrupted()) {
                             return JavascriptReference.Undefined
                         }
