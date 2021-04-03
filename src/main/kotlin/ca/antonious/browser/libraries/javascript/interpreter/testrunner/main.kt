@@ -9,7 +9,7 @@ fun main() {
     val interpreter = JavascriptInterpreter()
     interpreter.interpret(File("TestUtils.js"))
 
-    File("Tests").listFiles()?.forEach {
+    File("Tests").listFilesRecursively().forEach {
         interpreter.interpret(it)
     }
 
@@ -102,4 +102,12 @@ fun String.redBackground(): String {
 
 fun String.greenBackground(): String {
     return "${ANSICode.greenBackground}$this${ANSICode.reset}"
+}
+
+private fun File.listFilesRecursively(): List<File> {
+    return if (isDirectory) {
+        listFiles().map { it.listFilesRecursively() }.flatten()
+    } else {
+        listOf(this)
+    }
 }
