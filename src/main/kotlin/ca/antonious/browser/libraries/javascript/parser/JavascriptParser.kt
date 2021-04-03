@@ -444,14 +444,31 @@ class JavascriptParser(
     }
 
     private fun expectSubExpression(): JavascriptExpression {
-        return expectTernaryExpression()
+        return expectAssignmentExpression()
     }
 
     private fun expectCommaExpression(): JavascriptExpression {
-        var expression = expectTernaryExpression()
+        var expression = expectAssignmentExpression()
 
         while (maybeGetCurrentToken() is JavascriptTokenType.Comma) {
             val (token, sourceInfo) = expectTokenAndSourceInfo<JavascriptTokenType>()
+            expression = JavascriptExpression.BinaryOperation(
+                sourceInfo = sourceInfo,
+                operator = token,
+                lhs = expression,
+                rhs = expectAssignmentExpression()
+            )
+        }
+
+        return expression
+    }
+
+    private fun expectAssignmentExpression(): JavascriptExpression {
+        var expression = expectTernaryExpression()
+
+        while (maybeGetCurrentToken() in assignmentToken) {
+            val (token, sourceInfo) = expectTokenAndSourceInfo<JavascriptTokenType>()
+
             expression = JavascriptExpression.BinaryOperation(
                 sourceInfo = sourceInfo,
                 operator = token,
@@ -460,11 +477,11 @@ class JavascriptParser(
             )
         }
 
-        return expression
+        return expression.convertToRightToLeftAssociativity()
     }
 
     private fun expectTernaryExpression(): JavascriptExpression {
-        val expression = expectBitwiseOrExpression()
+        val expression = expectLogicalOrExpression()
 
         if (maybeGetCurrentToken() is JavascriptTokenType.QuestionMark) {
             val sourceInfo = expectSourceInfo<JavascriptTokenType.QuestionMark>()
@@ -479,78 +496,10 @@ class JavascriptParser(
         return expression
     }
 
-    private fun expectBitwiseOrExpression(): JavascriptExpression {
-        var expression = expectBitwiseAndExpression()
-
-        while (maybeGetCurrentToken() is JavascriptTokenType.Operator.Or) {
-            val (token, sourceInfo) = expectTokenAndSourceInfo<JavascriptTokenType>()
-
-            expression = JavascriptExpression.BinaryOperation(
-                sourceInfo = sourceInfo,
-                operator = token,
-                lhs = expression,
-                rhs = expectBitwiseAndExpression()
-            )
-        }
-
-        return expression
-    }
-
-    private fun expectBitwiseAndExpression(): JavascriptExpression {
-        var expression = expectAssignmentExpression()
-
-        while (maybeGetCurrentToken() is JavascriptTokenType.Operator.And) {
-            val (token, sourceInfo) = expectTokenAndSourceInfo<JavascriptTokenType>()
-
-            expression = JavascriptExpression.BinaryOperation(
-                sourceInfo = sourceInfo,
-                operator = token,
-                lhs = expression,
-                rhs = expectAssignmentExpression()
-            )
-        }
-
-        return expression
-    }
-
-    private fun expectAssignmentExpression(): JavascriptExpression {
-        var expression = expectLogicalOrExpression()
-
-        while (maybeGetCurrentToken() in assignmentToken) {
-            val (token, sourceInfo) = expectTokenAndSourceInfo<JavascriptTokenType>()
-
-            expression = JavascriptExpression.BinaryOperation(
-                sourceInfo = sourceInfo,
-                operator = token,
-                lhs = expression,
-                rhs = expectLogicalOrExpression()
-            )
-        }
-
-        return expression.convertToRightToLeftAssociativity()
-    }
-
     private fun expectLogicalOrExpression(): JavascriptExpression {
-        var expression = expectXorExpression()
-
-        while (maybeGetCurrentToken() is JavascriptTokenType.Operator.OrOr) {
-            val (token, sourceInfo) = expectTokenAndSourceInfo<JavascriptTokenType>()
-
-            expression = JavascriptExpression.BinaryOperation(
-                sourceInfo = sourceInfo,
-                operator = token,
-                lhs = expression,
-                rhs = expectXorExpression()
-            )
-        }
-
-        return expression
-    }
-
-    private fun expectXorExpression(): JavascriptExpression {
         var expression = expectLogicalAndExpression()
 
-        while (maybeGetCurrentToken() is JavascriptTokenType.Operator.Xor) {
+        while (maybeGetCurrentToken() is JavascriptTokenType.Operator.OrOr) {
             val (token, sourceInfo) = expectTokenAndSourceInfo<JavascriptTokenType>()
 
             expression = JavascriptExpression.BinaryOperation(
@@ -565,9 +514,60 @@ class JavascriptParser(
     }
 
     private fun expectLogicalAndExpression(): JavascriptExpression {
-        var expression = expectEqualityExpression()
+        var expression = expectBitwiseOrExpression()
 
         while (maybeGetCurrentToken() is JavascriptTokenType.Operator.AndAnd) {
+            val (token, sourceInfo) = expectTokenAndSourceInfo<JavascriptTokenType>()
+
+            expression = JavascriptExpression.BinaryOperation(
+                sourceInfo = sourceInfo,
+                operator = token,
+                lhs = expression,
+                rhs = expectBitwiseOrExpression()
+            )
+        }
+
+        return expression
+    }
+
+    private fun expectBitwiseOrExpression(): JavascriptExpression {
+        var expression = expectXorExpression()
+
+        while (maybeGetCurrentToken() is JavascriptTokenType.Operator.Or) {
+            val (token, sourceInfo) = expectTokenAndSourceInfo<JavascriptTokenType>()
+
+            expression = JavascriptExpression.BinaryOperation(
+                sourceInfo = sourceInfo,
+                operator = token,
+                lhs = expression,
+                rhs = expectXorExpression()
+            )
+        }
+
+        return expression
+    }
+
+    private fun expectXorExpression(): JavascriptExpression {
+        var expression = expectBitwiseAndExpression()
+
+        while (maybeGetCurrentToken() is JavascriptTokenType.Operator.Xor) {
+            val (token, sourceInfo) = expectTokenAndSourceInfo<JavascriptTokenType>()
+
+            expression = JavascriptExpression.BinaryOperation(
+                sourceInfo = sourceInfo,
+                operator = token,
+                lhs = expression,
+                rhs = expectBitwiseAndExpression()
+            )
+        }
+
+        return expression
+    }
+
+    private fun expectBitwiseAndExpression(): JavascriptExpression {
+        var expression = expectEqualityExpression()
+
+        while (maybeGetCurrentToken() is JavascriptTokenType.Operator.And) {
             val (token, sourceInfo) = expectTokenAndSourceInfo<JavascriptTokenType>()
 
             expression = JavascriptExpression.BinaryOperation(
