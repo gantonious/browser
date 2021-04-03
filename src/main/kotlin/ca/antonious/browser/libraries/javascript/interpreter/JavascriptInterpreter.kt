@@ -75,7 +75,7 @@ class JavascriptInterpreter {
                 name = "main",
                 scope = JavascriptScope(
                     thisBinding = globalObject,
-                    scopeObject = JavascriptObject(),
+                    globalObject = globalObject,
                     parentScope = null
                 ),
                 sourceInfo = SourceInfo(0, 0)
@@ -168,7 +168,7 @@ class JavascriptInterpreter {
                         parentScope = currentScope
                     )
                 )
-                currentScope.setProperty(key = statement.name, value = value)
+                currentScope.setVariable(key = statement.name, value = value)
                 return JavascriptReference.Undefined
             }
             is JavascriptStatement.Return -> {
@@ -256,7 +256,8 @@ class JavascriptInterpreter {
                     } else {
                         interpret(assignment.expression)
                     }
-                    currentScope.setProperty(assignment.name, value)
+
+                    currentScope.setVariable(assignment.name, value)
                 }
 
                 return JavascriptReference.Undefined
@@ -268,7 +269,8 @@ class JavascriptInterpreter {
                     } else {
                         interpret(assignment.expression)
                     }
-                    currentScope.setProperty(assignment.name, value)
+
+                    currentScope.setVariable(assignment.name, value)
                 }
                 return JavascriptReference.Undefined
             }
@@ -279,7 +281,8 @@ class JavascriptInterpreter {
                     } else {
                         interpret(assignment.expression)
                     }
-                    currentScope.setProperty(assignment.name, value)
+
+                    currentScope.setVariable(assignment.name, value)
                 }
                 return JavascriptReference.Undefined
             }
@@ -650,11 +653,7 @@ class JavascriptInterpreter {
                 }
             }
             is JavascriptExpression.Reference -> {
-                val referenceValue = currentScope.getProperty(statement.name)
-
-                return referenceValue.toReference {
-                    currentScope.setProperty(statement.name, it)
-                }
+                return currentScope.getVariable(statement.name)
             }
             is JavascriptExpression.DotAccess -> {
                 val objectToAccess = interpretAsObject(statement.expression)
@@ -880,18 +879,17 @@ class JavascriptInterpreter {
     ) {
         val functionScope = JavascriptScope(
             thisBinding = thisBinding ?: parentScope.thisBinding,
-            scopeObject = JavascriptObject().apply {
-                setProperty("arguments", JavascriptValue.Object(JavascriptArray(passedParameters)))
-
-                parameterNames.forEachIndexed { index, parameterName ->
-                    setProperty(
-                        parameterName,
-                        passedParameters.getOrElse(index) { JavascriptValue.Undefined }
-                    )
-                }
-            },
-            parentScope = parentScope
-        )
+            parentScope = parentScope,
+            globalObject = globalObject
+        ).apply {
+            setVariable("arguments", JavascriptValue.Object(JavascriptArray(passedParameters)))
+            parameterNames.forEachIndexed { index, parameterName ->
+                setVariable(
+                    parameterName,
+                    passedParameters.getOrElse(index) { JavascriptValue.Undefined }
+                )
+            }
+        }
 
         stack.peek().sourceInfo = sourceInfo
 
@@ -927,26 +925,26 @@ class JavascriptInterpreter {
     ) {
         stack.peek().scope = JavascriptScope(
             thisBinding = stack.peek().scope.thisBinding,
-            scopeObject = JavascriptObject().apply {
-                parameterNames.forEachIndexed { index, parameterName ->
-                    setProperty(
-                        parameterName,
-                        interpret(
-                            passedParameters.getOrElse(index) {
-                                JavascriptExpression.Literal(sourceInfo = SourceInfo(0, 0), value = JavascriptValue.Undefined)
-                            }
-                        )
-                    )
-                }
-            },
+            globalObject = globalObject,
             parentScope = stack.peek().scope
-        )
+        ).apply {
+            parameterNames.forEachIndexed { index, parameterName ->
+                setVariable(
+                    parameterName,
+                    interpret(
+                        passedParameters.getOrElse(index) {
+                            JavascriptExpression.Literal(sourceInfo = SourceInfo(0, 0), value = JavascriptValue.Undefined)
+                        }
+                    )
+                )
+            }
+        }
     }
 
     private fun exitScope() {
         stack.peek().scope = currentScope.parentScope ?: JavascriptScope(
             thisBinding = globalObject,
-            scopeObject = JavascriptObject(),
+            globalObject = globalObject,
             parentScope = null
         )
     }

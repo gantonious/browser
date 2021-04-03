@@ -4,30 +4,39 @@ import ca.antonious.browser.libraries.javascript.ast.JavascriptValue
 
 class JavascriptScope(
     val thisBinding: JavascriptObject,
-    val scopeObject: JavascriptObject,
     val parentScope: JavascriptScope?,
+    val globalObject: JavascriptObject,
     val type: Type = Type.Block
 ) {
+
+    private val variables = mutableMapOf<String, JavascriptValue>()
+
     init {
-        scopeObject.setProperty("this", JavascriptValue.Object(thisBinding))
+        variables["this"] = JavascriptValue.Object(thisBinding)
     }
 
-    fun getProperty(key: String): JavascriptValue {
-        var returnValue = scopeObject.getProperty(key)
-
-        if (returnValue == JavascriptValue.Undefined) {
-            returnValue = parentScope?.getProperty(key) ?: JavascriptValue.Undefined
-        }
-
-        if (returnValue == JavascriptValue.Undefined) {
-            returnValue = thisBinding.getProperty(key)
-        }
-
-        return returnValue
+    fun getVariable(key: String): JavascriptReference {
+        return getVariableIgnoringThis(key) ?:
+            getVariableFromThisBinding(key) ?:
+            globalObject.getProperty(key).toReference {
+                globalObject.setProperty(key, it)
+            }
     }
 
-    fun setProperty(key: String, value: JavascriptValue) {
-        scopeObject.setProperty(key, value)
+    private fun getVariableIgnoringThis(key: String): JavascriptReference? {
+        return variables[key]?.toReference { setVariable(key, it) } ?: parentScope?.getVariableIgnoringThis(key)
+    }
+
+    private fun getVariableFromThisBinding(key: String): JavascriptReference? {
+        return if (thisBinding.properties.contains(key) || thisBinding.nonEnumerableProperties.containsKey(key)) {
+            thisBinding.getProperty(key).toReference { thisBinding.setProperty(key, it) }
+        } else {
+            null
+        }
+    }
+
+    fun setVariable(key: String, value: JavascriptValue) {
+        variables[key] = value
     }
 
     sealed class Type {
