@@ -13,6 +13,7 @@ import ca.antonious.browser.libraries.javascript.interpreter.builtins.number.Num
 import ca.antonious.browser.libraries.javascript.interpreter.builtins.regex.RegExpConstructor
 import ca.antonious.browser.libraries.javascript.interpreter.builtins.string.StringConstructor
 import ca.antonious.browser.libraries.javascript.interpreter.builtins.string.StringObject
+import ca.antonious.browser.libraries.javascript.interpreter.debugger.server.JavascriptDebuggerServer
 import ca.antonious.browser.libraries.javascript.lexer.JavascriptLexer
 import ca.antonious.browser.libraries.javascript.lexer.JavascriptTokenType
 import ca.antonious.browser.libraries.javascript.lexer.SourceInfo
@@ -70,7 +71,7 @@ class JavascriptInterpreter {
         )
     }
 
-    private var stack = Stack<JavascriptStackFrame>().apply {
+    var stack = Stack<JavascriptStackFrame>().apply {
         push(
             JavascriptStackFrame(
                 name = "main",
@@ -88,6 +89,10 @@ class JavascriptInterpreter {
 
     private val currentScope: JavascriptScope
         get() = stack.peek().scope
+
+    private val debugger = JavascriptDebuggerServer(this).apply {
+        start()
+    }
 
     fun interpret(file: File): JavascriptValue {
         return interpret(file.readText(), file.name)
@@ -122,7 +127,16 @@ class JavascriptInterpreter {
     private fun interpretAsReference(statement: JavascriptStatement): JavascriptReference {
         stack.peek().sourceInfo = statement.sourceInfo
 
+        if (statement !is JavascriptExpression) {
+            debugger.onSourceInfoUpdated(statement.sourceInfo)
+            debugger.debuggerLock.lock()
+            debugger.debuggerLock.unlock()
+        }
+
         when (statement) {
+            is JavascriptStatement.Expression -> {
+                return interpretAsReference(statement.expression)
+            }
             is JavascriptStatement.LabeledStatement -> {
                 return interpretAsReference(statement.statement)
             }

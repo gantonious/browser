@@ -51,6 +51,11 @@ sealed class JavascriptStatement() {
         override val sourceInfo: SourceInfo,
         val expression: JavascriptExpression
     ) : JavascriptStatement()
+
+    data class Expression(
+        override val sourceInfo: SourceInfo,
+        val expression: JavascriptExpression
+    ) : JavascriptStatement()
 }
 
 data class AssignmentStatement(val name: String, val expression: JavascriptExpression?)

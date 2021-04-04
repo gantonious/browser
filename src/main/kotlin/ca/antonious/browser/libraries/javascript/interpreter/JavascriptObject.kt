@@ -51,6 +51,12 @@ open class JavascriptObject(
     }
 
     override fun toString(): String {
-        return "Object {${properties.entries.joinToString(separator = ", ") { "${it.key}: ${it.value}" }}}"
+        return "Object {${properties.entries.joinToString(separator = ", ") {
+            val valueString = when (it.value) {
+                is JavascriptValue.Object -> "Object"
+                else -> it.value.toString()
+            }
+            "${it.key}: $valueString" 
+        }}}"
     }
 }

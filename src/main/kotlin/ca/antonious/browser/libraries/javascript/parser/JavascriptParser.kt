@@ -113,7 +113,10 @@ class JavascriptParser(
             is JavascriptTokenType.OpenCurlyBracket -> expectBlock()
             is JavascriptTokenType.Try -> expectTryStatement()
             is JavascriptTokenType.Throw -> expectThrowStatement()
-            else -> expectExpression()
+            else -> {
+                val expression = expectExpression()
+                JavascriptStatement.Expression(sourceInfo = expression.sourceInfo, expression = expression)
+            }
         }
     }
 

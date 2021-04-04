@@ -22,6 +22,8 @@ dependencies {
     compile "com.badlogicgames.gdx:gdx-platform:1.9.14:natives-desktop"
     compile "com.badlogicgames.gdx:gdx-freetype:1.9.14"
     compile "com.badlogicgames.gdx:gdx-freetype-platform:1.9.14:natives-desktop"
+    compile "org.java-websocket:Java-WebSocket:1.5.1"
+    implementation 'com.google.code.gson:gson:2.8.6'
 }
 
 shadowJar {

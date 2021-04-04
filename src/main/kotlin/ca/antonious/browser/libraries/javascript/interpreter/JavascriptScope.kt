@@ -9,7 +9,7 @@ class JavascriptScope(
     val type: Type = Type.Block
 ) {
 
-    private val variables = mutableMapOf<String, JavascriptValue>()
+    val variables = mutableMapOf<String, JavascriptValue>()
 
     init {
         variables["this"] = JavascriptValue.Object(thisBinding)
