@@ -16,6 +16,18 @@ sealed class JavascriptDebuggerResponse {
         override val type = "eval_finished"
     }
 
+    data class GetStackResponse(
+        val frames: List<StackFrameInfo>
+    ) : JavascriptDebuggerResponse() {
+        override val type = "get_stack_response"
+
+        data class StackFrameInfo(
+            val name: String,
+            val line: Int,
+            val column: Int
+        )
+    }
+
     class Ack : JavascriptDebuggerResponse() {
         override val type = "ack"
     }

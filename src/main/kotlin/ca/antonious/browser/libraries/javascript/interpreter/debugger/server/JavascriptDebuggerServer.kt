@@ -31,7 +31,8 @@ class JavascriptDebuggerServer(
                 classMap = mapOf(
                     "set_breakpoint" to JavascriptDebuggerRequest.SetBreakpoint::class.java,
                     "continue" to JavascriptDebuggerRequest.Continue::class.java,
-                    "execute" to JavascriptDebuggerRequest.Execute::class.java
+                    "execute" to JavascriptDebuggerRequest.Execute::class.java,
+                    "get_stack" to JavascriptDebuggerRequest.GetStack::class.java
                 )
             )
         )
@@ -70,6 +71,17 @@ class JavascriptDebuggerServer(
                             sendMessage(JavascriptDebuggerResponse.EvaluationFinished(ex.message ?: "Uncaught error"))
                         }
                     }
+                }
+                is JavascriptDebuggerRequest.GetStack -> {
+                    val frames = interpreter.stack.map { it.copy() }.reversed().map {
+                        JavascriptDebuggerResponse.GetStackResponse.StackFrameInfo(
+                            name = it.name,
+                            line = it.sourceInfo.line,
+                            column = it.sourceInfo.column
+                        )
+                    }
+
+                    sendMessage(JavascriptDebuggerResponse.GetStackResponse(frames))
                 }
             }
         } catch (ex: Exception) {

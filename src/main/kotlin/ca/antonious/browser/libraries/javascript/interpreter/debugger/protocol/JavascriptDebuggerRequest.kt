@@ -18,4 +18,8 @@ sealed class JavascriptDebuggerRequest {
     class Continue : JavascriptDebuggerRequest() {
         override val type = "continue"
     }
+
+    class GetStack : JavascriptDebuggerRequest() {
+        override val type = "get_stack"
+    }
 }

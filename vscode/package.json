@@ -1,0 +1,67 @@
+{
+  "name": "browser-js",
+  "displayName": "BrowserJS",
+  "description": "BrowserJS Debugger",
+  "repository": {
+    "url": "https://github.com/gantonious/browser"
+  },
+  "version": "0.0.1",
+  "publisher": "gantonious",
+  "scripts": {
+    "compile": "rm -rf dist && tsc -p ."
+  },
+  "engines": {
+    "vscode": "^1.55.0"
+  },
+  "categories": [
+    "Debuggers"
+  ],
+  "contributes": {
+    "breakpoints": [
+      {
+        "language": "javascript"
+      }
+    ],
+    "debuggers": [
+      {
+        "languages": [
+          "javascript"
+        ],
+        "type": "browser-js",
+        "label": "Attach to BrowserJS",
+        "program": "./dist/debugger-main.js",
+        "runtime": "node",
+        "configurationAttributes": {
+          "attach": {
+            "required": [],
+            "properties": {}
+          }
+        },
+        "initialConfigurations": [
+          {
+            "type": "browser-js",
+            "request": "attach"
+          }
+        ],
+        "configurationSnippets": [
+          {
+            "label": "Attach to BrowserJs",
+            "body": {
+              "type": "browser-js",
+              "request": "attach"
+            }
+          }
+        ]
+      }
+    ]
+  },
+  "devDependencies": {
+    "@types/vscode": "^1.55.0",
+    "@types/ws": "^7.4.1",
+    "typescript": "^4.2.3"
+  },
+  "dependencies": {
+    "vscode-debugadapter": "^1.46.0",
+    "ws": "^7.4.4"
+  }
+}
