@@ -30,9 +30,11 @@ class JavascriptDebuggerServer(
                 typeFieldName = "type",
                 classMap = mapOf(
                     "set_breakpoint" to JavascriptDebuggerRequest.SetBreakpoint::class.java,
+                    "set_breakpoints" to JavascriptDebuggerRequest.SetBreakpoints::class.java,
                     "continue" to JavascriptDebuggerRequest.Continue::class.java,
                     "execute" to JavascriptDebuggerRequest.Execute::class.java,
-                    "get_stack" to JavascriptDebuggerRequest.GetStack::class.java
+                    "get_stack" to JavascriptDebuggerRequest.GetStack::class.java,
+                    "get_variables" to JavascriptDebuggerRequest.GetVariables::class.java
                 )
             )
         )
@@ -49,6 +51,7 @@ class JavascriptDebuggerServer(
         println("DebugServer: Client disconnected")
         activeConnection = null
         debuggerExecutor.submit { debuggerLock.unlock() }
+        breakpoints.clear()
     }
 
     override fun onMessage(conn: WebSocket, message: String) {
@@ -56,6 +59,11 @@ class JavascriptDebuggerServer(
             when (val debuggerRequest = gson.fromJson(message, JavascriptDebuggerRequest::class.java)) {
                 is JavascriptDebuggerRequest.SetBreakpoint -> {
                     breakpoints.add(debuggerRequest.line)
+                    sendMessage(JavascriptDebuggerResponse.Ack())
+                }
+                is JavascriptDebuggerRequest.SetBreakpoints -> {
+                    breakpoints.clear()
+                    breakpoints.addAll(debuggerRequest.breakpoints.map { it.line })
                     sendMessage(JavascriptDebuggerResponse.Ack())
                 }
                 is JavascriptDebuggerRequest.Continue ->  {
@@ -82,6 +90,21 @@ class JavascriptDebuggerServer(
                     }
 
                     sendMessage(JavascriptDebuggerResponse.GetStackResponse(frames))
+                }
+                is JavascriptDebuggerRequest.GetVariables -> {
+                    val localScope = interpreter.stack.peek().scope
+
+                    val response = JavascriptDebuggerResponse.GetVariablesResponse(
+                        localScope.variables.map {
+                            JavascriptDebuggerResponse.GetVariablesResponse.VariableInfo(
+                                name = it.key,
+                                value = it.value.toString(),
+                                type = it.value.typeName
+                            )
+                        }
+                    )
+
+                    sendMessage(response)
                 }
             }
         } catch (ex: Exception) {

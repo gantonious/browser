@@ -28,6 +28,18 @@ sealed class JavascriptDebuggerResponse {
         )
     }
 
+    data class GetVariablesResponse(
+        val variables: List<VariableInfo>
+    ) : JavascriptDebuggerResponse() {
+        override val type = "get_variables_response"
+
+        data class VariableInfo(
+            val name: String,
+            val type: String,
+            val value: String
+        )
+    }
+
     class Ack : JavascriptDebuggerResponse() {
         override val type = "ack"
     }

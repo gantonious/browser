@@ -175,7 +175,8 @@ class JavascriptParser(
             expectToken<JavascriptTokenType.Colon>()
             return JavascriptStatement.LabeledStatement(sourceInfo = sourceInfo, label = label.name, statement = expectStatement())
         } else {
-            expectExpression()
+            val expression = expectExpression()
+            JavascriptStatement.Expression(sourceInfo = expression.sourceInfo, expression = expression)
         }
     }
 

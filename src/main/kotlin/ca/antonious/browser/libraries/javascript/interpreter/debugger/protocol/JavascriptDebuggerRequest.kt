@@ -9,6 +9,17 @@ sealed class JavascriptDebuggerRequest {
         override val type = "set_breakpoint"
     }
 
+    data class SetBreakpoints(
+        val breakpoints: List<BreakpointInfo>
+    ) : JavascriptDebuggerRequest() {
+        override val type = "set_breakpoints"
+
+        data class BreakpointInfo(
+            val line: Int,
+            val filename: String
+        )
+    }
+
     data class Execute(
         val command: String
     ) : JavascriptDebuggerRequest() {
@@ -21,5 +32,9 @@ sealed class JavascriptDebuggerRequest {
 
     class GetStack : JavascriptDebuggerRequest() {
         override val type = "get_stack"
+    }
+
+    class GetVariables : JavascriptDebuggerRequest() {
+        override val type = "get_variables"
     }
 }
