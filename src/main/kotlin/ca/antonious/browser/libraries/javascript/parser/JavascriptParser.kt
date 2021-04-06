@@ -299,14 +299,15 @@ class JavascriptParser(
         }
 
         val savedCursorPosition = cursor
-        val forExpression = expectStatement()
+        val forStatement = expectStatement()
+        val forStatementAsExpression = (forStatement as? JavascriptStatement.Expression)?.expression
 
-        if (forExpression is JavascriptExpression.BinaryOperation && forExpression.operator is JavascriptTokenType.In) {
+        if (forStatementAsExpression is JavascriptExpression.BinaryOperation && forStatementAsExpression.operator is JavascriptTokenType.In) {
             expectToken<JavascriptTokenType.CloseParentheses>()
             return JavascriptStatement.ForEachLoop(
                 sourceInfo = sourceInfo,
-                initializerStatement = forExpression.lhs,
-                enumerableExpression = forExpression.rhs,
+                initializerStatement = forStatementAsExpression.lhs,
+                enumerableExpression = forStatementAsExpression.rhs,
                 body = expectBlockOrStatementOrNothing()
             )
         }
