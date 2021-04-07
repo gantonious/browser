@@ -103,6 +103,19 @@ class JavascriptInterpreter {
         return interpret(program)
     }
 
+    fun interpretWithExplicitStack(
+        javascript: String,
+        filename: String = "unknown",
+        stack: Stack<JavascriptStackFrame>
+    ): JavascriptValue {
+        val currentStack = this.stack
+        this.stack = stack
+
+        return interpret(javascript, filename).also {
+            this.stack = currentStack
+        }
+    }
+
     fun interpret(program: JavascriptProgram): JavascriptValue {
         val value = interpret(JavascriptStatement.Block(sourceInfo = SourceInfo(0, 0), program.body, createsScope = false))
 
@@ -890,7 +903,8 @@ class JavascriptInterpreter {
         val functionScope = JavascriptScope(
             thisBinding = thisBinding ?: parentScope.thisBinding,
             parentScope = parentScope,
-            globalObject = globalObject
+            globalObject = globalObject,
+            type = JavascriptScope.Type.Function
         ).apply {
             setVariable("arguments", JavascriptValue.Object(JavascriptArray(passedParameters)))
             parameterNames.forEachIndexed { index, parameterName ->

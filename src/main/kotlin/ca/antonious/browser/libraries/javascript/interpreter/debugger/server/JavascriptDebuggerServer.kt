@@ -4,6 +4,7 @@ import ca.antonious.browser.libraries.javascript.ast.JavascriptValue
 import ca.antonious.browser.libraries.javascript.interpreter.JavascriptInterpreter
 import ca.antonious.browser.libraries.javascript.interpreter.JavascriptObject
 import ca.antonious.browser.libraries.javascript.interpreter.JavascriptScope
+import ca.antonious.browser.libraries.javascript.interpreter.JavascriptStackFrame
 import ca.antonious.browser.libraries.javascript.interpreter.debugger.protocol.JavascriptDebuggerMessage
 import ca.antonious.browser.libraries.javascript.interpreter.debugger.protocol.JavascriptDebuggerResponse
 import ca.antonious.browser.libraries.javascript.interpreter.debugger.protocol.JavascriptDebuggerRequest
@@ -29,6 +30,7 @@ import io.ktor.websocket.WebSockets
 import io.ktor.websocket.webSocket
 import kotlinx.coroutines.*
 import java.lang.Exception
+import java.util.*
 import java.util.concurrent.Executors
 import java.util.concurrent.locks.ReentrantLock
 
@@ -85,7 +87,7 @@ class JavascriptDebuggerServer(
 
                 route("stack") {
                     get {
-                        val frames = interpreter.stack.map { it.copy() }.reversed().map {
+                        val frames = interpreter.stack.map { it.copy() }.map {
                             JavascriptDebuggerResponse.GetStackResponse.StackFrameInfo(
                                 name = it.name,
                                 line = it.sourceInfo.line,
@@ -114,7 +116,7 @@ class JavascriptDebuggerServer(
                                     return@get
                                 }
 
-                                val scope = interpreter.stack[interpreter.stack.size - 1 - stackIndex].scope
+                                val scope = interpreter.stack[stackIndex].scope
 
                                 val variableName = pathParts.getOrNull(1)
                                 if (variableName == null) {
@@ -200,8 +202,15 @@ class JavascriptDebuggerServer(
                     post {
                         try {
                             val body = call.receive<JavascriptDebuggerRequest.Evaluate>()
+                            val evaluationStack = interpreter.stack.take(body.frameIndex + 1)
                             val value = withContext(debuggerExecutor.asCoroutineDispatcher()) {
-                                interpreter.interpret(body.javascript)
+                                interpreter.interpretWithExplicitStack(
+                                    javascript = body.javascript,
+                                    filename = "evaluate",
+                                    stack = Stack<JavascriptStackFrame>().apply {
+                                        addAll(evaluationStack)
+                                    }
+                                )
                             }
 
                             call.respond(JavascriptDebuggerResponse.EvaluationFinished(value.toString()))
@@ -256,7 +265,13 @@ private fun JavascriptObject.toVariablesResponse(parentPath: String): Javascript
 
 private fun JavascriptScope.toVariablesResponse(parentPath: String): JavascriptDebuggerResponse.GetVariablesResponse {
     return JavascriptDebuggerResponse.GetVariablesResponse(
-        variables = variables.map { (it.key to it.value).toVariableInfo(parentPath) }
+        variables = (
+            variables.map { (it.key to it.value).toVariableInfo(parentPath) } + if (parentScope != null && parentScope.type !is JavascriptScope.Type.Function) {
+                parentScope.toVariablesResponse(parentPath).variables
+            } else {
+                emptyList()
+            }
+        ).distinctBy { it.name }
     )
 }
 

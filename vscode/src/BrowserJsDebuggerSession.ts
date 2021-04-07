@@ -18,6 +18,7 @@ type DebuggerResponse = { type: "breakpoint_hit"; line: number };
 
 export class BrowserJsDebuggerSession extends LoggingDebugSession {
   private variableHandles = new Handles<string>();
+  private sourceHandles = new Handles<string>();
 
   private httpClient = axios.create({
     responseType: "json",
@@ -83,6 +84,7 @@ export class BrowserJsDebuggerSession extends LoggingDebugSession {
     args: DebugProtocol.EvaluateArguments
   ) {
     const body = {
+      frameIndex: args.frameId ?? 0,
       javascript: args.expression,
     };
 
@@ -157,15 +159,20 @@ export class BrowserJsDebuggerSession extends LoggingDebugSession {
     response.body = response.body ?? {};
 
     response.body.totalFrames = stackInfo.frames.length;
-    response.body.stackFrames = stackInfo.frames.map((frame, index) => {
-      return {
-        id: index,
-        name: frame.name,
-        line: this.convertDebuggerLineToClient(frame.line),
-        column: this.convertDebuggerColumnToClient(frame.column),
-        source: { name: frame.filename },
-      };
-    });
+    response.body.stackFrames = stackInfo.frames
+      .map((frame, index) => {
+        return {
+          id: index,
+          name: frame.name,
+          line: this.convertDebuggerLineToClient(frame.line),
+          column: this.convertDebuggerColumnToClient(frame.column),
+          source: {
+            name: frame.filename,
+            sourceReference: this.sourceHandles.create(frame.filename),
+          },
+        };
+      })
+      .reverse();
 
     this.sendResponse(response);
   }
@@ -175,7 +182,7 @@ export class BrowserJsDebuggerSession extends LoggingDebugSession {
     args: DebugProtocol.SourceArguments
   ) {
     const debuggerResponse = await this.httpClient.get(
-      `source/${args.source?.name}`
+      `source/${this.sourceHandles.get(args.sourceReference)}`
     );
 
     const sourceResponse = debuggerResponse.data as { source: string };

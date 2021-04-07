@@ -12,6 +12,7 @@ sealed class JavascriptDebuggerRequest {
     }
 
     data class Evaluate(
+        val frameIndex: Int,
         val javascript: String
     ) : JavascriptDebuggerRequest()
 

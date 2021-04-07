@@ -41,5 +41,6 @@ class JavascriptScope(
 
     sealed class Type {
         object Block : Type()
+        object Function : Type()
     }
 }
