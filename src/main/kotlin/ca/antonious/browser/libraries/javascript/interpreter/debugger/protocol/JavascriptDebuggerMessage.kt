@@ -8,4 +8,10 @@ sealed class JavascriptDebuggerMessage {
     ) : JavascriptDebuggerMessage() {
         override val type = "breakpoint_hit"
     }
+
+    data class UncaughtError(
+        val error: String
+    ) : JavascriptDebuggerMessage() {
+        override val type = "uncaught_error"
+    }
 }

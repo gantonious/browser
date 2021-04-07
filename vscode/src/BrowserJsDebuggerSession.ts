@@ -14,7 +14,9 @@ import axios from "axios";
 
 import WebSocket = require("ws");
 
-type DebuggerResponse = { type: "breakpoint_hit"; line: number };
+type DebuggerResponse =
+  | { type: "breakpoint_hit" }
+  | { type: "uncaught_error"; error: string };
 
 export class BrowserJsDebuggerSession extends LoggingDebugSession {
   private variableHandles = new Handles<string>();
@@ -56,6 +58,11 @@ export class BrowserJsDebuggerSession extends LoggingDebugSession {
       switch (debuggerResponse.type) {
         case "breakpoint_hit":
           this.sendEvent(new StoppedEvent("breakpoint", 0));
+          break;
+        case "uncaught_error":
+          this.sendEvent(
+            new StoppedEvent("exception", 0, debuggerResponse.error)
+          );
           break;
       }
     };

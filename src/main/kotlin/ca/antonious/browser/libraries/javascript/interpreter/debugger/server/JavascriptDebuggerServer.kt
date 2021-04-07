@@ -47,6 +47,21 @@ class JavascriptDebuggerServer(
 
     private val gson = Gson()
 
+    private var error: JavascriptInterpreter.ControlFlowInterruption.Error? = null
+
+    private val stack: Stack<JavascriptStackFrame>
+        get() {
+            val capturedError = error
+
+            return if (capturedError != null) {
+                Stack<JavascriptStackFrame>().apply {
+                    addAll(capturedError.trace.reversed())
+                }
+            } else {
+                interpreter.stack
+            }
+        }
+
     init {
         embeddedServer(Netty, port = 31256) {
             install(WebSockets)
@@ -75,7 +90,7 @@ class JavascriptDebuggerServer(
 
                 route("source") {
                     get("{filename}") {
-                        val source = interpreter.stack.map { it.sourceInfo }.firstOrNull { it.filename == call.parameters["filename"] }?.source
+                        val source = stack.map { it.sourceInfo }.firstOrNull { it.filename == call.parameters["filename"] }?.source
 
                         if (source == null) {
                             call.respond(HttpStatusCode.NotFound)
@@ -87,7 +102,7 @@ class JavascriptDebuggerServer(
 
                 route("stack") {
                     get {
-                        val frames = interpreter.stack.map { it.copy() }.map {
+                        val frames = stack.map { it.copy() }.map {
                             JavascriptDebuggerResponse.GetStackResponse.StackFrameInfo(
                                 name = it.name,
                                 line = it.sourceInfo.line,
@@ -111,12 +126,12 @@ class JavascriptDebuggerServer(
                             firstPathPart == null -> call.respond(HttpStatusCode.NotFound)
                             firstPathPart.toIntOrNull() != null -> {
                                 val stackIndex = firstPathPart.toInt()
-                                if (stackIndex < 0 || stackIndex >= interpreter.stack.size) {
+                                if (stackIndex < 0 || stackIndex >= stack.size) {
                                     call.respond(HttpStatusCode.NotFound)
                                     return@get
                                 }
 
-                                val scope = interpreter.stack[stackIndex].scope
+                                val scope = stack[stackIndex].scope
 
                                 val variableName = pathParts.getOrNull(1)
                                 if (variableName == null) {
@@ -180,6 +195,7 @@ class JavascriptDebuggerServer(
                 route("continue") {
                     post {
                         withContext(debuggerExecutor.asCoroutineDispatcher()) {
+                            error = null
                             debuggerLock.unlock()
                         }
 
@@ -202,7 +218,7 @@ class JavascriptDebuggerServer(
                     post {
                         try {
                             val body = call.receive<JavascriptDebuggerRequest.Evaluate>()
-                            val evaluationStack = interpreter.stack.take(body.frameIndex + 1)
+                            val evaluationStack = stack.take(body.frameIndex + 1)
                             val value = withContext(debuggerExecutor.asCoroutineDispatcher()) {
                                 interpreter.interpretWithExplicitStack(
                                     javascript = body.javascript,
@@ -247,8 +263,12 @@ class JavascriptDebuggerServer(
         }
     }
 
-    fun pause() {
+    fun pauseOnError(error: JavascriptInterpreter.ControlFlowInterruption.Error) {
+        if (webSockets.isEmpty()) return
+
+        this.error = error
         debuggerExecutor.submit { debuggerLock.lock() }.get()
+        sendMessage(JavascriptDebuggerMessage.UncaughtError(error = error.value.toString()))
     }
 
     private fun sendMessage(message: JavascriptDebuggerMessage) {

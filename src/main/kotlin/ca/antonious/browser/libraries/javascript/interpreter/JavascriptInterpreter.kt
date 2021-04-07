@@ -126,7 +126,9 @@ class JavascriptInterpreter {
                 "at ${it.name}(${it.sourceInfo.filename}:${it.sourceInfo.line + 1}:${it.sourceInfo.column + 1})"
             }
 
-            error(errorMessage)
+            println(errorMessage)
+            debugger.pauseOnError(error)
+            JavascriptValue.Undefined
         } else {
             value
         }
