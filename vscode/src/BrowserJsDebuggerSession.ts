@@ -123,6 +123,14 @@ export class BrowserJsDebuggerSession extends LoggingDebugSession {
     this.sendResponse(response);
   }
 
+  protected async nextRequest(
+    response: DebugProtocol.NextResponse,
+    args: DebugProtocol.NextArguments
+  ) {
+    await this.httpClient.post("stepOver");
+    this.sendResponse(response);
+  }
+
   protected async stackTraceRequest(
     response: DebugProtocol.StackTraceResponse,
     args: DebugProtocol.StackTraceArguments

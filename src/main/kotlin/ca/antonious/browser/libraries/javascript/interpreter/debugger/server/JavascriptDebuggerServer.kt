@@ -37,9 +37,10 @@ class JavascriptDebuggerServer(
 ) {
     val debuggerLock = ReentrantLock()
     private val debuggerExecutor = Executors.newSingleThreadExecutor()
-    private val breakpoints = mutableSetOf<Int>()
-
     private val webSockets = mutableSetOf<WebSocketSession>()
+
+    private var breakOnNextStatement = false
+    private val breakpoints = mutableSetOf<Int>()
 
     private val gson = Gson()
 
@@ -152,6 +153,17 @@ class JavascriptDebuggerServer(
                     }
                 }
 
+                route("stepOver") {
+                    post {
+                        breakOnNextStatement = true
+                        withContext(debuggerExecutor.asCoroutineDispatcher()) {
+                            debuggerLock.unlock()
+                        }
+
+                        call.respond(HttpStatusCode.OK)
+                    }
+                }
+
                 route("evaluate") {
                     post {
                         try {
@@ -182,7 +194,8 @@ class JavascriptDebuggerServer(
 
 
     fun onSourceInfoUpdated(sourceInfo: SourceInfo) {
-        if (sourceInfo.line in breakpoints) {
+        if (breakOnNextStatement || sourceInfo.line in breakpoints) {
+            breakOnNextStatement = false
             debuggerExecutor.submit { debuggerLock.lock() }.get()
             sendMessage(
                 JavascriptDebuggerMessage.BreakpointHit(
