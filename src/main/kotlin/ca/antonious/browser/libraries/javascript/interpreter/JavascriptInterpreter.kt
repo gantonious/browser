@@ -90,9 +90,7 @@ class JavascriptInterpreter {
     private val currentScope: JavascriptScope
         get() = stack.peek().scope
 
-    private val debugger = JavascriptDebuggerServer(this).apply {
-        start()
-    }
+    private val debugger = JavascriptDebuggerServer(this)
 
     fun interpret(file: File): JavascriptValue {
         return interpret(file.readText(), file.name)
