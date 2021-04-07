@@ -20,7 +20,6 @@ type DebuggerResponse =
 
 export class BrowserJsDebuggerSession extends LoggingDebugSession {
   private variableHandles = new Handles<string>();
-  private sourceHandles = new Handles<string>();
 
   private httpClient = axios.create({
     responseType: "json",
@@ -175,7 +174,6 @@ export class BrowserJsDebuggerSession extends LoggingDebugSession {
           column: this.convertDebuggerColumnToClient(frame.column),
           source: {
             name: frame.filename,
-            sourceReference: this.sourceHandles.create(frame.filename),
           },
         };
       })
@@ -189,7 +187,7 @@ export class BrowserJsDebuggerSession extends LoggingDebugSession {
     args: DebugProtocol.SourceArguments
   ) {
     const debuggerResponse = await this.httpClient.get(
-      `source/${this.sourceHandles.get(args.sourceReference)}`
+      `source/${args.source?.name ?? ""}`
     );
 
     const sourceResponse = debuggerResponse.data as { source: string };
