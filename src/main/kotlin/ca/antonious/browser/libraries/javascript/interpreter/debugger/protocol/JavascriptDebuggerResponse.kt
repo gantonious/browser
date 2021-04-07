@@ -12,7 +12,8 @@ sealed class JavascriptDebuggerResponse {
         data class StackFrameInfo(
             val name: String,
             val line: Int,
-            val column: Int
+            val column: Int,
+            val filename: String
         )
     }
 
@@ -26,5 +27,18 @@ sealed class JavascriptDebuggerResponse {
             val value: String,
             val expandPath: String?
         )
+    }
+
+    data class GetSourceResponse(
+        val source: String
+    ) : JavascriptDebuggerResponse()
+
+    data class GetStatusResponse(
+        val status: Status
+    ) : JavascriptDebuggerResponse() {
+        enum class Status {
+            Running,
+            Paused
+        }
     }
 }

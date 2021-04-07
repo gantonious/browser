@@ -97,6 +97,7 @@ class JavascriptInterpreter {
     }
 
     fun interpret(javascript: String, filename: String = "unknown"): JavascriptValue {
+        val filename = filename.trimEnd('/').split("/").last()
         val tokens = JavascriptLexer(javascript, filename).lex()
         val program = JavascriptParser(tokens, javascript).parse()
         return interpret(program)

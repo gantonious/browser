@@ -41,6 +41,7 @@ class JavascriptDebuggerServer(
 
     private var breakOnNextStatement = false
     private val breakpoints = mutableSetOf<Int>()
+    private val filenameBreakpoints = mutableSetOf("jquery.js")
 
     private val gson = Gson()
 
@@ -52,13 +53,44 @@ class JavascriptDebuggerServer(
             }
 
             routing {
+                route("status") {
+                    get {
+                        val isPaused = withContext(debuggerExecutor.asCoroutineDispatcher()) {
+                            debuggerLock.isLocked
+                        }
+
+                        call.respond(
+                            JavascriptDebuggerResponse.GetStatusResponse(
+                                status = if (isPaused) {
+                                    JavascriptDebuggerResponse.GetStatusResponse.Status.Paused
+                                } else {
+                                    JavascriptDebuggerResponse.GetStatusResponse.Status.Running
+                                }
+                            )
+                        )
+                    }
+                }
+
+                route("source") {
+                    get("{filename}") {
+                        val source = interpreter.stack.map { it.sourceInfo }.firstOrNull { it.filename == call.parameters["filename"] }?.source
+
+                        if (source == null) {
+                            call.respond(HttpStatusCode.NotFound)
+                        } else {
+                            call.respond(JavascriptDebuggerResponse.GetSourceResponse(source))
+                        }
+                    }
+                }
+
                 route("stack") {
                     get {
                         val frames = interpreter.stack.map { it.copy() }.reversed().map {
                             JavascriptDebuggerResponse.GetStackResponse.StackFrameInfo(
                                 name = it.name,
                                 line = it.sourceInfo.line,
-                                column = it.sourceInfo.column
+                                column = it.sourceInfo.column,
+                                filename = it.sourceInfo.filename
                             )
                         }
 
@@ -194,7 +226,8 @@ class JavascriptDebuggerServer(
 
 
     fun onSourceInfoUpdated(sourceInfo: SourceInfo) {
-        if (breakOnNextStatement || sourceInfo.line in breakpoints) {
+        if (breakOnNextStatement || sourceInfo.line in breakpoints || sourceInfo.filename in filenameBreakpoints) {
+            filenameBreakpoints.remove(sourceInfo.filename)
             breakOnNextStatement = false
             debuggerExecutor.submit { debuggerLock.lock() }.get()
             sendMessage(
@@ -203,6 +236,10 @@ class JavascriptDebuggerServer(
                 )
             )
         }
+    }
+
+    fun pause() {
+        debuggerExecutor.submit { debuggerLock.lock() }.get()
     }
 
     private fun sendMessage(message: JavascriptDebuggerMessage) {

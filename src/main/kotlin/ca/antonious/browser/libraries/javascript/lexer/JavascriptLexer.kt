@@ -295,7 +295,7 @@ class JavascriptLexer(
     }
 
     private fun pushToken(tokenType: JavascriptTokenType) {
-        tokens += JavascriptToken(tokenType, SourceInfo(sourceRow, sourceColumnAtParse, sourceFilename))
+        tokens += JavascriptToken(tokenType, SourceInfo(sourceRow, sourceColumnAtParse, sourceFilename, source))
     }
 
     private fun dropLastToken() {

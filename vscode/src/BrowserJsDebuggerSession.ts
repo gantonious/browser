@@ -4,7 +4,6 @@ import {
   LoggingDebugSession,
   OutputEvent,
   Scope,
-  Source,
   StoppedEvent,
   TerminatedEvent,
   Thread,
@@ -66,8 +65,17 @@ export class BrowserJsDebuggerSession extends LoggingDebugSession {
     args: DebugProtocol.InitializeRequestArguments
   ) {
     response.body = response.body ?? {};
+    const debuggerResponse = await this.httpClient.get("status");
+    const statusResponse = debuggerResponse.data as {
+      status: "Running" | "Paused";
+    };
+
     this.sendResponse(response);
     this.sendEvent(new InitializedEvent());
+
+    if (statusResponse.status === "Paused") {
+      this.sendEvent(new StoppedEvent("breakpoint", 0));
+    }
   }
 
   protected async evaluateRequest(
@@ -138,7 +146,12 @@ export class BrowserJsDebuggerSession extends LoggingDebugSession {
     const debuggerResponse = await this.httpClient.get("stack");
 
     const stackInfo = debuggerResponse.data as {
-      frames: { name: string; line: number; column: number }[];
+      frames: {
+        name: string;
+        line: number;
+        column: number;
+        filename: string;
+      }[];
     };
 
     response.body = response.body ?? {};
@@ -150,9 +163,25 @@ export class BrowserJsDebuggerSession extends LoggingDebugSession {
         name: frame.name,
         line: this.convertDebuggerLineToClient(frame.line),
         column: this.convertDebuggerColumnToClient(frame.column),
-        source: new Source("jquery.js", "/Users/george/dev/browser/jquery.js"),
+        source: { name: frame.filename },
       };
     });
+
+    this.sendResponse(response);
+  }
+
+  protected async sourceRequest(
+    response: DebugProtocol.SourceResponse,
+    args: DebugProtocol.SourceArguments
+  ) {
+    const debuggerResponse = await this.httpClient.get(
+      `source/${args.source?.name}`
+    );
+
+    const sourceResponse = debuggerResponse.data as { source: string };
+
+    response.body = response.body ?? {};
+    response.body.content = sourceResponse.source;
 
     this.sendResponse(response);
   }
