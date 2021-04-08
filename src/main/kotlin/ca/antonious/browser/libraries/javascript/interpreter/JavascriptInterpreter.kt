@@ -142,9 +142,8 @@ class JavascriptInterpreter {
         stack.peek().sourceInfo = statement.sourceInfo
 
         if (statement !is JavascriptExpression) {
-            debugger.onSourceInfoUpdated(statement.sourceInfo)
-            debugger.debuggerLock.lock()
-            debugger.debuggerLock.unlock()
+            debugger.updateSourceLocation(statement.sourceInfo)
+            debugger.awaitForContinue()
         }
 
         when (statement) {

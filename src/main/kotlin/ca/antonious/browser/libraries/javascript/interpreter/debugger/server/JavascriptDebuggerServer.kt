@@ -37,7 +37,7 @@ import java.util.concurrent.locks.ReentrantLock
 class JavascriptDebuggerServer(
     private val interpreter: JavascriptInterpreter
 ) {
-    val debuggerLock = ReentrantLock()
+    private val executionLock = ReentrantLock()
     private val debuggerExecutor = Executors.newSingleThreadExecutor()
     private val webSockets = mutableSetOf<WebSocketSession>()
 
@@ -46,7 +46,6 @@ class JavascriptDebuggerServer(
     private val filenameBreakpoints = mutableSetOf("jquery.js")
 
     private val gson = Gson()
-
     private var error: JavascriptInterpreter.ControlFlowInterruption.Error? = null
 
     private val stack: Stack<JavascriptStackFrame>
@@ -73,7 +72,7 @@ class JavascriptDebuggerServer(
                 route("status") {
                     get {
                         val isPaused = withContext(debuggerExecutor.asCoroutineDispatcher()) {
-                            debuggerLock.isLocked
+                            executionLock.isLocked
                         }
 
                         call.respond(
@@ -196,7 +195,7 @@ class JavascriptDebuggerServer(
                     post {
                         withContext(debuggerExecutor.asCoroutineDispatcher()) {
                             error = null
-                            debuggerLock.unlock()
+                            executionLock.unlock()
                         }
 
                         call.respond(HttpStatusCode.OK)
@@ -207,7 +206,7 @@ class JavascriptDebuggerServer(
                     post {
                         breakOnNextStatement = true
                         withContext(debuggerExecutor.asCoroutineDispatcher()) {
-                            debuggerLock.unlock()
+                            executionLock.unlock()
                         }
 
                         call.respond(HttpStatusCode.OK)
@@ -241,7 +240,7 @@ class JavascriptDebuggerServer(
                     webSockets.add(this)
                     for (frame in incoming) {}
                     webSockets.remove(this)
-                    debuggerExecutor.submit { debuggerLock.unlock() }
+                    debuggerExecutor.submit { executionLock.unlock() }
                     breakpoints.clear()
                     println("DebugServer: Client disconnected")
                 }
@@ -249,12 +248,11 @@ class JavascriptDebuggerServer(
         }.start()
     }
 
-
-    fun onSourceInfoUpdated(sourceInfo: SourceInfo) {
+    fun updateSourceLocation(sourceInfo: SourceInfo) {
         if (breakOnNextStatement || sourceInfo.line in breakpoints || sourceInfo.filename in filenameBreakpoints) {
             filenameBreakpoints.remove(sourceInfo.filename)
             breakOnNextStatement = false
-            debuggerExecutor.submit { debuggerLock.lock() }.get()
+            debuggerExecutor.submit { executionLock.lock() }.get()
             sendMessage(
                 JavascriptDebuggerMessage.BreakpointHit(
                     line = sourceInfo.line
@@ -267,49 +265,54 @@ class JavascriptDebuggerServer(
         if (webSockets.isEmpty()) return
 
         this.error = error
-        debuggerExecutor.submit { debuggerLock.lock() }.get()
+        debuggerExecutor.submit { executionLock.lock() }.get()
         sendMessage(JavascriptDebuggerMessage.UncaughtError(error = error.value.toString()))
+    }
+
+    fun awaitForContinue() {
+        executionLock.lock()
+        executionLock.unlock()
     }
 
     private fun sendMessage(message: JavascriptDebuggerMessage) {
         val rawMessage = gson.toJson(message)
         webSockets.forEach { GlobalScope.launch { it.send(rawMessage) } }
     }
-}
 
-private fun JavascriptObject.toVariablesResponse(parentPath: String): JavascriptDebuggerResponse.GetVariablesResponse {
-    return JavascriptDebuggerResponse.GetVariablesResponse(
-        variables = properties.map { (it.key to it.value).toVariableInfo(parentPath) } +
-            nonEnumerableProperties.map { (it.key to it.value).toVariableInfo(parentPath)  }
-    )
-}
+    private fun JavascriptObject.toVariablesResponse(parentPath: String): JavascriptDebuggerResponse.GetVariablesResponse {
+        return JavascriptDebuggerResponse.GetVariablesResponse(
+            variables = properties.map { (it.key to it.value).toVariableInfo(parentPath) } +
+                nonEnumerableProperties.map { (it.key to it.value).toVariableInfo(parentPath)  }
+        )
+    }
 
-private fun JavascriptScope.toVariablesResponse(parentPath: String): JavascriptDebuggerResponse.GetVariablesResponse {
-    return JavascriptDebuggerResponse.GetVariablesResponse(
-        variables = (
-            variables.map { (it.key to it.value).toVariableInfo(parentPath) } + if (parentScope != null && parentScope.type !is JavascriptScope.Type.Function) {
-                parentScope.toVariablesResponse(parentPath).variables
+    private fun JavascriptScope.toVariablesResponse(parentPath: String): JavascriptDebuggerResponse.GetVariablesResponse {
+        return JavascriptDebuggerResponse.GetVariablesResponse(
+            variables = (
+                variables.map { (it.key to it.value).toVariableInfo(parentPath) } + if (parentScope != null && parentScope.type !is JavascriptScope.Type.Function) {
+                    parentScope.toVariablesResponse(parentPath).variables
+                } else {
+                    emptyList()
+                }
+                ).distinctBy { it.name }
+        )
+    }
+
+    private fun Pair<String, JavascriptValue>.toVariableInfo(parentPath: String): JavascriptDebuggerResponse.GetVariablesResponse.VariableInfo {
+        val value = second
+        return JavascriptDebuggerResponse.GetVariablesResponse.VariableInfo(
+            name = first,
+            value = if (second is JavascriptValue.String) {
+                "\"$second\""
             } else {
-                emptyList()
+                second.toString()
+            },
+            type = second.typeName,
+            expandPath = if (value is JavascriptValue.Object && (value.value.properties.isNotEmpty() || value.value.nonEnumerableProperties.isNotEmpty())) {
+                "$parentPath/$first"
+            } else {
+                null
             }
-        ).distinctBy { it.name }
-    )
-}
-
-private fun Pair<String, JavascriptValue>.toVariableInfo(parentPath: String): JavascriptDebuggerResponse.GetVariablesResponse.VariableInfo {
-    val value = second
-    return JavascriptDebuggerResponse.GetVariablesResponse.VariableInfo(
-        name = first,
-        value = if (second is JavascriptValue.String) {
-            "\"$second\""
-        } else {
-            second.toString()
-        },
-        type = second.typeName,
-        expandPath = if (value is JavascriptValue.Object && (value.value.properties.isNotEmpty() || value.value.nonEnumerableProperties.isNotEmpty())) {
-            "$parentPath/$first"
-        } else {
-            null
-        }
-    )
+        )
+    }
 }
