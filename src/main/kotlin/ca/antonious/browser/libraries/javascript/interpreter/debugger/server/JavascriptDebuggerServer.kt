@@ -279,7 +279,8 @@ class JavascriptDebuggerServer(
 
 private fun JavascriptObject.toVariablesResponse(parentPath: String): JavascriptDebuggerResponse.GetVariablesResponse {
     return JavascriptDebuggerResponse.GetVariablesResponse(
-        variables = properties.map { (it.key to it.value).toVariableInfo(parentPath) }
+        variables = properties.map { (it.key to it.value).toVariableInfo(parentPath) } +
+            nonEnumerableProperties.map { (it.key to it.value).toVariableInfo(parentPath)  }
     )
 }
 
@@ -305,7 +306,7 @@ private fun Pair<String, JavascriptValue>.toVariableInfo(parentPath: String): Ja
             second.toString()
         },
         type = second.typeName,
-        expandPath = if (value is JavascriptValue.Object && value.value.properties.isNotEmpty()) {
+        expandPath = if (value is JavascriptValue.Object && (value.value.properties.isNotEmpty() || value.value.nonEnumerableProperties.isNotEmpty())) {
             "$parentPath/$first"
         } else {
             null
