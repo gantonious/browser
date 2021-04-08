@@ -299,7 +299,11 @@ private fun Pair<String, JavascriptValue>.toVariableInfo(parentPath: String): Ja
     val value = second
     return JavascriptDebuggerResponse.GetVariablesResponse.VariableInfo(
         name = first,
-        value = second.toString(),
+        value = if (second is JavascriptValue.String) {
+            "\"$second\""
+        } else {
+            second.toString()
+        },
         type = second.typeName,
         expandPath = if (value is JavascriptValue.Object && value.value.properties.isNotEmpty()) {
             "$parentPath/$first"
