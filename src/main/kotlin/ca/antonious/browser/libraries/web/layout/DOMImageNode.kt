@@ -32,7 +32,7 @@ class DOMImageNode(
             bitmap?.let {
                 Size(min(widthConstraint, it.width.toFloat()), min(heightConstraint, it.height.toFloat()))
             } ?: Size(0f, 0f)
-        ).apply {
+            ).apply {
             frame.width = width
             frame.height = height
         }

@@ -1,7 +1,5 @@
 package ca.antonious.browser.libraries.graphics.core
 
-import ca.antonious.browser.libraries.css.CssAttribute
-
 interface Canvas {
     val globalCanvas: Canvas
     val size: Size

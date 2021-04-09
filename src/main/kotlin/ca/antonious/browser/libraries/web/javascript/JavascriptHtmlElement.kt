@@ -4,8 +4,8 @@ import ca.antonious.browser.libraries.html.HtmlElement
 import ca.antonious.browser.libraries.html.HtmlParser
 import ca.antonious.browser.libraries.javascript.ast.JavascriptValue
 import ca.antonious.browser.libraries.javascript.interpreter.JavascriptObject
-import ca.antonious.browser.libraries.javascript.interpreter.builtins.function.NativeFunction
 import ca.antonious.browser.libraries.javascript.interpreter.builtins.array.JavascriptArray
+import ca.antonious.browser.libraries.javascript.interpreter.builtins.function.NativeFunction
 import ca.antonious.browser.libraries.web.layout.DOMLayoutNode
 import ca.antonious.browser.libraries.web.layout.DOMParentLayoutNode
 import ca.antonious.browser.libraries.web.layout.DOMTextNode

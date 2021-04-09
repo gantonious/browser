@@ -27,7 +27,10 @@ data class NativeExecutionContext(
 )
 
 fun JavascriptObject.setNonEnumerableNativeFunction(name: String, body: (NativeExecutionContext) -> JavascriptValue) {
-    setNonEnumerableProperty(name, JavascriptValue.Object(
-        NativeFunction(JavascriptObject(), body)
-    ))
+    setNonEnumerableProperty(
+        name,
+        JavascriptValue.Object(
+            NativeFunction(JavascriptObject(), body)
+        )
+    )
 }

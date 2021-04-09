@@ -1,7 +1,5 @@
 package ca.antonious.browser.libraries.graphics.core
 
-import ca.antonious.browser.libraries.css.CssAttribute
-
 class CanvasView(
     private val backingCanvas: Canvas,
     private val bounds: Rect

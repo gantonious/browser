@@ -123,7 +123,6 @@ class DOM {
                         javascriptInterpreter.interpret(event.element.attributes["onclick"] ?: "")
                     }
                 }
-
             }
         }
     }

@@ -1,6 +1,10 @@
 package ca.antonious.browser.libraries.javascript.parser
 
-import ca.antonious.browser.libraries.javascript.ast.*
+import ca.antonious.browser.libraries.javascript.ast.AssignmentStatement
+import ca.antonious.browser.libraries.javascript.ast.JavascriptExpression
+import ca.antonious.browser.libraries.javascript.ast.JavascriptProgram
+import ca.antonious.browser.libraries.javascript.ast.JavascriptStatement
+import ca.antonious.browser.libraries.javascript.ast.JavascriptValue
 import ca.antonious.browser.libraries.javascript.interpreter.builtins.regex.RegExpObject
 import ca.antonious.browser.libraries.javascript.lexer.JavascriptToken
 import ca.antonious.browser.libraries.javascript.lexer.JavascriptTokenType

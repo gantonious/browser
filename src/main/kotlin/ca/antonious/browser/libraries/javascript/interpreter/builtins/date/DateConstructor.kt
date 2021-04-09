@@ -14,7 +14,6 @@ class DateConstructor : NativeFunction(
             DateFormat.getDateInstance().parse(executionContext.arguments.first().toString())
         }
 
-
         JavascriptValue.Object(DateObject(date))
     }
 )

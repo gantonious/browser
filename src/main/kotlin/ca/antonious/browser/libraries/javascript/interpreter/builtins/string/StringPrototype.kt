@@ -1,12 +1,12 @@
 package ca.antonious.browser.libraries.javascript.interpreter.builtins.string
 
 import ca.antonious.browser.libraries.javascript.ast.JavascriptValue
-import ca.antonious.browser.libraries.javascript.interpreter.builtins.function.JavascriptFunction
 import ca.antonious.browser.libraries.javascript.interpreter.JavascriptObject
-import ca.antonious.browser.libraries.javascript.interpreter.builtins.function.NativeFunction
 import ca.antonious.browser.libraries.javascript.interpreter.builtins.array.JavascriptArray
-import ca.antonious.browser.libraries.javascript.interpreter.builtins.regex.RegExpObject
+import ca.antonious.browser.libraries.javascript.interpreter.builtins.function.JavascriptFunction
+import ca.antonious.browser.libraries.javascript.interpreter.builtins.function.NativeFunction
 import ca.antonious.browser.libraries.javascript.interpreter.builtins.function.setNonEnumerableNativeFunction
+import ca.antonious.browser.libraries.javascript.interpreter.builtins.regex.RegExpObject
 
 object StringPrototype : JavascriptObject() {
     init {

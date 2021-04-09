@@ -1,13 +1,22 @@
 package ca.antonious.browser.libraries.web.layout
 
-import ca.antonious.browser.libraries.css.*
-import ca.antonious.browser.libraries.graphics.core.*
+import ca.antonious.browser.libraries.css.CssDisplay
+import ca.antonious.browser.libraries.css.CssHorizontalAlignment
+import ca.antonious.browser.libraries.css.CssPosition
+import ca.antonious.browser.libraries.css.CssSize
+import ca.antonious.browser.libraries.css.CssVerticalAlignment
+import ca.antonious.browser.libraries.graphics.core.Canvas
+import ca.antonious.browser.libraries.graphics.core.Insets
+import ca.antonious.browser.libraries.graphics.core.MeasuringTape
+import ca.antonious.browser.libraries.graphics.core.Paint
+import ca.antonious.browser.libraries.graphics.core.Rect
+import ca.antonious.browser.libraries.graphics.core.Size
+import ca.antonious.browser.libraries.graphics.core.subRegion
 import ca.antonious.browser.libraries.html.HtmlElement
 import ca.antonious.browser.libraries.layout.core.InputEvent
 import ca.antonious.browser.libraries.web.DOMEvent
 import ca.antonious.browser.libraries.web.ResolvedStyle
 import ca.antonious.browser.libraries.web.resolveSize
-import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.min
 
@@ -141,7 +150,7 @@ class DOMParentLayoutNode(
             if (childrenWidth < widthConstraintToFill) {
                 when {
                     (resolvedStyle.margins.start is CssSize.Auto && resolvedStyle.margins.end is CssSize.Auto) ||
-                            (resolvedStyle.textAlignment == CssHorizontalAlignment.center) -> {
+                        (resolvedStyle.textAlignment == CssHorizontalAlignment.center) -> {
                         val remainingMargin = (widthConstraintToFill - childrenWidth) / 2
                         for (child in children) {
                             child.frame.x += remainingMargin
@@ -153,7 +162,7 @@ class DOMParentLayoutNode(
             if (childrenHeight < heightConstraintToFill) {
                 when {
                     (resolvedStyle.margins.top is CssSize.Auto && resolvedStyle.margins.bottom is CssSize.Auto) ||
-                            (resolvedStyle.verticalAlignment == CssVerticalAlignment.middle) -> {
+                        (resolvedStyle.verticalAlignment == CssVerticalAlignment.middle) -> {
                         val remainingMargin = (heightConstraintToFill - childrenHeight) / 2
                         for (child in children) {
                             child.frame.y += remainingMargin
@@ -229,10 +238,12 @@ class DOMParentLayoutNode(
 
         children.forEach {
             it.drawTo(
-                canvas.subRegion(it.frame.copy(
-                    x = it.frame.x + marginInsets.start,
-                    y = it.frame.y + marginInsets.top
-                ))
+                canvas.subRegion(
+                    it.frame.copy(
+                        x = it.frame.x + marginInsets.start,
+                        y = it.frame.y + marginInsets.top
+                    )
+                )
             )
         }
     }

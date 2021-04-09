@@ -11,7 +11,7 @@ object FunctionPrototype : JavascriptObject() {
                 ?: return@setNonEnumerableNativeFunction JavascriptValue.Undefined
 
             val thisBindingOverride = executionContext.interpreter.interpretAsObject(executionContext.arguments.first())
-            val argumentsArray =executionContext.arguments.drop(1)
+            val argumentsArray = executionContext.arguments.drop(1)
 
             val callExecutionContext = executionContext.copy(
                 thisBinding = functionObject.boundThis ?: thisBindingOverride,

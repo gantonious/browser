@@ -16,9 +16,9 @@ class JavascriptScope(
     }
 
     fun getVariable(key: String): JavascriptReference {
-        return getVariableIgnoringThis(key) ?:
-            getVariableFromThisBinding(key) ?:
-            globalObject.getProperty(key).toReference {
+        return getVariableIgnoringThis(key)
+            ?: getVariableFromThisBinding(key)
+            ?: globalObject.getProperty(key).toReference {
                 globalObject.setProperty(key, it)
             }
     }

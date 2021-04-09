@@ -6,8 +6,8 @@ import ca.antonious.browser.libraries.javascript.interpreter.JavascriptObject
 import ca.antonious.browser.libraries.javascript.interpreter.JavascriptScope
 import ca.antonious.browser.libraries.javascript.interpreter.JavascriptStackFrame
 import ca.antonious.browser.libraries.javascript.interpreter.debugger.protocol.JavascriptDebuggerMessage
-import ca.antonious.browser.libraries.javascript.interpreter.debugger.protocol.JavascriptDebuggerResponse
 import ca.antonious.browser.libraries.javascript.interpreter.debugger.protocol.JavascriptDebuggerRequest
+import ca.antonious.browser.libraries.javascript.interpreter.debugger.protocol.JavascriptDebuggerResponse
 import ca.antonious.browser.libraries.javascript.lexer.SourceInfo
 import com.google.gson.Gson
 import io.ktor.application.call
@@ -28,9 +28,11 @@ import io.ktor.server.engine.embeddedServer
 import io.ktor.server.netty.Netty
 import io.ktor.websocket.WebSockets
 import io.ktor.websocket.webSocket
-import kotlinx.coroutines.*
-import java.lang.Exception
-import java.util.*
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.asCoroutineDispatcher
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import java.util.Stack
 import java.util.concurrent.Executors
 import java.util.concurrent.locks.ReentrantLock
 
@@ -282,7 +284,7 @@ class JavascriptDebuggerServer(
     private fun JavascriptObject.toVariablesResponse(parentPath: String): JavascriptDebuggerResponse.GetVariablesResponse {
         return JavascriptDebuggerResponse.GetVariablesResponse(
             variables = properties.map { (it.key to it.value).toVariableInfo(parentPath) } +
-                nonEnumerableProperties.map { (it.key to it.value).toVariableInfo(parentPath)  }
+                nonEnumerableProperties.map { (it.key to it.value).toVariableInfo(parentPath) }
         )
     }
 

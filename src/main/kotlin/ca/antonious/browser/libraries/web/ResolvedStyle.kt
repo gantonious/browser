@@ -1,6 +1,10 @@
 package ca.antonious.browser.libraries.web
 
-import ca.antonious.browser.libraries.css.*
+import ca.antonious.browser.libraries.css.CssDisplay
+import ca.antonious.browser.libraries.css.CssHorizontalAlignment
+import ca.antonious.browser.libraries.css.CssPosition
+import ca.antonious.browser.libraries.css.CssSize
+import ca.antonious.browser.libraries.css.CssVerticalAlignment
 import ca.antonious.browser.libraries.graphics.core.Color
 import ca.antonious.browser.libraries.graphics.core.MeasuringTape
 

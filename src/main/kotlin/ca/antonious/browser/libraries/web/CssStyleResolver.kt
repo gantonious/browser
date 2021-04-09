@@ -1,6 +1,12 @@
 package ca.antonious.browser.libraries.web
 
-import ca.antonious.browser.libraries.css.*
+import ca.antonious.browser.libraries.css.CssAttribute
+import ca.antonious.browser.libraries.css.CssDisplay
+import ca.antonious.browser.libraries.css.CssPosition
+import ca.antonious.browser.libraries.css.CssRule
+import ca.antonious.browser.libraries.css.CssSelector
+import ca.antonious.browser.libraries.css.CssSize
+import ca.antonious.browser.libraries.css.toCssSize
 import ca.antonious.browser.libraries.graphics.core.Color
 import ca.antonious.browser.libraries.web.layout.DOMParentLayoutNode
 

@@ -410,12 +410,12 @@ class JavascriptLexer(
         val cursorPositionInPreview = cursor - previewStart
 
         val fullError = "Tokenizer error, ${errorMessage.decapitalize()}:\n" +
-                "${tab}at line:$sourceRow, column:$sourceColumnAtParse\n" +
-                "${tab}${source.substring(previewStart, previewEnd)}\n" +
-                tab + " ".repeat(cursorPositionInPreview) + "^\n" +
-                "${tab}Last 5 tokens: [\n${tab.repeat(2)}" +
-                    tokens.takeLast(5).reversed().joinToString(separator = "\n${tab.repeat(2)}") +
-                "\n${tab}]"
+            "${tab}at line:$sourceRow, column:$sourceColumnAtParse\n" +
+            "${tab}${source.substring(previewStart, previewEnd)}\n" +
+            tab + " ".repeat(cursorPositionInPreview) + "^\n" +
+            "${tab}Last 5 tokens: [\n${tab.repeat(2)}" +
+            tokens.takeLast(5).reversed().joinToString(separator = "\n${tab.repeat(2)}") +
+            "\n$tab]"
 
         error(fullError)
     }

@@ -20,7 +20,7 @@ data class Uri(
     }
 
     override fun toString(): String {
-        return "${scheme}://$host:$port/$path"
+        return "$scheme://$host:$port/$path"
     }
 }
 

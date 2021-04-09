@@ -1,6 +1,11 @@
 package ca.antonious.browser.libraries.graphics.libgdx
 
-import ca.antonious.browser.libraries.graphics.core.*
+import ca.antonious.browser.libraries.graphics.core.Bitmap
+import ca.antonious.browser.libraries.graphics.core.Canvas
+import ca.antonious.browser.libraries.graphics.core.Font
+import ca.antonious.browser.libraries.graphics.core.Paint
+import ca.antonious.browser.libraries.graphics.core.Rect
+import ca.antonious.browser.libraries.graphics.core.Size
 
 class LibgdxCanvas(override val size: Size) : Canvas {
     val drawCalls = mutableListOf<LibgdxDrawCall>()

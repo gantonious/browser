@@ -1,6 +1,9 @@
 package ca.antonious.browser.libraries.javascript.interpreter.debugger.utils
 
-import com.google.gson.*
+import com.google.gson.Gson
+import com.google.gson.JsonDeserializationContext
+import com.google.gson.JsonDeserializer
+import com.google.gson.JsonElement
 import java.lang.reflect.Type
 
 class SubclassDeserializer<T> constructor(

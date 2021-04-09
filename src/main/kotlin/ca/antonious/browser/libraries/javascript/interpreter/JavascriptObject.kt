@@ -56,7 +56,7 @@ open class JavascriptObject(
                 is JavascriptValue.Object -> "Object"
                 else -> it.value.toString()
             }
-            "${it.key}: $valueString" 
+            "${it.key}: $valueString"
         }}}"
     }
 }
