@@ -131,7 +131,7 @@ class JavascriptInterpreter {
 
             println(errorMessage)
             debugger.pauseOnError(error)
-            JavascriptValue.Undefined
+            error.value
         } else {
             value
         }

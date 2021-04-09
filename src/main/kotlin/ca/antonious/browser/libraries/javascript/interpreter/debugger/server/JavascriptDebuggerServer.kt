@@ -265,6 +265,7 @@ class JavascriptDebuggerServer(
 
     fun pauseOnError(error: JavascriptInterpreter.ControlFlowInterruption.Error) {
         if (webSockets.isEmpty()) return
+        if (executionLock.isLocked) return
 
         this.error = error
         debuggerExecutor.submit { executionLock.lock() }.get()
