@@ -3,6 +3,7 @@ package ca.antonious.browser.libraries.javascript.interpreter.builtins.`object`
 import ca.antonious.browser.libraries.javascript.ast.JavascriptExpression
 import ca.antonious.browser.libraries.javascript.ast.JavascriptValue
 import ca.antonious.browser.libraries.javascript.interpreter.JavascriptInterpreter
+import ca.antonious.browser.libraries.javascript.interpreter.JavascriptProperty
 import ca.antonious.browser.libraries.javascript.interpreter.builtins.function.NativeFunction
 import ca.antonious.browser.libraries.javascript.interpreter.builtins.number.NumberObject
 import ca.antonious.browser.libraries.javascript.interpreter.builtins.string.StringObject
@@ -28,7 +29,7 @@ class ObjectConstructor(interpreter: JavascriptInterpreter) : NativeFunction(
             } else {
                 JavascriptValue.Object(
                     interpreter.makeArray(
-                        javascriptObject.value.properties.keys.map {
+                        javascriptObject.value.enumerableKeys.map {
                             JavascriptValue.String(it)
                         }
                     )
@@ -44,7 +45,7 @@ class ObjectConstructor(interpreter: JavascriptInterpreter) : NativeFunction(
             } else {
                 JavascriptValue.Object(
                     interpreter.makeArray(
-                        javascriptObject.value.properties.values.toList()
+                        javascriptObject.value.enumerableProperties.map { it.second }.toList()
                     )
                 )
             }
@@ -58,7 +59,7 @@ class ObjectConstructor(interpreter: JavascriptInterpreter) : NativeFunction(
             } else {
                 JavascriptValue.Object(
                     interpreter.makeArray(
-                        (javascriptObject.value.properties.keys + javascriptObject.value.nonEnumerableProperties.keys).map {
+                        (javascriptObject.value.allPropertyKeys).map {
                             JavascriptValue.String(it)
                         }
                     )
@@ -76,6 +77,31 @@ class ObjectConstructor(interpreter: JavascriptInterpreter) : NativeFunction(
             } else {
                 JavascriptValue.Undefined
             }
+        }
+
+        setNonEnumerableNativeFunction("defineProperty") { executionContext ->
+            val obj = executionContext.arguments.getOrNull(0)?.asObject() ?:
+                return@setNonEnumerableNativeFunction JavascriptValue.Undefined
+
+            val prop = executionContext.arguments.getOrNull(1)?.toString()
+            val descriptor = executionContext.arguments.getOrNull(2)?.asObject()
+
+            if (prop == null || descriptor == null) {
+                executionContext.interpreter.throwError(JavascriptValue.String("TypeError: Property description must be an object: undefined"))
+                return@setNonEnumerableNativeFunction  JavascriptValue.Undefined
+            }
+
+            obj.setProperty(
+                key = prop,
+                property = JavascriptProperty(
+                    value = descriptor.getProperty("value"),
+                    enumerable = descriptor.getProperty("enumerable").isTruthy,
+                    writable = descriptor.getProperty("writable").isTruthy,
+                    configurable = descriptor.getProperty("configurable").isTruthy
+                )
+            )
+
+            JavascriptValue.Object(obj)
         }
     }
 }

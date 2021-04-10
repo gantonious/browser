@@ -28,7 +28,7 @@ class JavascriptScope(
     }
 
     private fun getVariableFromThisBinding(key: String): JavascriptReference? {
-        return if (thisBinding.properties.contains(key) || thisBinding.nonEnumerableProperties.containsKey(key)) {
+        return if (key in thisBinding.allPropertyKeys) {
             thisBinding.getProperty(key).toReference { thisBinding.setProperty(key, it) }
         } else {
             null

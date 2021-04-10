@@ -69,7 +69,7 @@ class JavascriptArray(
     override fun toString(): String {
         val arrayWithObjectValues = mutableListOf<Any>().apply {
             addAll(array)
-            addAll(properties.entries.map { Tuple(it.key, it.value) })
+            addAll(enumerableProperties.map { "${it.first}: ${it.second}" })
         }
         return arrayWithObjectValues.toString()
     }

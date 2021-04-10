@@ -127,7 +127,7 @@ sealed class JavascriptValue {
     }
 
     fun asObject(): JavascriptObject? {
-        return valueAs()
+        return valueAs<JavascriptValue.Object>()?.value
     }
 
     fun asFunction(): FunctionObject? {
