@@ -1,22 +1,23 @@
 package ca.antonious.browser.libraries.javascript.interpreter.builtins.string
 
 import ca.antonious.browser.libraries.javascript.ast.JavascriptValue
+import ca.antonious.browser.libraries.javascript.interpreter.JavascriptInterpreter
 import ca.antonious.browser.libraries.javascript.interpreter.JavascriptObject
-import ca.antonious.browser.libraries.javascript.interpreter.builtins.array.JavascriptArray
 import ca.antonious.browser.libraries.javascript.interpreter.builtins.function.JavascriptFunction
 import ca.antonious.browser.libraries.javascript.interpreter.builtins.function.NativeFunction
-import ca.antonious.browser.libraries.javascript.interpreter.builtins.function.setNonEnumerableNativeFunction
 import ca.antonious.browser.libraries.javascript.interpreter.builtins.regex.RegExpObject
 
-object StringPrototype : JavascriptObject() {
-    init {
+class StringPrototype(interpreter: JavascriptInterpreter) : JavascriptObject(interpreter.objectPrototype) {
+    override fun initialize() {
+        super.initialize()
+
         setNonEnumerableNativeFunction("match") { executionContext ->
             val stringObject = executionContext.thisBinding as? StringObject
                 ?: return@setNonEnumerableNativeFunction JavascriptValue.Undefined
 
             val regex = executionContext.arguments.first().valueAs<JavascriptValue.Object>()?.value as RegExpObject
             JavascriptValue.Object(
-                JavascriptArray(
+                interpreter.makeArray(
                     Regex(regex.regex).findAll(stringObject.value).map { JavascriptValue.String(it.value) }.toList()
                 )
             )
@@ -105,7 +106,7 @@ object StringPrototype : JavascriptObject() {
             }
 
             JavascriptValue.Object(
-                JavascriptArray(
+                interpreter.makeArray(
                     stringObject.value.split(Regex(patternToMatch), limit).map { JavascriptValue.String(it) }
                 )
             )

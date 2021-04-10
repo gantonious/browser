@@ -1,17 +1,19 @@
 package ca.antonious.browser.libraries.javascript.interpreter.builtins.function
 
 import ca.antonious.browser.libraries.javascript.ast.JavascriptValue
+import ca.antonious.browser.libraries.javascript.interpreter.JavascriptInterpreter
 import ca.antonious.browser.libraries.javascript.interpreter.JavascriptObject
 
 abstract class FunctionObject(
-    functionPrototype: JavascriptObject = JavascriptObject()
-) : JavascriptObject(prototype = FunctionPrototype) {
+    interpreter: JavascriptInterpreter,
+    functionPrototype: JavascriptObject,
+) : JavascriptObject(prototype = interpreter.functionPrototype) {
 
     open var boundThis: JavascriptObject? = null
 
     val functionPrototype: JavascriptObject
         get() {
-            return getProperty("prototype").valueAs<JavascriptValue.Object>()?.value ?: JavascriptObject()
+            return getProperty("prototype").valueAs<JavascriptValue.Object>()?.value ?: interpreter.makeObject()
         }
 
     init {

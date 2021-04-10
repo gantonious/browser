@@ -1,6 +1,7 @@
 package ca.antonious.browser.libraries.javascript.ast
 
 import ca.antonious.browser.libraries.javascript.interpreter.JavascriptObject
+import ca.antonious.browser.libraries.javascript.interpreter.builtins.function.FunctionObject
 import ca.antonious.browser.libraries.javascript.interpreter.builtins.function.JavascriptFunction
 import ca.antonious.browser.libraries.javascript.interpreter.builtins.function.NativeFunction
 import ca.antonious.browser.libraries.javascript.lexer.JavascriptTokenType
@@ -75,6 +76,9 @@ sealed class JavascriptExpression : JavascriptStatement() {
     }
 
     data class ArrayLiteral(override val sourceInfo: SourceInfo, val items: List<JavascriptExpression>) : JavascriptExpression()
+
+    data class RegexLiteral(override val sourceInfo: SourceInfo, val pattern: String, val flags: String) : JavascriptExpression()
+
     data class Literal(override val sourceInfo: SourceInfo, val value: JavascriptValue) : JavascriptExpression()
     data class TernaryOperation(
         override val sourceInfo: SourceInfo,
@@ -120,6 +124,14 @@ sealed class JavascriptValue {
     inline fun <reified T> valueAs(): T? {
         if (this !is T) return null
         return this
+    }
+
+    fun asObject(): JavascriptObject? {
+        return valueAs()
+    }
+
+    fun asFunction(): FunctionObject? {
+        return asObject() as? FunctionObject
     }
 
     companion object {

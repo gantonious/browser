@@ -1,11 +1,16 @@
 package ca.antonious.browser.libraries.javascript.interpreter.builtins.function
 
 import ca.antonious.browser.libraries.javascript.ast.JavascriptValue
+import ca.antonious.browser.libraries.javascript.interpreter.JavascriptInterpreter
 import ca.antonious.browser.libraries.javascript.interpreter.JavascriptObject
 import ca.antonious.browser.libraries.javascript.interpreter.builtins.array.JavascriptArray
 
-object FunctionPrototype : JavascriptObject() {
-    init {
+class FunctionPrototype(
+    interpreter: JavascriptInterpreter,
+) : JavascriptObject(interpreter.objectPrototype) {
+    override fun initialize() {
+        super.initialize()
+
         setNonEnumerableNativeFunction("call") { executionContext ->
             val functionObject = executionContext.thisBinding as? FunctionObject
                 ?: return@setNonEnumerableNativeFunction JavascriptValue.Undefined
@@ -28,7 +33,7 @@ object FunctionPrototype : JavascriptObject() {
             val thisBindingOverride = executionContext.interpreter.interpretAsObject(executionContext.arguments.first())
 
             val argumentsArray = if (executionContext.arguments.size == 1) {
-                JavascriptArray()
+                interpreter.makeArray()
             } else {
                 val array = executionContext.arguments[1].valueAs<JavascriptValue.Object>()?.value as? JavascriptArray
 

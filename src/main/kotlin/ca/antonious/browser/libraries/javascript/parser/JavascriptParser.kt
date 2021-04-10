@@ -5,7 +5,6 @@ import ca.antonious.browser.libraries.javascript.ast.JavascriptExpression
 import ca.antonious.browser.libraries.javascript.ast.JavascriptProgram
 import ca.antonious.browser.libraries.javascript.ast.JavascriptStatement
 import ca.antonious.browser.libraries.javascript.ast.JavascriptValue
-import ca.antonious.browser.libraries.javascript.interpreter.builtins.regex.RegExpObject
 import ca.antonious.browser.libraries.javascript.lexer.JavascriptToken
 import ca.antonious.browser.libraries.javascript.lexer.JavascriptTokenType
 import ca.antonious.browser.libraries.javascript.lexer.SourceInfo
@@ -835,14 +834,10 @@ class JavascriptParser(
             }
             is JavascriptTokenType.RegularExpression -> {
                 val sourceInfo = expectSourceInfo<JavascriptTokenType>()
-                JavascriptExpression.Literal(
+                JavascriptExpression.RegexLiteral(
                     sourceInfo = sourceInfo,
-                    value = JavascriptValue.Object(
-                        RegExpObject(
-                            currentToken.regex,
-                            currentToken.flags
-                        )
-                    )
+                    pattern = currentToken.regex,
+                    flags = currentToken.flags
                 )
             }
             else -> throwUnexpectedTokenFound()

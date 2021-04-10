@@ -1,13 +1,14 @@
 package ca.antonious.browser.libraries.web.javascript
 
 import ca.antonious.browser.libraries.javascript.ast.JavascriptValue
+import ca.antonious.browser.libraries.javascript.interpreter.JavascriptInterpreter
 import ca.antonious.browser.libraries.javascript.interpreter.JavascriptObject
-import ca.antonious.browser.libraries.javascript.interpreter.builtins.function.setNonEnumerableNativeFunction
 import ca.antonious.browser.libraries.web.layout.DOMParentLayoutNode
 
 class JavascriptClassList(
+    interpreter: JavascriptInterpreter,
     val domParentLayoutNode: DOMParentLayoutNode
-) : JavascriptObject() {
+) : JavascriptObject(interpreter.objectPrototype) {
 
     init {
         setNonEnumerableNativeFunction("add") { executionContext ->

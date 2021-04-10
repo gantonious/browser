@@ -1,10 +1,12 @@
 package ca.antonious.browser.libraries.javascript.interpreter.builtins.string
 
 import ca.antonious.browser.libraries.javascript.ast.JavascriptValue
+import ca.antonious.browser.libraries.javascript.interpreter.JavascriptInterpreter
 import ca.antonious.browser.libraries.javascript.interpreter.builtins.function.NativeFunction
 
-class StringConstructor : NativeFunction(
-    functionPrototype = StringPrototype,
+class StringConstructor(interpreter: JavascriptInterpreter) : NativeFunction(
+    interpreter = interpreter,
+    functionPrototype = interpreter.stringPrototype,
     body = { executionContext ->
         val stringValue = if (executionContext.arguments.isEmpty()) {
             ""
@@ -12,8 +14,8 @@ class StringConstructor : NativeFunction(
             executionContext.arguments.first().toString()
         }
 
-        if (executionContext.thisBinding.prototype == StringPrototype) {
-            JavascriptValue.Object(StringObject(stringValue))
+        if (executionContext.thisBinding.prototype is StringPrototype) {
+            JavascriptValue.Object(StringObject(interpreter, stringValue))
         } else {
             JavascriptValue.String(stringValue)
         }

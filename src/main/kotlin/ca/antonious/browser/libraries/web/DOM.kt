@@ -12,9 +12,6 @@ import ca.antonious.browser.libraries.http.Uri
 import ca.antonious.browser.libraries.http.toUri
 import ca.antonious.browser.libraries.javascript.ast.JavascriptValue
 import ca.antonious.browser.libraries.javascript.interpreter.JavascriptInterpreter
-import ca.antonious.browser.libraries.javascript.interpreter.JavascriptObject
-import ca.antonious.browser.libraries.javascript.interpreter.builtins.array.JavascriptArray
-import ca.antonious.browser.libraries.javascript.interpreter.builtins.function.setNonEnumerableNativeFunction
 import ca.antonious.browser.libraries.layout.builtins.BlockNode
 import ca.antonious.browser.libraries.layout.core.Key
 import ca.antonious.browser.libraries.web.javascript.JavascriptHtmlElement
@@ -36,17 +33,18 @@ class DOM {
     private val imageLoader = ImageLoader()
 
     private val javascriptInterpreter = JavascriptInterpreter().apply {
+        val interpreter = this
         val documentObject = JavascriptValue.Object(
-            JavascriptObject().apply {
+            makeObject().apply {
                 setNonEnumerableNativeFunction("getElementsByClassName") { executionContext ->
                     val className = executionContext.arguments.first() as JavascriptValue.String
                     val matchingNodes =
                         findNodesWithClass(className.value, rootNode.children.map { it as DOMLayoutNode })
                     JavascriptValue.Object(
-                        JavascriptArray(
+                        interpreter.makeArray(
                             matchingNodes.map {
                                 JavascriptValue.Object(
-                                    JavascriptHtmlElement(it)
+                                    JavascriptHtmlElement(interpreter, it)
                                 )
                             }
                         )
@@ -60,7 +58,7 @@ class DOM {
                     if (node == null) {
                         JavascriptValue.Undefined
                     } else {
-                        JavascriptValue.Object(JavascriptHtmlElement(node))
+                        JavascriptValue.Object(JavascriptHtmlElement(interpreter, node))
                     }
                 }
 
@@ -73,7 +71,7 @@ class DOM {
                         htmlNode = element
                     )
 
-                    JavascriptValue.Object(JavascriptHtmlElement(layoutNode))
+                    JavascriptValue.Object(JavascriptHtmlElement(interpreter, layoutNode))
                 }
             }
         )
@@ -81,7 +79,7 @@ class DOM {
         globalObject.setProperty(
             key = "window",
             value = JavascriptValue.Object(
-                JavascriptObject().apply {
+                makeObject().apply {
                     setProperty("document", documentObject)
                     setNonEnumerableNativeFunction("onload") { JavascriptValue.Undefined }
                 }
@@ -273,14 +271,6 @@ class DOM {
         }
 
         return null
-    }
-
-    private fun HtmlElement.Node.toJavascriptObject(): JavascriptValue.Object {
-        return JavascriptValue.Object(
-            JavascriptObject().apply {
-                setProperty("tagName", JavascriptValue.String(value = name))
-            }
-        )
     }
 
     private fun resolveUrl(url: String): Uri {

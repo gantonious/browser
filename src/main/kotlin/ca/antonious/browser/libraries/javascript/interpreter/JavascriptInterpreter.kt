@@ -5,17 +5,23 @@ import ca.antonious.browser.libraries.javascript.ast.JavascriptProgram
 import ca.antonious.browser.libraries.javascript.ast.JavascriptStatement
 import ca.antonious.browser.libraries.javascript.ast.JavascriptValue
 import ca.antonious.browser.libraries.javascript.interpreter.builtins.`object`.ObjectConstructor
+import ca.antonious.browser.libraries.javascript.interpreter.builtins.`object`.ObjectPrototype
 import ca.antonious.browser.libraries.javascript.interpreter.builtins.array.JavascriptArray
 import ca.antonious.browser.libraries.javascript.interpreter.builtins.date.DateConstructor
+import ca.antonious.browser.libraries.javascript.interpreter.builtins.date.DatePrototype
 import ca.antonious.browser.libraries.javascript.interpreter.builtins.function.FunctionObject
+import ca.antonious.browser.libraries.javascript.interpreter.builtins.function.FunctionPrototype
 import ca.antonious.browser.libraries.javascript.interpreter.builtins.function.JavascriptFunction
 import ca.antonious.browser.libraries.javascript.interpreter.builtins.function.NativeExecutionContext
-import ca.antonious.browser.libraries.javascript.interpreter.builtins.function.setNonEnumerableNativeFunction
 import ca.antonious.browser.libraries.javascript.interpreter.builtins.number.NumberConstructor
 import ca.antonious.browser.libraries.javascript.interpreter.builtins.number.NumberObject
+import ca.antonious.browser.libraries.javascript.interpreter.builtins.number.NumberPrototype
 import ca.antonious.browser.libraries.javascript.interpreter.builtins.regex.RegExpConstructor
+import ca.antonious.browser.libraries.javascript.interpreter.builtins.regex.RegExpObject
+import ca.antonious.browser.libraries.javascript.interpreter.builtins.regex.RegExpPrototype
 import ca.antonious.browser.libraries.javascript.interpreter.builtins.string.StringConstructor
 import ca.antonious.browser.libraries.javascript.interpreter.builtins.string.StringObject
+import ca.antonious.browser.libraries.javascript.interpreter.builtins.string.StringPrototype
 import ca.antonious.browser.libraries.javascript.interpreter.debugger.server.JavascriptDebuggerServer
 import ca.antonious.browser.libraries.javascript.lexer.JavascriptLexer
 import ca.antonious.browser.libraries.javascript.lexer.JavascriptTokenType
@@ -26,52 +32,21 @@ import java.util.Stack
 import kotlin.random.Random
 
 class JavascriptInterpreter {
-    val globalObject = JavascriptObject().apply {
+
+    val objectPrototype = ObjectPrototype(this)
+    val stringPrototype = StringPrototype(this)
+    val functionPrototype = FunctionPrototype(this)
+    val datePrototype = DatePrototype(this)
+    val numberPrototype = NumberPrototype(this)
+    val regExpPrototype = RegExpPrototype(this)
+
+    val globalObject = JavascriptObject(this, objectPrototype).apply {
         setNonEnumerableProperty("global", JavascriptValue.Object(this))
-        setNonEnumerableProperty("Object", JavascriptValue.Object(ObjectConstructor()))
-        setNonEnumerableProperty("String", JavascriptValue.Object(StringConstructor()))
-        setNonEnumerableProperty("Number", JavascriptValue.Object(NumberConstructor()))
-        setNonEnumerableProperty("RegExp", JavascriptValue.Object(RegExpConstructor()))
-        setNonEnumerableProperty("Date", JavascriptValue.Object(DateConstructor()))
-
-        setNonEnumerableNativeFunction("getInput") { executionContext ->
-            val inputText = executionContext.arguments.firstOrNull() as? JavascriptValue.String
-            if (inputText != null) {
-                print(inputText.value)
-            }
-            JavascriptValue.Number((readLine() ?: "").toDouble())
-        }
-
-        setNonEnumerableNativeFunction("parseInt") { executionContext ->
-            JavascriptValue.Number(executionContext.arguments.first().coerceToNumber().toInt().toDouble())
-        }
-
-        setProperty(
-            "console",
-            JavascriptValue.Object(
-                JavascriptObject().apply {
-                    setNonEnumerableNativeFunction("log") { executionContext ->
-                        println(executionContext.arguments.joinToString(separator = " "))
-                        JavascriptValue.Undefined
-                    }
-                }
-            )
-        )
-
-        setProperty(
-            "Math",
-            JavascriptValue.Object(
-                JavascriptObject().apply {
-                    setNonEnumerableNativeFunction("floor") { executionContext ->
-                        JavascriptValue.Number(executionContext.arguments.first().coerceToNumber().toInt().toDouble())
-                    }
-
-                    setNonEnumerableNativeFunction("random") {
-                        JavascriptValue.Number(Random.nextDouble())
-                    }
-                }
-            )
-        )
+        setNonEnumerableProperty("Object", JavascriptValue.Object(ObjectConstructor(this@JavascriptInterpreter)))
+        setNonEnumerableProperty("String", JavascriptValue.Object(StringConstructor(this@JavascriptInterpreter)))
+        setNonEnumerableProperty("Number", JavascriptValue.Object(NumberConstructor(this@JavascriptInterpreter)))
+        setNonEnumerableProperty("RegExp", JavascriptValue.Object(RegExpConstructor(this@JavascriptInterpreter)))
+        setNonEnumerableProperty("Date", JavascriptValue.Object(DateConstructor(this@JavascriptInterpreter)))
     }
 
     var stack = Stack<JavascriptStackFrame>().apply {
@@ -94,6 +69,16 @@ class JavascriptInterpreter {
         get() = stack.peek().scope
 
     private val debugger = JavascriptDebuggerServer(this)
+
+    init {
+        initializeGlobalObject()
+        objectPrototype.initialize()
+        numberPrototype.initialize()
+        stringPrototype.initialize()
+        regExpPrototype.initialize()
+        functionPrototype.initialize()
+        datePrototype.initialize()
+    }
 
     fun interpret(file: File): JavascriptValue {
         return interpret(file.readText(), file.name)
@@ -193,6 +178,7 @@ class JavascriptInterpreter {
             is JavascriptStatement.Function -> {
                 val value = JavascriptValue.Object(
                     value = JavascriptFunction(
+                        interpreter = this,
                         name = statement.name,
                         parameterNames = statement.parameterNames,
                         body = statement.body,
@@ -595,7 +581,7 @@ class JavascriptInterpreter {
                 return statement.value.toReference()
             }
             is JavascriptExpression.ObjectLiteral -> {
-                val newObject = JavascriptObject()
+                val newObject = makeObject()
 
                 for (field in statement.fields) {
                     newObject.setProperty(field.name, interpret(field.rhs))
@@ -609,12 +595,18 @@ class JavascriptInterpreter {
             }
             is JavascriptExpression.ArrayLiteral -> {
                 return JavascriptValue.Object(
-                    JavascriptArray(statement.items.map { interpret(it) })
+                    JavascriptArray(this, statement.items.map { interpret(it) })
+                ).toReference()
+            }
+            is JavascriptExpression.RegexLiteral -> {
+                return JavascriptValue.Object(
+                    RegExpObject(this, statement.pattern, statement.flags)
                 ).toReference()
             }
             is JavascriptExpression.AnonymousFunction -> {
                 return JavascriptValue.Object(
                     JavascriptFunction(
+                        interpreter = this,
                         name = "anonymous",
                         parameterNames = statement.parameterNames,
                         body = statement.body,
@@ -625,6 +617,7 @@ class JavascriptInterpreter {
             is JavascriptExpression.ArrowFunction -> {
                 return JavascriptValue.Object(
                     JavascriptFunction(
+                        interpreter = this,
                         name = "anonymous",
                         parameterNames = statement.parameterNames,
                         body = if (statement.body is JavascriptStatement.Block) {
@@ -731,9 +724,9 @@ class JavascriptInterpreter {
     fun interpretAsObject(value: JavascriptValue): JavascriptObject {
         return when (value) {
             is JavascriptValue.Object -> value.value
-            is JavascriptValue.String -> StringObject(value = value.value)
-            is JavascriptValue.Number -> NumberObject(value = value.value)
-            else -> JavascriptObject()
+            is JavascriptValue.String -> StringObject(interpreter = this, value = value.value)
+            is JavascriptValue.Number -> NumberObject(interpreter = this, value = value.value)
+            else -> makeObject()
         }
     }
 
@@ -873,6 +866,14 @@ class JavascriptInterpreter {
         return valueToAssign.toReference()
     }
 
+    fun makeObject(): JavascriptObject {
+        return JavascriptObject(prototype = objectPrototype, interpreter = this)
+    }
+
+    fun makeArray(initialValues: List<JavascriptValue> = emptyList()): JavascriptArray {
+        return JavascriptArray(this, initialValues)
+    }
+
     fun interpretFunction(
         callLocation: SourceInfo,
         arguments: List<JavascriptValue>,
@@ -909,7 +910,7 @@ class JavascriptInterpreter {
             globalObject = globalObject,
             type = JavascriptScope.Type.Function
         ).apply {
-            setVariable("arguments", JavascriptValue.Object(JavascriptArray(passedParameters)))
+            setVariable("arguments", JavascriptValue.Object(JavascriptArray(this@JavascriptInterpreter, passedParameters)))
             parameterNames.forEachIndexed { index, parameterName ->
                 setVariable(
                     parameterName,
@@ -1006,6 +1007,49 @@ class JavascriptInterpreter {
                 trace = stack.map { it.copy() }.reversed()
             )
         )
+    }
+
+    private fun initializeGlobalObject() {
+        globalObject.apply {
+            setNonEnumerableNativeFunction("getInput") { executionContext ->
+                val inputText = executionContext.arguments.firstOrNull() as? JavascriptValue.String
+                if (inputText != null) {
+                    print(inputText.value)
+                }
+                JavascriptValue.Number((readLine() ?: "").toDouble())
+            }
+
+            setNonEnumerableNativeFunction("parseInt") { executionContext ->
+                JavascriptValue.Number(executionContext.arguments.first().coerceToNumber().toInt().toDouble())
+            }
+
+            setProperty(
+                "console",
+                JavascriptValue.Object(
+                    makeObject().apply {
+                        setNonEnumerableNativeFunction("log") { executionContext ->
+                            println(executionContext.arguments.joinToString(separator = " "))
+                            JavascriptValue.Undefined
+                        }
+                    }
+                )
+            )
+
+            setProperty(
+                "Math",
+                JavascriptValue.Object(
+                    makeObject().apply {
+                        setNonEnumerableNativeFunction("floor") { executionContext ->
+                            JavascriptValue.Number(executionContext.arguments.first().coerceToNumber().toInt().toDouble())
+                        }
+
+                        setNonEnumerableNativeFunction("random") {
+                            JavascriptValue.Number(Random.nextDouble())
+                        }
+                    }
+                )
+            )
+        }
     }
 
     sealed class ControlFlowInterruption {

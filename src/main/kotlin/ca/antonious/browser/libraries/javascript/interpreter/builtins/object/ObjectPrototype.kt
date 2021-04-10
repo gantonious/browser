@@ -1,13 +1,13 @@
 package ca.antonious.browser.libraries.javascript.interpreter.builtins.`object`
 
 import ca.antonious.browser.libraries.javascript.ast.JavascriptValue
+import ca.antonious.browser.libraries.javascript.interpreter.JavascriptInterpreter
 import ca.antonious.browser.libraries.javascript.interpreter.JavascriptObject
-import ca.antonious.browser.libraries.javascript.interpreter.builtins.function.setNonEnumerableNativeFunction
 import ca.antonious.browser.libraries.javascript.interpreter.builtins.number.NumberObject
 import ca.antonious.browser.libraries.javascript.interpreter.builtins.string.StringObject
 
-object ObjectPrototype : JavascriptObject(prototype = null) {
-    init {
+class ObjectPrototype(interpreter: JavascriptInterpreter) : JavascriptObject(interpreter = interpreter, prototype = null) {
+    override fun initialize() {
         setNonEnumerableNativeFunction("valueOf") { nativeExecutionContext ->
             when (val thisBinding = nativeExecutionContext.thisBinding) {
                 is StringObject -> JavascriptValue.String(thisBinding.value)

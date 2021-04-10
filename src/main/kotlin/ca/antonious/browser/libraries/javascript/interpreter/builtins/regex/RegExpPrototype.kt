@@ -1,11 +1,13 @@
 package ca.antonious.browser.libraries.javascript.interpreter.builtins.regex
 
 import ca.antonious.browser.libraries.javascript.ast.JavascriptValue
+import ca.antonious.browser.libraries.javascript.interpreter.JavascriptInterpreter
 import ca.antonious.browser.libraries.javascript.interpreter.JavascriptObject
-import ca.antonious.browser.libraries.javascript.interpreter.builtins.function.setNonEnumerableNativeFunction
 
-object RegExpPrototype : JavascriptObject() {
-    init {
+class RegExpPrototype(interpreter: JavascriptInterpreter) : JavascriptObject(interpreter.objectPrototype) {
+    override fun initialize() {
+        super.initialize()
+
         setNonEnumerableNativeFunction("test") { executionContext ->
             val regexObject = executionContext.thisBinding as? RegExpObject
                 ?: return@setNonEnumerableNativeFunction JavascriptValue.Undefined

@@ -1,11 +1,18 @@
 package ca.antonious.browser.libraries.javascript.interpreter
 
 import ca.antonious.browser.libraries.javascript.ast.JavascriptValue
-import ca.antonious.browser.libraries.javascript.interpreter.builtins.`object`.ObjectPrototype
+import ca.antonious.browser.libraries.javascript.interpreter.builtins.function.NativeExecutionContext
+import ca.antonious.browser.libraries.javascript.interpreter.builtins.function.NativeFunction
 
 open class JavascriptObject(
-    val prototype: JavascriptObject? = ObjectPrototype
+    val interpreter: JavascriptInterpreter,
+    val prototype: JavascriptObject?
 ) {
+
+    constructor(prototype: JavascriptObject) : this(
+        interpreter = prototype.interpreter,
+        prototype = prototype
+    )
 
     val nonEnumerableProperties = mutableMapOf<String, JavascriptValue>()
     val properties = mutableMapOf<String, JavascriptValue>()
@@ -29,6 +36,8 @@ open class JavascriptObject(
         }
     }
 
+    open fun initialize() = Unit
+
     open fun getProperty(key: String): JavascriptValue {
         return properties[key] ?: nonEnumerableProperties[key] ?: prototype?.getProperty(key)
             ?: JavascriptValue.Undefined
@@ -48,6 +57,15 @@ open class JavascriptObject(
 
     fun setNonEnumerableProperty(key: String, value: JavascriptValue) {
         nonEnumerableProperties[key] = value
+    }
+
+    fun setNonEnumerableNativeFunction(name: String, body: (NativeExecutionContext) -> JavascriptValue) {
+        setNonEnumerableProperty(
+            name,
+            JavascriptValue.Object(
+                NativeFunction(interpreter, interpreter.makeObject(), body)
+            )
+        )
     }
 
     override fun toString(): String {

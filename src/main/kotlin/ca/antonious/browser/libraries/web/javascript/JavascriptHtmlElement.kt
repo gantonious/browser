@@ -3,16 +3,17 @@ package ca.antonious.browser.libraries.web.javascript
 import ca.antonious.browser.libraries.html.HtmlElement
 import ca.antonious.browser.libraries.html.HtmlParser
 import ca.antonious.browser.libraries.javascript.ast.JavascriptValue
+import ca.antonious.browser.libraries.javascript.interpreter.JavascriptInterpreter
 import ca.antonious.browser.libraries.javascript.interpreter.JavascriptObject
-import ca.antonious.browser.libraries.javascript.interpreter.builtins.array.JavascriptArray
 import ca.antonious.browser.libraries.javascript.interpreter.builtins.function.NativeFunction
 import ca.antonious.browser.libraries.web.layout.DOMLayoutNode
 import ca.antonious.browser.libraries.web.layout.DOMParentLayoutNode
 import ca.antonious.browser.libraries.web.layout.DOMTextNode
 
 class JavascriptHtmlElement(
+    interpreter: JavascriptInterpreter,
     private val domParentLayoutNode: DOMParentLayoutNode
-) : JavascriptObject() {
+) : JavascriptObject(interpreter.objectPrototype) {
 
     override fun setProperty(key: String, value: JavascriptValue) {
         when (key) {
@@ -72,7 +73,7 @@ class JavascriptHtmlElement(
             }
             "value" -> JavascriptValue.Number(4.0)
             "appendChild" -> JavascriptValue.Object(
-                NativeFunction { executionContext ->
+                NativeFunction(interpreter) { executionContext ->
                     val element = executionContext.arguments.first()
                         .valueAs<JavascriptValue.Object>()?.value as JavascriptHtmlElement
                     domParentLayoutNode.children += element.domParentLayoutNode
@@ -81,14 +82,14 @@ class JavascriptHtmlElement(
                 }
             )
             "children" -> JavascriptValue.Object(
-                JavascriptArray(
+                interpreter.makeArray(
                     domParentLayoutNode.children.filterIsInstance<DOMParentLayoutNode>().map {
-                        JavascriptValue.Object(JavascriptHtmlElement(it))
+                        JavascriptValue.Object(JavascriptHtmlElement(interpreter, it))
                     }
                 )
             )
             "classList" -> {
-                JavascriptValue.Object(JavascriptClassList(domParentLayoutNode))
+                JavascriptValue.Object(JavascriptClassList(interpreter, domParentLayoutNode))
             }
             else -> super.getProperty(key)
         }

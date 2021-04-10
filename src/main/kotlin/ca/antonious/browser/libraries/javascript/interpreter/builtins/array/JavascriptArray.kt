@@ -1,23 +1,27 @@
 package ca.antonious.browser.libraries.javascript.interpreter.builtins.array
 
 import ca.antonious.browser.libraries.javascript.ast.JavascriptValue
+import ca.antonious.browser.libraries.javascript.interpreter.JavascriptInterpreter
 import ca.antonious.browser.libraries.javascript.interpreter.JavascriptObject
 import ca.antonious.browser.libraries.javascript.interpreter.builtins.function.NativeFunction
 
-class JavascriptArray(initialValues: List<JavascriptValue> = emptyList()) : JavascriptObject() {
+class JavascriptArray(
+    interpreter: JavascriptInterpreter,
+    initialValues: List<JavascriptValue> = emptyList()
+) : JavascriptObject(interpreter.objectPrototype) {
     val array = initialValues.toMutableList()
 
     override fun getProperty(key: String): JavascriptValue {
         return when (key) {
             "length" -> JavascriptValue.Number(array.size.toDouble())
             "push" -> JavascriptValue.Object(
-                value = NativeFunction { executionContext ->
+                value = NativeFunction(interpreter) { executionContext ->
                     array.add(executionContext.arguments.first())
                     JavascriptValue.Undefined
                 }
             )
             "pop" -> JavascriptValue.Object(
-                value = NativeFunction {
+                value = NativeFunction(interpreter) {
                     if (array.isEmpty()) {
                         JavascriptValue.Undefined
                     } else {
@@ -26,13 +30,13 @@ class JavascriptArray(initialValues: List<JavascriptValue> = emptyList()) : Java
                 }
             )
             "sort" -> JavascriptValue.Object(
-                value = NativeFunction {
+                value = NativeFunction(interpreter) {
                     array.sortBy { it.coerceToNumber() }
                     JavascriptValue.Object(this)
                 }
             )
             "join" -> JavascriptValue.Object(
-                value = NativeFunction { executionContext ->
+                value = NativeFunction(interpreter) { executionContext ->
                     val separator = executionContext.arguments.first().toString()
                     array.sortBy { it.coerceToNumber() }
                     JavascriptValue.String(array.joinToString(separator))

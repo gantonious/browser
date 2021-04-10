@@ -1,12 +1,14 @@
 package ca.antonious.browser.libraries.javascript.interpreter.builtins.date
 
 import ca.antonious.browser.libraries.javascript.ast.JavascriptValue
+import ca.antonious.browser.libraries.javascript.interpreter.JavascriptInterpreter
 import ca.antonious.browser.libraries.javascript.interpreter.builtins.function.NativeFunction
 import java.text.DateFormat
 import java.util.Date
 
-class DateConstructor : NativeFunction(
-    functionPrototype = DatePrototype,
+class DateConstructor(interpreter: JavascriptInterpreter) : NativeFunction(
+    interpreter = interpreter,
+    functionPrototype = interpreter.datePrototype,
     body = { executionContext ->
         val date = if (executionContext.arguments.isEmpty()) {
             Date()
@@ -14,6 +16,6 @@ class DateConstructor : NativeFunction(
             DateFormat.getDateInstance().parse(executionContext.arguments.first().toString())
         }
 
-        JavascriptValue.Object(DateObject(date))
+        JavascriptValue.Object(DateObject(interpreter, date))
     }
 )

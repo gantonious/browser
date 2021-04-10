@@ -6,9 +6,10 @@ import ca.antonious.browser.libraries.javascript.interpreter.JavascriptObject
 import ca.antonious.browser.libraries.javascript.lexer.SourceInfo
 
 open class NativeFunction(
-    functionPrototype: JavascriptObject = JavascriptObject(),
+    interpreter: JavascriptInterpreter,
+    functionPrototype: JavascriptObject = interpreter.makeObject(),
     private val body: (NativeExecutionContext) -> JavascriptValue
-) : FunctionObject(functionPrototype) {
+) : FunctionObject(interpreter, functionPrototype) {
 
     override fun call(nativeExecutionContext: NativeExecutionContext): JavascriptValue {
         return body.invoke(nativeExecutionContext)
@@ -25,12 +26,3 @@ data class NativeExecutionContext(
     val thisBinding: JavascriptObject,
     val interpreter: JavascriptInterpreter
 )
-
-fun JavascriptObject.setNonEnumerableNativeFunction(name: String, body: (NativeExecutionContext) -> JavascriptValue) {
-    setNonEnumerableProperty(
-        name,
-        JavascriptValue.Object(
-            NativeFunction(JavascriptObject(), body)
-        )
-    )
-}

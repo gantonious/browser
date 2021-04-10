@@ -1,11 +1,13 @@
 package ca.antonious.browser.libraries.javascript.interpreter.builtins.regex
 
 import ca.antonious.browser.libraries.javascript.ast.JavascriptValue
+import ca.antonious.browser.libraries.javascript.interpreter.JavascriptInterpreter
 import ca.antonious.browser.libraries.javascript.interpreter.builtins.function.NativeFunction
 import ca.antonious.browser.libraries.javascript.interpreter.builtins.string.StringObject
 
-class RegExpConstructor : NativeFunction(
-    functionPrototype = RegExpPrototype,
+class RegExpConstructor(interpreter: JavascriptInterpreter) : NativeFunction(
+    interpreter = interpreter,
+    functionPrototype = interpreter.regExpPrototype,
     body = { executionContext ->
         val pattern = when (val patternObject = executionContext.interpreter.interpretAsObject(executionContext.arguments.first())) {
             is RegExpObject -> patternObject.regex
@@ -19,6 +21,6 @@ class RegExpConstructor : NativeFunction(
             ""
         }
 
-        JavascriptValue.Object(RegExpObject(pattern, flags))
+        JavascriptValue.Object(RegExpObject(interpreter, pattern, flags))
     }
 )
