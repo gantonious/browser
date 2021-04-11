@@ -688,21 +688,30 @@ class JavascriptInterpreter {
 
     private fun interpretPrimitiveValueOf(expression: JavascriptExpression): JavascriptValue {
         fun interpretExpressionThenInterpretPrimitiveValue(): JavascriptValue {
-            return when (val value = interpret(expression)) {
+            val primitiveFunctionNames = listOf("valueOf", "toString")
+
+            when (val value = interpret(expression)) {
                 is JavascriptValue.Object -> {
-                    interpret(
-                        JavascriptExpression.FunctionCall(
-                            sourceInfo = expression.sourceInfo,
-                            expression = JavascriptExpression.DotAccess(
-                                sourceInfo = expression.sourceInfo,
-                                expression = JavascriptExpression.Literal(expression.sourceInfo, value),
-                                propertyName = "valueOf"
-                            ),
-                            parameters = emptyList()
-                        )
-                    )
+                    for (functionName in primitiveFunctionNames) {
+                        if (value.value.getProperty(functionName).asFunction() != null) {
+                            return interpret(
+                                JavascriptExpression.FunctionCall(
+                                    sourceInfo = expression.sourceInfo,
+                                    expression = JavascriptExpression.DotAccess(
+                                        sourceInfo = expression.sourceInfo,
+                                        expression = JavascriptExpression.Literal(expression.sourceInfo, value),
+                                        propertyName = functionName
+                                    ),
+                                    parameters = emptyList()
+                                )
+                            )
+                        }
+                    }
+
+                    throwError(JavascriptValue.String("TypeError: Cannot convert object to primitive value"))
+                    return JavascriptValue.Undefined
                 }
-                else -> value
+                else -> return value
             }
         }
 
