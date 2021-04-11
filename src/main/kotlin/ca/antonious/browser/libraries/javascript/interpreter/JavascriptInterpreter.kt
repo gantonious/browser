@@ -694,7 +694,7 @@ class JavascriptInterpreter {
                 is JavascriptValue.Object -> {
                     for (functionName in primitiveFunctionNames) {
                         if (value.value.getProperty(functionName).asFunction() != null) {
-                            return interpret(
+                            val result = interpret(
                                 JavascriptExpression.FunctionCall(
                                     sourceInfo = expression.sourceInfo,
                                     expression = JavascriptExpression.DotAccess(
@@ -705,6 +705,10 @@ class JavascriptInterpreter {
                                     parameters = emptyList()
                                 )
                             )
+
+                            if (result !is JavascriptValue.Object) {
+                                return result
+                            }
                         }
                     }
 
