@@ -127,11 +127,31 @@ sealed class JavascriptValue {
     }
 
     fun asObject(): JavascriptObject? {
-        return valueAs<JavascriptValue.Object>()?.value
+        return valueAs<Object>()?.value
+    }
+
+    fun requireAsObject(): JavascriptObject {
+        return asObject() ?: error("Attempted to convert $this to an object")
     }
 
     fun asFunction(): FunctionObject? {
         return asObject() as? FunctionObject
+    }
+
+    fun asString(): kotlin.String? {
+        return valueAs<String>()?.value
+    }
+
+    fun requireAsString(): kotlin.String {
+        return asString() ?: error("Attempted to convert $this to a string")
+    }
+
+    fun asNumber(): Double? {
+        return valueAs<Number>()?.value
+    }
+
+    fun requireAsNumber(): Double {
+        return asNumber() ?: error("Attempted to convert $this to a number")
     }
 
     companion object {

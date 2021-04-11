@@ -1,5 +1,6 @@
 this.__testContext = {
   results: [],
+  describeContext: null,
 };
 
 function AssertionError(reason) {
@@ -56,12 +57,41 @@ function expect(testValue) {
   return new AssertionContext(testValue);
 }
 
+function describe(name, block) {
+  const describeContext = {
+    type: "describe",
+    name: name,
+    results: [],
+    runTime: 0,
+  };
+
+  this.__testContext.describeContext = describeContext;
+
+  block();
+
+  describeContext.results.forEach(
+    (test) => (describeContext.runTime += test.runTime)
+  );
+
+  this.__testContext.results.push(describeContext);
+  this.__testContext.describeContext = null;
+}
+
 function test(name, tests) {
   const testStartTime = new Date();
 
+  function pushTestResult(result) {
+    if (__testContext.describeContext === null) {
+      __testContext.results.push(result);
+    } else {
+      __testContext.describeContext.results.push(result);
+    }
+  }
+
   try {
     tests();
-    __testContext.results.push({
+    pushTestResult({
+      type: "test",
       status: "pass",
       testName: name,
       runTime: new Date() - testStartTime,
@@ -72,7 +102,8 @@ function test(name, tests) {
         ? error.reason
         : "Unexpected error: " + error;
 
-    __testContext.results.push({
+    pushTestResult({
+      type: "test",
       status: "fail",
       testName: name,
       message: errorMessage,
