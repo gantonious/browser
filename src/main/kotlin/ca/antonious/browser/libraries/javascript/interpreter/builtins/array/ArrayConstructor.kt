@@ -6,7 +6,7 @@ import ca.antonious.browser.libraries.javascript.interpreter.builtins.function.N
 
 class ArrayConstructor(interpreter: JavascriptInterpreter) : NativeFunction(
     interpreter = interpreter,
-    functionPrototype = ArrayPrototype(interpreter),
+    functionPrototype = interpreter.arrayPrototype,
     body = { nativeExecutionContext ->
         JavascriptValue.Object(interpreter.makeArray(nativeExecutionContext.arguments))
     }
