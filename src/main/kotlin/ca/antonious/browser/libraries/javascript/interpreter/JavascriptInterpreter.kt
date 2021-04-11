@@ -472,6 +472,36 @@ class JavascriptInterpreter {
                         if (hasControlFlowInterrupted()) return JavascriptReference.Undefined
                         interpretAsReference(statement.rhs)
                     }
+                    is JavascriptTokenType.In -> {
+                        val lhsValue = interpret(statement.lhs)
+                        return JavascriptValue.Boolean(
+                            interpretAsObject(interpret(statement.rhs)).enumerableKeys.any { key ->
+                                JavascriptValue.looselyEquals(JavascriptValue.String(key), lhsValue)
+                            }
+                        ).toReference()
+                    }
+                    is JavascriptTokenType.InstanceOf -> {
+                        val prototypeToFind = when (val rhsValue = interpret(statement.rhs)) {
+                            is JavascriptValue.Object -> when (val constructor = rhsValue.value) {
+                                is FunctionObject -> constructor.functionPrototype
+                                else -> {
+                                    throwError(JavascriptValue.String("TypeError: Right-hand side of 'instanceof' is not callable"))
+                                    return JavascriptReference.Undefined
+                                }
+                            }
+                            else -> {
+                                throwError(JavascriptValue.String("TypeError: Right-hand side of 'instanceof' is not an object"))
+                                return JavascriptReference.Undefined
+                            }
+                        }
+
+                        val isInstanceOf = when (val lhsValue = interpret(statement.lhs)) {
+                            is JavascriptValue.Object -> lhsValue.value.prototypeChain.contains(prototypeToFind)
+                            else -> false
+                        }
+
+                        return JavascriptValue.Boolean(isInstanceOf).toReference()
+                    }
                     else -> interpretBinaryOperator(binaryExpression = statement)
                 }
             }
@@ -830,35 +860,7 @@ class JavascriptInterpreter {
             is JavascriptTokenType.Operator.NotEquals -> {
                 JavascriptValue.Boolean(!JavascriptValue.looselyEquals(lhsValue, rhsValue))
             }
-            is JavascriptTokenType.In -> {
-                JavascriptValue.Boolean(
-                    interpretAsObject(rhsValue).enumerableKeys.any { key ->
-                        JavascriptValue.looselyEquals(JavascriptValue.String(key), lhsValue)
-                    }
-                )
-            }
-            is JavascriptTokenType.InstanceOf -> {
-                val prototypeToFind = when (rhsValue) {
-                    is JavascriptValue.Object -> when (val constructor = rhsValue.value) {
-                        is FunctionObject -> constructor.functionPrototype
-                        else -> {
-                            throwError(JavascriptValue.String("TypeError: Right-hand side of 'instanceof' is not callable"))
-                            return JavascriptReference.Undefined
-                        }
-                    }
-                    else -> {
-                        throwError(JavascriptValue.String("TypeError: Right-hand side of 'instanceof' is not an object"))
-                        return JavascriptReference.Undefined
-                    }
-                }
 
-                val isInstanceOf = when (lhsValue) {
-                    is JavascriptValue.Object -> lhsValue.value.prototypeChain.contains(prototypeToFind)
-                    else -> false
-                }
-
-                JavascriptValue.Boolean(isInstanceOf)
-            }
             else -> error("Attempted to interpret unknown binary operator: ${binaryExpression.operator}")
         }.toReference()
     }
