@@ -228,7 +228,7 @@ class JavascriptInterpreter {
                 return when (val objectToCall = (valueToCall as? JavascriptValue.Object)?.value) {
                     is FunctionObject -> {
                         val arguments = statement.parameters.map {
-                            interpretPrimitiveValueOf(it).also {
+                            interpret(it).also {
                                 if (hasControlFlowInterrupted()) {
                                     return JavascriptReference.Undefined
                                 }
@@ -382,13 +382,13 @@ class JavascriptInterpreter {
             is JavascriptExpression.BinaryOperation -> {
                 return when (statement.operator) {
                     is JavascriptTokenType.Operator.OrOr -> {
-                        val lhsValue = interpretPrimitiveValueOf(statement.lhs)
+                        val lhsValue = interpret(statement.lhs)
                         if (hasControlFlowInterrupted()) return JavascriptReference.Undefined
 
                         if (lhsValue.isTruthy) {
                             lhsValue.toReference()
                         } else {
-                            val rhsValue = interpretPrimitiveValueOf(statement.rhs).toReference()
+                            val rhsValue = interpret(statement.rhs).toReference()
                             if (hasControlFlowInterrupted()) {
                                 JavascriptReference.Undefined
                             } else {
@@ -397,11 +397,11 @@ class JavascriptInterpreter {
                         }
                     }
                     is JavascriptTokenType.Operator.AndAnd -> {
-                        val lhsValue = interpretPrimitiveValueOf(statement.lhs)
+                        val lhsValue = interpret(statement.lhs)
                         if (hasControlFlowInterrupted()) return JavascriptReference.Undefined
 
                         if (lhsValue.isTruthy) {
-                            val rhsValue = interpretPrimitiveValueOf(statement.rhs).toReference()
+                            val rhsValue = interpret(statement.rhs).toReference()
                             if (hasControlFlowInterrupted()) {
                                 JavascriptReference.Undefined
                             } else {
@@ -646,7 +646,7 @@ class JavascriptInterpreter {
                         when (val constructor = value.value) {
                             is FunctionObject -> {
                                 val arguments = statement.function.parameters.map {
-                                    interpretPrimitiveValueOf(it).also {
+                                    interpret(it).also {
                                         if (hasControlFlowInterrupted()) {
                                             return JavascriptReference.Undefined
                                         }
