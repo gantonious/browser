@@ -82,6 +82,7 @@ class JavascriptInterpreter {
         regExpPrototype.initialize()
         functionPrototype.initialize()
         datePrototype.initialize()
+        arrayPrototype.initialize()
     }
 
     fun interpret(file: File): JavascriptValue {
