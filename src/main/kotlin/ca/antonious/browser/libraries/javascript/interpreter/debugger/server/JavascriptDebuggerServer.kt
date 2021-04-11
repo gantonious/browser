@@ -325,7 +325,7 @@ class JavascriptDebuggerServer(
     private fun JavascriptScope.toVariablesResponse(parentPath: String): JavascriptDebuggerResponse.GetVariablesResponse {
         return JavascriptDebuggerResponse.GetVariablesResponse(
             variables = (
-                variables.map { (it.key to it.value).toVariableInfo(parentPath) } + if (parentScope != null && parentScope.type !is JavascriptScope.Type.Function) {
+                variables.map { (it.key to it.value).toVariableInfo(parentPath) } + if (parentScope != null && type !is JavascriptScope.Type.Function) {
                     parentScope.toVariablesResponse(parentPath).variables
                 } else {
                     emptyList()
