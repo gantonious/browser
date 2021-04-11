@@ -3,7 +3,7 @@ package ca.antonious.browser.libraries.javascript.interpreter.builtins.regex
 import ca.antonious.browser.libraries.javascript.ast.JavascriptValue
 import ca.antonious.browser.libraries.javascript.interpreter.JavascriptInterpreter
 import ca.antonious.browser.libraries.javascript.interpreter.JavascriptObject
-import ca.antonious.browser.libraries.javascript.interpreter.builtins.array.JavascriptArray
+import ca.antonious.browser.libraries.javascript.interpreter.builtins.array.ArrayObject
 
 class RegExpObject(interpreter: JavascriptInterpreter, val regex: String, flags: String) : JavascriptObject(interpreter.regExpPrototype) {
 
@@ -28,7 +28,7 @@ class RegExpObject(interpreter: JavascriptInterpreter, val regex: String, flags:
         }
 
         return JavascriptValue.Object(
-            JavascriptArray(interpreter, matchedValues.map { JavascriptValue.String(it) }).apply {
+            ArrayObject(interpreter, matchedValues.map { JavascriptValue.String(it) }).apply {
                 setProperty("index", JavascriptValue.Number(matchResult.range.first.toDouble()))
                 setProperty("input", JavascriptValue.String(input))
                 setProperty("groups", JavascriptValue.Undefined)

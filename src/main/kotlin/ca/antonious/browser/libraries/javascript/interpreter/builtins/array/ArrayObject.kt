@@ -5,10 +5,10 @@ import ca.antonious.browser.libraries.javascript.interpreter.JavascriptInterpret
 import ca.antonious.browser.libraries.javascript.interpreter.JavascriptObject
 import ca.antonious.browser.libraries.javascript.interpreter.builtins.function.NativeFunction
 
-class JavascriptArray(
+class ArrayObject(
     interpreter: JavascriptInterpreter,
     initialValues: List<JavascriptValue> = emptyList()
-) : JavascriptObject(interpreter.objectPrototype) {
+) : JavascriptObject(interpreter.arrayPrototype) {
     val array = initialValues.toMutableList()
 
     override fun getProperty(key: String): JavascriptValue {

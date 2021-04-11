@@ -6,7 +6,9 @@ import ca.antonious.browser.libraries.javascript.ast.JavascriptStatement
 import ca.antonious.browser.libraries.javascript.ast.JavascriptValue
 import ca.antonious.browser.libraries.javascript.interpreter.builtins.`object`.ObjectConstructor
 import ca.antonious.browser.libraries.javascript.interpreter.builtins.`object`.ObjectPrototype
-import ca.antonious.browser.libraries.javascript.interpreter.builtins.array.JavascriptArray
+import ca.antonious.browser.libraries.javascript.interpreter.builtins.array.ArrayConstructor
+import ca.antonious.browser.libraries.javascript.interpreter.builtins.array.ArrayPrototype
+import ca.antonious.browser.libraries.javascript.interpreter.builtins.array.ArrayObject
 import ca.antonious.browser.libraries.javascript.interpreter.builtins.date.DateConstructor
 import ca.antonious.browser.libraries.javascript.interpreter.builtins.date.DatePrototype
 import ca.antonious.browser.libraries.javascript.interpreter.builtins.function.FunctionObject
@@ -39,6 +41,7 @@ class JavascriptInterpreter {
     val datePrototype = DatePrototype(this)
     val numberPrototype = NumberPrototype(this)
     val regExpPrototype = RegExpPrototype(this)
+    val arrayPrototype = ArrayPrototype(this)
 
     val globalObject = JavascriptObject(this, objectPrototype).apply {
         setNonEnumerableProperty("global", JavascriptValue.Object(this))
@@ -46,6 +49,7 @@ class JavascriptInterpreter {
         setNonEnumerableProperty("String", JavascriptValue.Object(StringConstructor(this@JavascriptInterpreter)))
         setNonEnumerableProperty("Number", JavascriptValue.Object(NumberConstructor(this@JavascriptInterpreter)))
         setNonEnumerableProperty("RegExp", JavascriptValue.Object(RegExpConstructor(this@JavascriptInterpreter)))
+        setNonEnumerableProperty("Array", JavascriptValue.Object(ArrayConstructor(this@JavascriptInterpreter)))
         setNonEnumerableProperty("Date", JavascriptValue.Object(DateConstructor(this@JavascriptInterpreter)))
     }
 
@@ -595,7 +599,7 @@ class JavascriptInterpreter {
             }
             is JavascriptExpression.ArrayLiteral -> {
                 return JavascriptValue.Object(
-                    JavascriptArray(this, statement.items.map { interpret(it) })
+                    ArrayObject(this, statement.items.map { interpret(it) })
                 ).toReference()
             }
             is JavascriptExpression.RegexLiteral -> {
@@ -883,8 +887,8 @@ class JavascriptInterpreter {
         return JavascriptObject(prototype = objectPrototype, interpreter = this)
     }
 
-    fun makeArray(initialValues: List<JavascriptValue> = emptyList()): JavascriptArray {
-        return JavascriptArray(this, initialValues)
+    fun makeArray(initialValues: List<JavascriptValue> = emptyList()): ArrayObject {
+        return ArrayObject(this, initialValues)
     }
 
     fun interpretFunction(
@@ -923,7 +927,7 @@ class JavascriptInterpreter {
             globalObject = globalObject,
             type = JavascriptScope.Type.Function
         ).apply {
-            setVariable("arguments", JavascriptValue.Object(JavascriptArray(this@JavascriptInterpreter, passedParameters)))
+            setVariable("arguments", JavascriptValue.Object(ArrayObject(this@JavascriptInterpreter, passedParameters)))
             parameterNames.forEachIndexed { index, parameterName ->
                 setVariable(
                     parameterName,

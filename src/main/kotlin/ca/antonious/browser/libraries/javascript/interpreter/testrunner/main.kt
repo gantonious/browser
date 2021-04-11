@@ -2,7 +2,7 @@ package ca.antonious.browser.libraries.javascript.interpreter.testrunner
 
 import ca.antonious.browser.libraries.javascript.ast.JavascriptValue
 import ca.antonious.browser.libraries.javascript.interpreter.JavascriptInterpreter
-import ca.antonious.browser.libraries.javascript.interpreter.builtins.array.JavascriptArray
+import ca.antonious.browser.libraries.javascript.interpreter.builtins.array.ArrayObject
 import java.io.File
 
 fun main() {
@@ -25,7 +25,7 @@ data class TestResult(
 )
 
 private fun JavascriptValue.toTestResults(): List<TestResult> {
-    val array = valueAs<JavascriptValue.Object>()!!.value as JavascriptArray
+    val array = valueAs<JavascriptValue.Object>()!!.value as ArrayObject
     return array.array.map {
         val obj = it.valueAs<JavascriptValue.Object>()!!.value
         TestResult(

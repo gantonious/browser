@@ -3,7 +3,7 @@ package ca.antonious.browser.libraries.javascript.interpreter.builtins.function
 import ca.antonious.browser.libraries.javascript.ast.JavascriptValue
 import ca.antonious.browser.libraries.javascript.interpreter.JavascriptInterpreter
 import ca.antonious.browser.libraries.javascript.interpreter.JavascriptObject
-import ca.antonious.browser.libraries.javascript.interpreter.builtins.array.JavascriptArray
+import ca.antonious.browser.libraries.javascript.interpreter.builtins.array.ArrayObject
 
 class FunctionPrototype(
     interpreter: JavascriptInterpreter,
@@ -35,7 +35,7 @@ class FunctionPrototype(
             val argumentsArray = if (executionContext.arguments.size == 1) {
                 interpreter.makeArray()
             } else {
-                val array = executionContext.arguments[1].valueAs<JavascriptValue.Object>()?.value as? JavascriptArray
+                val array = executionContext.arguments[1].valueAs<JavascriptValue.Object>()?.value as? ArrayObject
 
                 if (array == null) {
                     executionContext.interpreter.throwError(JavascriptValue.String("Apply: Expected second argument to be an array."))
