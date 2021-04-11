@@ -11,14 +11,14 @@ function AssertionContext(testValue) {
 }
 
 AssertionContext.prototype.toEqual = function (value) {
-  if (value != testValue) {
+  if (!deepEquals(value, this.testValue)) {
     const message = "Expected: " + value + "\nReceived: " + testValue;
     throw new AssertionError(message);
   }
 };
 
 AssertionContext.prototype.toBe = function (value) {
-  if (value !== testValue) {
+  if (!deepEquals(value, this.testValue)) {
     const message = "Expected: " + value + "\nReceived: " + testValue;
     throw new AssertionError(message);
   }
@@ -79,4 +79,44 @@ function test(name, tests) {
       runTime: new Date() - testStartTime,
     });
   }
+}
+
+function deepEquals(a, b) {
+  if (typeof a === "object" && typeof b === "object") {
+    if (Array.isArray(a) && Array.isArray(b)) {
+      return arrayDeepEquals(a, b);
+    }
+
+    let keysOfA = Object.keys(a);
+    let keysOfB = Object.keys(b);
+
+    if (keysOfA.length !== keysOfB.length) {
+      return false;
+    }
+
+    for (let i = 0; i < keysOfA.length; i++) {
+      let key = keysOfA[i];
+      if (!deepEquals(a[key], b[key])) {
+        return false;
+      }
+    }
+
+    return true;
+  }
+
+  return a === b;
+}
+
+function arrayDeepEquals(a, b) {
+  if (a.length !== b.length) {
+    return false;
+  }
+
+  for (let i = 0; i < a.length; i++) {
+    if (!deepEquals(a[i], b[i])) {
+      return false;
+    }
+  }
+
+  return true;
 }
