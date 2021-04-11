@@ -95,10 +95,17 @@ export class BrowserJsDebuggerSession extends LoggingDebugSession {
     };
 
     const debuggerResponse = await this.httpClient.post("evaluate", body);
-    const evaluationResponse = debuggerResponse.data as { result: string };
+    const evaluationResponse = debuggerResponse.data as {
+      result: string;
+      expandPath?: string;
+    };
 
     response.body = response.body ?? {};
     response.body.result = evaluationResponse.result;
+    response.body.variablesReference = evaluationResponse.expandPath
+      ? this.variableHandles.create(evaluationResponse.expandPath)
+      : 0;
+
     this.sendResponse(response);
   }
 

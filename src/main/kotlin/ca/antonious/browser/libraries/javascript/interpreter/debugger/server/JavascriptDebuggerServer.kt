@@ -33,6 +33,7 @@ import kotlinx.coroutines.asCoroutineDispatcher
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.util.Stack
+import java.util.UUID
 import java.util.concurrent.Executors
 import java.util.concurrent.locks.ReentrantLock
 
@@ -49,6 +50,7 @@ class JavascriptDebuggerServer(
 
     private val gson = Gson()
     private var error: JavascriptInterpreter.ControlFlowInterruption.Error? = null
+    private var evaluatedObjects = mutableMapOf<String, JavascriptObject>()
 
     private val stack: Stack<JavascriptStackFrame>
         get() {
@@ -161,9 +163,13 @@ class JavascriptDebuggerServer(
                                 call.respond(currentObject!!.toVariablesResponse(parentPath))
                             }
                             else -> {
-                                var currentObject = interpreter.stack.peek().scope
-                                    .getVariable(firstPathPart).value
-                                    .valueAs<JavascriptValue.Object>()?.value
+                                var currentObject = if (firstPathPart in evaluatedObjects) {
+                                    evaluatedObjects[firstPathPart]
+                                } else {
+                                    interpreter.stack.peek().scope
+                                        .getVariable(firstPathPart).value
+                                        .valueAs<JavascriptValue.Object>()?.value
+                                }
 
                                 if (currentObject == null) {
                                     call.respond(HttpStatusCode.NotFound)
@@ -197,6 +203,7 @@ class JavascriptDebuggerServer(
                     post {
                         withContext(debuggerExecutor.asCoroutineDispatcher()) {
                             error = null
+                            evaluatedObjects.clear()
                             executionLock.unlock()
                         }
 
@@ -230,9 +237,20 @@ class JavascriptDebuggerServer(
                                 )
                             }
 
-                            call.respond(JavascriptDebuggerResponse.EvaluationFinished(value.toString()))
+                            call.respond(
+                                JavascriptDebuggerResponse.EvaluationFinished(
+                                    result = value.toString(),
+                                    expandPath = if (value is JavascriptValue.Object && value.value.allPropertyKeys.isNotEmpty()) {
+                                        val evaluationId = UUID.randomUUID().toString()
+                                        evaluatedObjects[evaluationId] = value.value
+                                        evaluationId
+                                    } else {
+                                        null
+                                    }
+                                )
+                            )
                         } catch (ex: Exception) {
-                            call.respond((JavascriptDebuggerResponse.EvaluationFinished(ex.message ?: "Uncaught error")))
+                            call.respond((JavascriptDebuggerResponse.EvaluationFinished(ex.message ?: "Uncaught error", null)))
                         }
                     }
                 }
@@ -244,6 +262,8 @@ class JavascriptDebuggerServer(
                     webSockets.remove(this)
                     debuggerExecutor.submit { executionLock.unlock() }
                     breakpoints.clear()
+                    evaluatedObjects.clear()
+                    error = null
                     println("DebugServer: Client disconnected")
                 }
             }

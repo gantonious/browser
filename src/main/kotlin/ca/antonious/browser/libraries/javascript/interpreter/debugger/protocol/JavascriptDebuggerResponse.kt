@@ -2,7 +2,8 @@ package ca.antonious.browser.libraries.javascript.interpreter.debugger.protocol
 
 sealed class JavascriptDebuggerResponse {
     data class EvaluationFinished(
-        val result: String
+        val result: String,
+        val expandPath: String?
     ) : JavascriptDebuggerResponse()
 
     data class GetStackResponse(
