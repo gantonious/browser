@@ -40,6 +40,8 @@ import java.util.concurrent.locks.ReentrantLock
 class JavascriptDebuggerServer(
     private val interpreter: JavascriptInterpreter
 ) {
+    private val ignoredFiles = setOf("unknown", "evaluate")
+
     private val executionLock = ReentrantLock()
     private val debuggerExecutor = Executors.newSingleThreadExecutor()
     private val webSockets = mutableSetOf<WebSocketSession>()
@@ -51,6 +53,7 @@ class JavascriptDebuggerServer(
     private val gson = Gson()
     private var error: JavascriptInterpreter.ControlFlowInterruption.Error? = null
     private var evaluatedObjects = mutableMapOf<String, JavascriptObject>()
+    private val loadedSources = mutableMapOf<String, String>()
 
     private val stack: Stack<JavascriptStackFrame>
         get() {
@@ -91,9 +94,15 @@ class JavascriptDebuggerServer(
                     }
                 }
 
+                route("sources") {
+                    get {
+                        call.respond(JavascriptDebuggerResponse.GetSourcesResponse(sourceNames = loadedSources.keys.toList()))
+                    }
+                }
+
                 route("source") {
                     get("{filename}") {
-                        val source = stack.map { it.sourceInfo }.firstOrNull { it.filename == call.parameters["filename"] }?.source
+                        val source = loadedSources[call.parameters["filename"]]
 
                         if (source == null) {
                             call.respond(HttpStatusCode.NotFound)
@@ -271,6 +280,11 @@ class JavascriptDebuggerServer(
     }
 
     fun updateSourceLocation(sourceInfo: SourceInfo) {
+        if (sourceInfo.filename !in loadedSources && sourceInfo.filename !in ignoredFiles) {
+            loadedSources[sourceInfo.filename] = sourceInfo.source
+            sendMessage(JavascriptDebuggerMessage.SourceLoaded(filename = sourceInfo.filename))
+        }
+
         if (breakOnNextStatement || sourceInfo.line in breakpoints || sourceInfo.filename in filenameBreakpoints) {
             filenameBreakpoints.remove(sourceInfo.filename)
             breakOnNextStatement = false

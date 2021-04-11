@@ -34,6 +34,10 @@ sealed class JavascriptDebuggerResponse {
         val source: String
     ) : JavascriptDebuggerResponse()
 
+    data class GetSourcesResponse(
+        val sourceNames: List<String>
+    ) : JavascriptDebuggerResponse()
+
     data class GetStatusResponse(
         val status: Status
     ) : JavascriptDebuggerResponse() {

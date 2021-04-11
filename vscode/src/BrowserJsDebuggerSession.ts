@@ -1,6 +1,7 @@
 import {
   Handles,
   InitializedEvent,
+  LoadedSourceEvent,
   LoggingDebugSession,
   OutputEvent,
   Scope,
@@ -16,7 +17,8 @@ import WebSocket = require("ws");
 
 type DebuggerResponse =
   | { type: "breakpoint_hit" }
-  | { type: "uncaught_error"; error: string };
+  | { type: "uncaught_error"; error: string }
+  | { type: "source_loaded"; filename: string };
 
 export class BrowserJsDebuggerSession extends LoggingDebugSession {
   private variableHandles = new Handles<string>();
@@ -63,6 +65,15 @@ export class BrowserJsDebuggerSession extends LoggingDebugSession {
             new StoppedEvent("exception", 0, debuggerResponse.error)
           );
           break;
+        case "source_loaded":
+          this.sendEvent(
+            new LoadedSourceEvent("new", {
+              name: debuggerResponse.filename,
+              path: "",
+              sourceReference: 0,
+            })
+          );
+          break;
       }
     };
   }
@@ -72,6 +83,8 @@ export class BrowserJsDebuggerSession extends LoggingDebugSession {
     args: DebugProtocol.InitializeRequestArguments
   ) {
     response.body = response.body ?? {};
+    response.body.supportsLoadedSourcesRequest = true;
+
     const debuggerResponse = await this.httpClient.get("status");
     const statusResponse = debuggerResponse.data as {
       status: "Running" | "Paused";
@@ -201,6 +214,26 @@ export class BrowserJsDebuggerSession extends LoggingDebugSession {
 
     response.body = response.body ?? {};
     response.body.content = sourceResponse.source;
+
+    this.sendResponse(response);
+  }
+
+  protected async loadedSourcesRequest(
+    response: DebugProtocol.LoadedSourcesResponse,
+    args: DebugProtocol.LoadedSourcesArguments
+  ) {
+    const debuggerResponse = await this.httpClient.get("sources");
+    const sourcesResponse = debuggerResponse.data as {
+      sourceNames: string[];
+    };
+
+    response.body = response.body ?? {};
+    response.body.sources = sourcesResponse.sourceNames.map((sourceName) => {
+      return {
+        name: sourceName,
+        path: sourceName,
+      };
+    });
 
     this.sendResponse(response);
   }

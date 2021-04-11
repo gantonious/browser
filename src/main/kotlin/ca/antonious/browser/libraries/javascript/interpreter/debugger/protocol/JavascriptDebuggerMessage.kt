@@ -14,4 +14,11 @@ sealed class JavascriptDebuggerMessage {
     ) : JavascriptDebuggerMessage() {
         override val type = "uncaught_error"
     }
+
+    data class SourceLoaded(
+        val filename: String
+    ) : JavascriptDebuggerMessage() {
+        override val type = "source_loaded"
+    }
+
 }
