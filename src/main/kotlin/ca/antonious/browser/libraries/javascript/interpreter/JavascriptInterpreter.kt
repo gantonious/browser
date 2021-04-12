@@ -125,7 +125,8 @@ class JavascriptInterpreter {
         return if (hasControlFlowInterruptedDueTo<ControlFlowInterruption.Error>()) {
             val tab = " ".repeat(4)
             val error = consumeControlFlowInterrupt<ControlFlowInterruption.Error>()
-            val errorMessage = "Uncaught ${error.value}\n$tab" + error.trace.joinToString("\n$tab") {
+            val errorPrimitive = interpretAsString(error.value)
+            val errorMessage = "Uncaught ${errorPrimitive}\n$tab" + error.trace.joinToString("\n$tab") {
                 "at ${it.name}(${it.sourceInfo.filename}:${it.sourceInfo.line + 1}:${it.sourceInfo.column + 1})"
             }
 
@@ -267,7 +268,7 @@ class JavascriptInterpreter {
                     }
                     else -> {
                         val functionTargetDescription = describeFunctionTarget(statement.expression)
-                        throwError(JavascriptValue.String("TypeError: $functionTargetDescription is not a function"))
+                        throwTypeError("$functionTargetDescription is not a function")
                         JavascriptValue.Undefined
                     }
                 }.toReference()
@@ -495,12 +496,12 @@ class JavascriptInterpreter {
                             is JavascriptValue.Object -> when (val constructor = rhsValue.value) {
                                 is FunctionObject -> constructor.functionPrototype
                                 else -> {
-                                    throwError(JavascriptValue.String("TypeError: Right-hand side of 'instanceof' is not callable"))
+                                    throwTypeError("Right-hand side of 'instanceof' is not callable")
                                     return JavascriptReference.Undefined
                                 }
                             }
                             else -> {
-                                throwError(JavascriptValue.String("TypeError: Right-hand side of 'instanceof' is not an object"))
+                                throwTypeError("Right-hand side of 'instanceof' is not an object")
                                 return JavascriptReference.Undefined
                             }
                         }
@@ -716,14 +717,14 @@ class JavascriptInterpreter {
                             }
                             else -> {
                                 val constructorDescription = describeFunctionTarget(statement.function.expression)
-                                throwError(JavascriptValue.String("TypeError: $constructorDescription is not a constructor"))
+                                throwTypeError("$constructorDescription is not a constructor")
                                 JavascriptReference.Undefined
                             }
                         }
                     }
                     else -> {
                         val constructorDescription = describeFunctionTarget(statement.function.expression)
-                        throwError(JavascriptValue.String("TypeError: $constructorDescription is not a constructor"))
+                        throwTypeError("$constructorDescription is not a constructor")
                         JavascriptReference.Undefined
                     }
                 }
@@ -757,7 +758,7 @@ class JavascriptInterpreter {
                         }
                     }
 
-                    throwError(JavascriptValue.String("TypeError: Cannot convert object to primitive value"))
+                    throwTypeError("Cannot convert object to primitive value")
                     return JavascriptValue.Undefined
                 }
                 else -> return value
@@ -767,7 +768,7 @@ class JavascriptInterpreter {
         return when (expression) {
             is JavascriptExpression.Literal -> {
                 when (expression.value) {
-                    is JavascriptObject -> interpretExpressionThenInterpretPrimitiveValue()
+                    is JavascriptValue.Object -> interpretExpressionThenInterpretPrimitiveValue()
                     else -> expression.value
                 }
             }
@@ -1036,6 +1037,22 @@ class JavascriptInterpreter {
 
     private inline fun <reified T : ControlFlowInterruption> hasControlFlowInterruptedDueTo(): Boolean {
         return controlFlowInterruption is T
+    }
+
+    fun throwTypeError(message: String) {
+        val sourceInfo = stack.peek().sourceInfo
+        throwError(
+            interpret(
+                JavascriptExpression.NewCall(
+                    sourceInfo = sourceInfo,
+                    function = JavascriptExpression.FunctionCall(
+                        sourceInfo = sourceInfo,
+                        expression = JavascriptExpression.Reference(sourceInfo, "TypeError"),
+                        parameters = listOf(JavascriptExpression.Literal(sourceInfo, JavascriptValue.String(message)))
+                    )
+                )
+            )
+        )
     }
 
     fun throwError(error: JavascriptValue) {

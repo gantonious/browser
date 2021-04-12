@@ -79,7 +79,7 @@ class ArrayPrototype(interpreter: JavascriptInterpreter) : JavascriptObject(inte
             val function = nativeExecutionContext.arguments.firstOrNull()?.asFunction()
 
             if (function === null) {
-                nativeExecutionContext.interpreter.throwError(JavascriptValue.String("TypeError: Argument is not a function"))
+                nativeExecutionContext.interpreter.throwTypeError("${nativeExecutionContext.arguments.firstOrNull() ?: JavascriptValue.Undefined} is not a function")
                 return@setNonEnumerableNativeFunction JavascriptValue.Undefined
             }
 

@@ -87,7 +87,7 @@ class ObjectConstructor(interpreter: JavascriptInterpreter) : NativeFunction(
             val descriptor = executionContext.arguments.getOrNull(2)?.asObject()
 
             if (prop == null || descriptor == null) {
-                executionContext.interpreter.throwError(JavascriptValue.String("TypeError: Property description must be an object: undefined"))
+                executionContext.interpreter.throwTypeError("Property description must be an object: undefined")
                 return@setNonEnumerableNativeFunction  JavascriptValue.Undefined
             }
 
