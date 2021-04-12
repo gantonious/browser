@@ -53,6 +53,28 @@ AssertionContext.prototype.toBeNull = function () {
   }
 };
 
+AssertionContext.prototype.toThrowError = function (value) {
+  if (typeof this.testValue !== "function") {
+    throw new TypeError("toThrowError must be called on function value");
+  }
+
+  try {
+    this.testValue();
+  } catch (error) {
+    if (value instanceof Error) {
+      if (error.name !== value.name || error.message !== value.message) {
+        const message = "Expected: " + value + "\nReceived: " + error;
+        throw new AssertionError(message);
+      }
+    } else {
+      if (!deepEquals(value, error)) {
+        const message = "Expected: " + value + "\nReceived: " + error;
+        throw new AssertionError(message);
+      }
+    }
+  }
+};
+
 function expect(testValue) {
   return new AssertionContext(testValue);
 }

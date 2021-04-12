@@ -1,4 +1,12 @@
 describe("Array.prototype.map", () => {
+  test("throws a TypeError when the passed callback is not a function", () => {
+    expect(() => [].map()).toThrowError(
+      new TypeError("undefined is not a function")
+    );
+
+    expect(() => [].map(3)).toThrowError(new TypeError("3 is not a function"));
+  });
+
   test("returns output of callback", () => {
     expect([].map(() => 0)).toBe([]);
     expect([1, 2, 3].map(() => 0)).toBe([0, 0, 0]);
