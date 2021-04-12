@@ -11,6 +11,10 @@ import ca.antonious.browser.libraries.javascript.interpreter.builtins.array.Arra
 import ca.antonious.browser.libraries.javascript.interpreter.builtins.array.ArrayObject
 import ca.antonious.browser.libraries.javascript.interpreter.builtins.date.DateConstructor
 import ca.antonious.browser.libraries.javascript.interpreter.builtins.date.DatePrototype
+import ca.antonious.browser.libraries.javascript.interpreter.builtins.error.ErrorConstructor
+import ca.antonious.browser.libraries.javascript.interpreter.builtins.error.ErrorPrototype
+import ca.antonious.browser.libraries.javascript.interpreter.builtins.error.TypeErrorConstructor
+import ca.antonious.browser.libraries.javascript.interpreter.builtins.error.TypeErrorPrototype
 import ca.antonious.browser.libraries.javascript.interpreter.builtins.function.FunctionObject
 import ca.antonious.browser.libraries.javascript.interpreter.builtins.function.FunctionPrototype
 import ca.antonious.browser.libraries.javascript.interpreter.builtins.function.JavascriptFunction
@@ -42,6 +46,8 @@ class JavascriptInterpreter {
     val numberPrototype = NumberPrototype(this)
     val regExpPrototype = RegExpPrototype(this)
     val arrayPrototype = ArrayPrototype(this)
+    val errorPrototype = ErrorPrototype(this)
+    val typeErrorPrototype = TypeErrorPrototype(this)
 
     val globalObject = JavascriptObject(this, objectPrototype).apply {
         setNonEnumerableProperty("global", JavascriptValue.Object(this))
@@ -51,6 +57,8 @@ class JavascriptInterpreter {
         setNonEnumerableProperty("RegExp", JavascriptValue.Object(RegExpConstructor(this@JavascriptInterpreter)))
         setNonEnumerableProperty("Array", JavascriptValue.Object(ArrayConstructor(this@JavascriptInterpreter)))
         setNonEnumerableProperty("Date", JavascriptValue.Object(DateConstructor(this@JavascriptInterpreter)))
+        setNonEnumerableProperty("Error", JavascriptValue.Object(ErrorConstructor(this@JavascriptInterpreter)))
+        setNonEnumerableProperty("TypeError", JavascriptValue.Object(TypeErrorConstructor(this@JavascriptInterpreter)))
     }
 
     var stack = Stack<JavascriptStackFrame>().apply {
@@ -83,6 +91,8 @@ class JavascriptInterpreter {
         functionPrototype.initialize()
         datePrototype.initialize()
         arrayPrototype.initialize()
+        errorPrototype.initialize()
+        typeErrorPrototype.initialize()
     }
 
     fun interpret(file: File): JavascriptValue {
@@ -778,6 +788,14 @@ class JavascriptInterpreter {
         }
     }
 
+    fun interpretAsString(expression: JavascriptExpression): String {
+        return interpretPrimitiveValueOf(expression).asString() ?: ""
+    }
+
+    fun interpretAsString(value: JavascriptValue): String {
+        return interpretPrimitiveValueOf(JavascriptExpression.Literal(sourceInfo = SourceInfo(0, 0), value = value)).asString() ?: ""
+    }
+
     private fun interpretBinaryOperator(
         binaryExpression: JavascriptExpression.BinaryOperation
     ): JavascriptReference {
@@ -886,8 +904,8 @@ class JavascriptInterpreter {
         return valueToAssign.toReference()
     }
 
-    fun makeObject(): JavascriptObject {
-        return JavascriptObject(prototype = objectPrototype, interpreter = this)
+    fun makeObject(prototype: JavascriptObject = objectPrototype): JavascriptObject {
+        return JavascriptObject(prototype = prototype, interpreter = this)
     }
 
     fun makeArray(initialValues: List<JavascriptValue> = emptyList()): ArrayObject {
