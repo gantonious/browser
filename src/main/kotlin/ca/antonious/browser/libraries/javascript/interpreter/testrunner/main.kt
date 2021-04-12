@@ -14,7 +14,7 @@ fun main() {
     }
 
     val results = interpreter.interpret("__testContext.results").toTestResults()
-    printTestResults(results)
+    printTestResults(results.sortedBy { it.name })
 }
 
 sealed class TestResult {
@@ -122,7 +122,7 @@ private fun printTestResults(testResults: List<TestResult>) {
         summaryText += "${failedTests.size} failed".red()
     }
 
-    summaryText += "${testResults.size} total"
+    summaryText += "${passCount + failedTests.size} total"
 
     println(summaryText.joinToString(", "))
 
