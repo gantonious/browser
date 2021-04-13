@@ -1,5 +1,6 @@
 package ca.antonious.browser.libraries.javascript.ast
 
+import ca.antonious.browser.libraries.javascript.interpreter.JavascriptInterpreter
 import ca.antonious.browser.libraries.javascript.interpreter.JavascriptObject
 import ca.antonious.browser.libraries.javascript.interpreter.builtins.function.FunctionObject
 import ca.antonious.browser.libraries.javascript.interpreter.builtins.function.JavascriptFunction
@@ -152,6 +153,14 @@ sealed class JavascriptValue {
 
     fun requireAsNumber(): Double {
         return asNumber() ?: error("Attempted to convert $this to a number")
+    }
+
+    fun toPrimitiveString(): kotlin.String {
+        return if (this is JavascriptValue.Object) {
+            value.interpreter.interpretAsString(this)
+        } else {
+            toString()
+        }
     }
 
     companion object {

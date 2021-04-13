@@ -20,15 +20,29 @@ import ca.antonious.browser.libraries.web.resolveSize
 import kotlin.math.max
 import kotlin.math.min
 
-class DOMParentLayoutNode(
-    parent: DOMParentLayoutNode?,
+class DOMElementNode(
+    parent: DOMElementNode?,
     val htmlNode: HtmlElement.Node,
     val domEventHandler: (DOMEvent) -> Unit
 ) : DOMLayoutNode(parent, htmlNode) {
 
+    val id: String?
+        get() = attributes["id"]
+
+    val tagName: String = htmlNode.name
+
+    val classNames: List<String>
+        get() = (attributes["class"] ?: "").split(" ")
+
+    val attributes = htmlNode.attributes.toMutableMap()
+
     var resolvedStyle = ResolvedStyle()
     var marginInsets = Insets.zero()
     val children = mutableListOf<DOMLayoutNode>()
+
+    fun setAttribute(name: String, value: String) {
+        attributes[name] = value
+    }
 
     fun setChildren(children: List<DOMLayoutNode>) {
         this.children.clear()
@@ -89,11 +103,11 @@ class DOMParentLayoutNode(
         var y = 0f
 
         for (child in children) {
-            if ((child as? DOMParentLayoutNode)?.resolvedStyle?.positionType == CssPosition.absolute) {
+            if ((child as? DOMElementNode)?.resolvedStyle?.positionType == CssPosition.absolute) {
                 continue
             }
 
-            when ((child as? DOMParentLayoutNode)?.resolvedStyle?.displayType ?: CssDisplay.inlineBlock) {
+            when ((child as? DOMElementNode)?.resolvedStyle?.displayType ?: CssDisplay.inlineBlock) {
                 CssDisplay.block -> {
                     val childMeasureResult = child.measure(measuringTape, realWidthConstraint, realHeightConstraint)
 
@@ -177,8 +191,8 @@ class DOMParentLayoutNode(
 
         // Now that we know our actual size we can position absolute elements relative to our bounds
         for (child in children) {
-            if ((child as? DOMParentLayoutNode)?.resolvedStyle?.positionType == CssPosition.absolute) {
-                val childNode = child as DOMParentLayoutNode
+            if ((child as? DOMElementNode)?.resolvedStyle?.positionType == CssPosition.absolute) {
+                val childNode = child as DOMElementNode
                 val left = measuringTape.resolveSize(childNode.resolvedStyle.left)
                 val right = measuringTape.resolveSize(childNode.resolvedStyle.right)
                 val top = measuringTape.resolveSize(childNode.resolvedStyle.top)
@@ -267,6 +281,48 @@ class DOMParentLayoutNode(
                 children.forEach { it.handleInputEvent(inputEvent) }
             }
         }
+    }
+
+    fun getElementsByClassName(className: String): List<DOMElementNode> {
+        return children.flatMap {
+            if (it is DOMElementNode) {
+                if (it.classNames.contains(className)) {
+                    listOf(it) + it.getElementsByClassName(className)
+                } else {
+                    it.getElementsByClassName(className)
+                }
+            } else {
+                emptyList()
+            }
+        }
+    }
+
+    fun getElementsByTagName(tagName: String): List<DOMElementNode> {
+        return children.flatMap {
+            if (it is DOMElementNode) {
+                if (it.tagName == tagName) {
+                    listOf(it) + it.getElementsByTagName(tagName)
+                } else {
+                    it.getElementsByTagName(tagName)
+                }
+            } else {
+                emptyList()
+            }
+        }
+    }
+
+    fun getElementsWithId(id: String): DOMElementNode? {
+        for (child in children) {
+            if (child is DOMElementNode) {
+                if (child.id == id) {
+                    return child
+                } else {
+                    child.getElementsWithId(id)?.let { return it }
+                }
+            }
+        }
+
+        return null
     }
 }
 

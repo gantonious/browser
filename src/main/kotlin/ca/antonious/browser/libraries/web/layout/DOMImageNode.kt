@@ -10,7 +10,7 @@ import ca.antonious.browser.libraries.html.HtmlElement
 import kotlin.math.min
 
 class DOMImageNode(
-    parent: DOMParentLayoutNode?,
+    parent: DOMElementNode?,
     imgNode: HtmlElement.Node,
     resolvedUrl: String,
     imageLoader: ImageLoader

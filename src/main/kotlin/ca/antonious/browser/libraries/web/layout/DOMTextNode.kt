@@ -7,7 +7,7 @@ import ca.antonious.browser.libraries.graphics.core.Paint
 import ca.antonious.browser.libraries.graphics.core.Size
 import ca.antonious.browser.libraries.html.HtmlElement
 
-class DOMTextNode(parent: DOMParentLayoutNode?, htmlElement: HtmlElement) : DOMLayoutNode(parent, htmlElement) {
+class DOMTextNode(parent: DOMElementNode?, htmlElement: HtmlElement) : DOMLayoutNode(parent, htmlElement) {
 
     var font: Font? = null
 
@@ -21,7 +21,7 @@ class DOMTextNode(parent: DOMParentLayoutNode?, htmlElement: HtmlElement) : DOML
     }
 
     override fun drawTo(canvas: Canvas) {
-        val color = (parent as DOMParentLayoutNode).resolvedStyle.color
+        val color = (parent as DOMElementNode).resolvedStyle.color
         font?.let {
             canvas.drawText(htmlElement.requireAsText().text, 0f, 0f, frame.width, Paint(color), it)
         }

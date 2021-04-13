@@ -14,10 +14,11 @@ import ca.antonious.browser.libraries.javascript.ast.JavascriptValue
 import ca.antonious.browser.libraries.javascript.interpreter.JavascriptInterpreter
 import ca.antonious.browser.libraries.layout.builtins.BlockNode
 import ca.antonious.browser.libraries.layout.core.Key
+import ca.antonious.browser.libraries.web.javascript.Element
 import ca.antonious.browser.libraries.web.javascript.JavascriptHtmlElement
 import ca.antonious.browser.libraries.web.layout.DOMImageNode
 import ca.antonious.browser.libraries.web.layout.DOMLayoutNode
-import ca.antonious.browser.libraries.web.layout.DOMParentLayoutNode
+import ca.antonious.browser.libraries.web.layout.DOMElementNode
 import ca.antonious.browser.libraries.web.layout.DOMTextNode
 
 class DOM {
@@ -36,6 +37,27 @@ class DOM {
         val interpreter = this
         val documentObject = JavascriptValue.Object(
             makeObject().apply {
+                setProperty("nodeType", JavascriptValue.Number(9.0))
+                setProperty("documentElement", JavascriptValue.Object(this))
+
+                setNonEnumerableNativeFunction("createElement") { nativeExecutionContext ->
+                    val node = DOMElementNode(
+                        parent = null,
+                        htmlNode = HtmlElement.Node(name = nativeExecutionContext.arguments.firstOrNull().toString()),
+                        domEventHandler = ::handleEvent
+                    )
+                    JavascriptValue.Object(JavascriptHtmlElement(interpreter, node))
+                }
+
+                setNonEnumerableNativeFunction("createDocumentFragment") { nativeExecutionContext ->
+                    val node = DOMElementNode(
+                        parent = null,
+                        htmlNode = HtmlElement.Node(name = "div"),
+                        domEventHandler = ::handleEvent
+                    )
+                    JavascriptValue.Object(JavascriptHtmlElement(interpreter, node))
+                }
+
                 setNonEnumerableNativeFunction("getElementsByClassName") { executionContext ->
                     val className = executionContext.arguments.first() as JavascriptValue.String
                     val matchingNodes =
@@ -65,7 +87,7 @@ class DOM {
                 setNonEnumerableNativeFunction("createElement") { executionContext ->
                     val tagName = executionContext.arguments.first() as JavascriptValue.String
                     val element = HtmlElement.Node(name = tagName.value)
-                    val layoutNode = DOMParentLayoutNode(
+                    val layoutNode = DOMElementNode(
                         parent = null,
                         domEventHandler = ::handleEvent,
                         htmlNode = element
@@ -89,6 +111,11 @@ class DOM {
         globalObject.setProperty(
             key = "document",
             value = documentObject
+        )
+
+        globalObject.setProperty(
+            key = "Element",
+            value = JavascriptValue.Object(Element(this))
         )
     }
 
@@ -135,7 +162,7 @@ class DOM {
 
     private fun loadDocument(
         htmlDocument: List<HtmlElement>,
-        parent: DOMParentLayoutNode? = null
+        parent: DOMElementNode? = null
     ): List<DOMLayoutNode> {
         val layoutTree = mutableListOf<DOMLayoutNode>()
 
@@ -145,7 +172,7 @@ class DOM {
                     when (htmlElement.name) {
                         "head" -> processHead(htmlElement)
                         "img" -> {
-                            val layoutNode = DOMParentLayoutNode(
+                            val layoutNode = DOMElementNode(
                                 parent = parent,
                                 htmlNode = htmlElement,
                                 domEventHandler = ::handleEvent
@@ -161,7 +188,7 @@ class DOM {
                             layoutTree += layoutNode
                         }
                         else -> {
-                            val layoutNode = DOMParentLayoutNode(
+                            val layoutNode = DOMElementNode(
                                 parent = parent,
                                 htmlNode = htmlElement,
                                 domEventHandler = ::handleEvent
@@ -225,7 +252,7 @@ class DOM {
     fun resolveStyles(layoutTree: List<DOMLayoutNode>) {
         for (layoutNode in layoutTree) {
             when (layoutNode) {
-                is DOMParentLayoutNode -> {
+                is DOMElementNode -> {
                     val style = (layoutNode.htmlElement as HtmlElement.Node).attributes["style"] ?: ""
                     val inlineStyleAttributes = cssAttributeParser.parseInlineAttributes(style)
                     layoutNode.resolvedStyle = cssStyleResolver.resolveStyleFor(layoutNode, inlineStyleAttributes)
@@ -235,12 +262,12 @@ class DOM {
         }
     }
 
-    private fun findNodesWithClass(className: String, nodes: List<DOMLayoutNode>): List<DOMParentLayoutNode> {
-        val matchingElements = mutableListOf<DOMParentLayoutNode>()
+    private fun findNodesWithClass(className: String, nodes: List<DOMLayoutNode>): List<DOMElementNode> {
+        val matchingElements = mutableListOf<DOMElementNode>()
 
         for (node in nodes) {
             when (node) {
-                is DOMParentLayoutNode -> {
+                is DOMElementNode -> {
                     val htmlNode = node.htmlElement as HtmlElement.Node
                     if (className in (htmlNode.attributes["class"] ?: "").split(" ")) {
                         matchingElements += node
@@ -253,10 +280,10 @@ class DOM {
         return matchingElements
     }
 
-    private fun findNodeWithId(id: String, nodes: List<DOMLayoutNode>): DOMParentLayoutNode? {
+    private fun findNodeWithId(id: String, nodes: List<DOMLayoutNode>): DOMElementNode? {
         for (node in nodes) {
             when (node) {
-                is DOMParentLayoutNode -> {
+                is DOMElementNode -> {
                     val htmlNode = node.htmlElement as HtmlElement.Node
                     if (htmlNode.attributes["id"] == id) {
                         return node

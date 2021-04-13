@@ -7,36 +7,36 @@ import ca.antonious.browser.libraries.javascript.interpreter.JavascriptInterpret
 import ca.antonious.browser.libraries.javascript.interpreter.JavascriptObject
 import ca.antonious.browser.libraries.javascript.interpreter.builtins.function.NativeFunction
 import ca.antonious.browser.libraries.web.layout.DOMLayoutNode
-import ca.antonious.browser.libraries.web.layout.DOMParentLayoutNode
+import ca.antonious.browser.libraries.web.layout.DOMElementNode
 import ca.antonious.browser.libraries.web.layout.DOMTextNode
 
 class JavascriptHtmlElement(
     interpreter: JavascriptInterpreter,
-    private val domParentLayoutNode: DOMParentLayoutNode
-) : JavascriptObject(interpreter.objectPrototype) {
+    val domElementNode: DOMElementNode
+) : JavascriptObject(interpreter.elementPrototype) {
 
     override fun setProperty(key: String, value: JavascriptValue) {
         when (key) {
             "id" -> {
                 val id = value.toString()
-                domParentLayoutNode.htmlNode.attributes["id"] = id
+                domElementNode.htmlNode.attributes["id"] = id
             }
             "className" -> {
                 val className = value.toString()
-                domParentLayoutNode.htmlNode.attributes["class"] = className
+                domElementNode.htmlNode.attributes["class"] = className
             }
             "innerHTML" -> {
-                val html = value.toString()
+                val html = "<div>${value}</div>"
                 val parsedHtml = try {
                     HtmlParser().parse(html)
                 } catch (ex: Exception) {
                     listOf(HtmlElement.Text(value.toString()))
                 }
 
-                domParentLayoutNode.children.clear()
-                domParentLayoutNode.children += createDomNodes(parsedHtml)
-                domParentLayoutNode.htmlNode.children.clear()
-                domParentLayoutNode.htmlNode.children.addAll(parsedHtml)
+                domElementNode.children.clear()
+                domElementNode.children += createDomNodes(parsedHtml)
+                domElementNode.htmlNode.children.clear()
+                domElementNode.htmlNode.children.addAll(parsedHtml)
             }
         }
     }
@@ -44,15 +44,15 @@ class JavascriptHtmlElement(
     private fun createDomNodes(htmlElements: List<HtmlElement>): List<DOMLayoutNode> {
         return htmlElements.map {
             when (it) {
-                is HtmlElement.Node -> DOMParentLayoutNode(
-                    parent = domParentLayoutNode,
-                    domEventHandler = domParentLayoutNode.domEventHandler,
+                is HtmlElement.Node -> DOMElementNode(
+                    parent = domElementNode,
+                    domEventHandler = domElementNode.domEventHandler,
                     htmlNode = it
                 ).apply {
                     setChildren(createDomNodes(it.children))
                 }
                 is HtmlElement.Text -> DOMTextNode(
-                    parent = domParentLayoutNode,
+                    parent = domElementNode,
                     htmlElement = it
                 )
             }
@@ -62,11 +62,11 @@ class JavascriptHtmlElement(
     override fun getProperty(key: String): JavascriptValue {
         return when (key) {
             "id" -> {
-                JavascriptValue.String(domParentLayoutNode.htmlNode.attributes["id"] ?: "")
+                JavascriptValue.String(domElementNode.htmlNode.attributes["id"] ?: "")
             }
             "innerHTML" -> {
-                if (domParentLayoutNode.children.size == 1 && domParentLayoutNode.children.first() is DOMTextNode) {
-                    JavascriptValue.String((domParentLayoutNode.children.first() as DOMTextNode).htmlElement.requireAsText().text)
+                if (domElementNode.children.size == 1 && domElementNode.children.first() is DOMTextNode) {
+                    JavascriptValue.String((domElementNode.children.first() as DOMTextNode).htmlElement.requireAsText().text)
                 } else {
                     JavascriptValue.String("")
                 }
@@ -76,20 +76,20 @@ class JavascriptHtmlElement(
                 NativeFunction(interpreter) { executionContext ->
                     val element = executionContext.arguments.first()
                         .valueAs<JavascriptValue.Object>()?.value as JavascriptHtmlElement
-                    domParentLayoutNode.children += element.domParentLayoutNode
-                    domParentLayoutNode.htmlNode.children.add(element.domParentLayoutNode.htmlNode)
+                    domElementNode.children += element.domElementNode
+                    domElementNode.htmlNode.children.add(element.domElementNode.htmlNode)
                     JavascriptValue.Undefined
                 }
             )
             "children" -> JavascriptValue.Object(
                 interpreter.makeArray(
-                    domParentLayoutNode.children.filterIsInstance<DOMParentLayoutNode>().map {
+                    domElementNode.children.filterIsInstance<DOMElementNode>().map {
                         JavascriptValue.Object(JavascriptHtmlElement(interpreter, it))
                     }
                 )
             )
             "classList" -> {
-                JavascriptValue.Object(JavascriptClassList(interpreter, domParentLayoutNode))
+                JavascriptValue.Object(JavascriptClassList(interpreter, domElementNode))
             }
             else -> super.getProperty(key)
         }

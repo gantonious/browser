@@ -8,7 +8,7 @@ import ca.antonious.browser.libraries.css.CssSelector
 import ca.antonious.browser.libraries.css.CssSize
 import ca.antonious.browser.libraries.css.toCssSize
 import ca.antonious.browser.libraries.graphics.core.Color
-import ca.antonious.browser.libraries.web.layout.DOMParentLayoutNode
+import ca.antonious.browser.libraries.web.layout.DOMElementNode
 
 class CssStyleResolver {
     private val defaultRules = listOf(
@@ -63,12 +63,12 @@ class CssStyleResolver {
         this.rules += rules
     }
 
-    fun resolveStyleFor(domParentLayoutNode: DOMParentLayoutNode, inlineStyles: List<CssAttribute>): ResolvedStyle {
+    fun resolveStyleFor(domElementNode: DOMElementNode, inlineStyles: List<CssAttribute>): ResolvedStyle {
         val matchingAttributes = rules
-            .filter { it.selector.matches(domParentLayoutNode) }
+            .filter { it.selector.matches(domElementNode) }
             .flatMap { it.attributes } + inlineStyles
 
-        val resolvedStyle = domParentLayoutNode.parent?.resolvedStyle?.copy() ?: ResolvedStyle()
+        val resolvedStyle = domElementNode.parent?.resolvedStyle?.copy() ?: ResolvedStyle()
         resolvedStyle.displayType = CssDisplay.block
         resolvedStyle.positionType = CssPosition.static
         resolvedStyle.backgroundColor = Color.clear
@@ -107,11 +107,11 @@ class CssStyleResolver {
             }
         }
 
-        domParentLayoutNode.htmlNode.attributes["width"]?.let {
+        domElementNode.htmlNode.attributes["width"]?.let {
             resolvedStyle.width = it.toCssSize()
         }
 
-        domParentLayoutNode.htmlNode.attributes["height"]?.let {
+        domElementNode.htmlNode.attributes["height"]?.let {
             resolvedStyle.height = it.toCssSize()
         }
 

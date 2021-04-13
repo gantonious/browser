@@ -1,19 +1,19 @@
 package ca.antonious.browser.libraries.css
 
 import ca.antonious.browser.libraries.html.HtmlElement
-import ca.antonious.browser.libraries.web.layout.DOMParentLayoutNode
+import ca.antonious.browser.libraries.web.layout.DOMElementNode
 
 sealed class CssSelector {
-    abstract fun matches(domElement: DOMParentLayoutNode): Boolean
+    abstract fun matches(domElement: DOMElementNode): Boolean
 
     object MatchesAny : CssSelector() {
-        override fun matches(domElement: DOMParentLayoutNode): Boolean {
+        override fun matches(domElement: DOMElementNode): Boolean {
             return true
         }
     }
 
     data class MatchesClass(val name: String) : CssSelector() {
-        override fun matches(domElement: DOMParentLayoutNode): Boolean {
+        override fun matches(domElement: DOMElementNode): Boolean {
             return when (domElement.htmlElement) {
                 is HtmlElement.Node -> {
                     name in domElement.htmlElement.attributes.getOrDefault("class", "").split(" ")
@@ -24,7 +24,7 @@ sealed class CssSelector {
     }
 
     data class MatchesTag(val tag: String) : CssSelector() {
-        override fun matches(domElement: DOMParentLayoutNode): Boolean {
+        override fun matches(domElement: DOMElementNode): Boolean {
             return when (domElement.htmlElement) {
                 is HtmlElement.Node -> domElement.htmlElement.name == tag
                 else -> false
@@ -33,7 +33,7 @@ sealed class CssSelector {
     }
 
     data class MatchesId(val id: String) : CssSelector() {
-        override fun matches(domElement: DOMParentLayoutNode): Boolean {
+        override fun matches(domElement: DOMElementNode): Boolean {
             return when (domElement.htmlElement) {
                 is HtmlElement.Node -> {
                     domElement.htmlElement.attributes["id"] == id
@@ -44,7 +44,7 @@ sealed class CssSelector {
     }
 
     data class MatchesParent(val parentSelectors: List<CssSelector>) : CssSelector() {
-        override fun matches(domElement: DOMParentLayoutNode): Boolean {
+        override fun matches(domElement: DOMElementNode): Boolean {
             val currentElementSelector = parentSelectors.last()
             val parentElementSelector = parentSelectors.first()
 
@@ -54,7 +54,7 @@ sealed class CssSelector {
     }
 
     data class MatchesState(val selector: CssSelector, val requiredState: String) : CssSelector() {
-        override fun matches(domElement: DOMParentLayoutNode): Boolean {
+        override fun matches(domElement: DOMElementNode): Boolean {
             return false
         }
     }
