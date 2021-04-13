@@ -117,6 +117,10 @@ class DOM {
             key = "Element",
             value = JavascriptValue.Object(Element(this))
         )
+
+        globalObject.setProperty("location", JavascriptValue.Object(makeObject().apply {
+            setProperty("href", JavascriptValue.String(siteUrl.toString()))
+        }))
     }
 
     fun loadSite(url: String) {
