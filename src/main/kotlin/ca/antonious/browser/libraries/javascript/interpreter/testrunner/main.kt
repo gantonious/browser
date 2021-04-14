@@ -4,6 +4,7 @@ import ca.antonious.browser.libraries.javascript.ast.JavascriptValue
 import ca.antonious.browser.libraries.javascript.interpreter.JavascriptInterpreter
 import ca.antonious.browser.libraries.javascript.interpreter.builtins.array.ArrayObject
 import java.io.File
+import kotlin.system.exitProcess
 
 fun main() {
     val interpreter = JavascriptInterpreter()
@@ -127,6 +128,8 @@ private fun printTestResults(testResults: List<TestResult>) {
     println(summaryText.joinToString(", "))
 
     println()
+
+    exitProcess(0)
 }
 
 object ANSICode {

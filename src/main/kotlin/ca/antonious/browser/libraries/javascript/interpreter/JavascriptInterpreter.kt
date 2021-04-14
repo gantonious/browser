@@ -382,8 +382,15 @@ class JavascriptInterpreter {
                     exitScope()
                 }
 
+                var catchControlFlowInterruption: ControlFlowInterruption? = null
+
                 if (statement.finallyBlock != null) {
+                    catchControlFlowInterruption = maybeConsumeControlFlowInterrupt()
                     interpret(statement.finallyBlock)
+                }
+
+                if (catchControlFlowInterruption != null && !hasControlFlowInterrupted()) {
+                    interruptControlFlowWith(catchControlFlowInterruption)
                 }
 
                 return JavascriptReference.Undefined
