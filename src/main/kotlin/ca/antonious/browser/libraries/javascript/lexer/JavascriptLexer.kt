@@ -33,7 +33,9 @@ class JavascriptLexer(
             "typeof" to JavascriptTokenType.TypeOf,
             "void" to JavascriptTokenType.Void,
             "delete" to JavascriptTokenType.Delete,
-            "instanceof" to JavascriptTokenType.InstanceOf
+            "instanceof" to JavascriptTokenType.InstanceOf,
+            "continue" to JavascriptTokenType.Continue,
+            "break" to JavascriptTokenType.Break
         )
 
         private val singleCharTokenMap = mapOf(

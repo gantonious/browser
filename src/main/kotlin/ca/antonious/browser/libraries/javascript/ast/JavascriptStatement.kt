@@ -54,6 +54,16 @@ sealed class JavascriptStatement() {
         val expression: JavascriptExpression
     ) : JavascriptStatement()
 
+    data class Break(
+        override val sourceInfo: SourceInfo,
+        val label: String?
+    ) : JavascriptStatement()
+
+    data class Continue(
+        override val sourceInfo: SourceInfo,
+        val label: String?
+    ) : JavascriptStatement()
+
     data class Expression(
         override val sourceInfo: SourceInfo,
         val expression: JavascriptExpression

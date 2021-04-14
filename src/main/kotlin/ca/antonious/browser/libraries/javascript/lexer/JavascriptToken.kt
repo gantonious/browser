@@ -37,6 +37,8 @@ sealed class JavascriptTokenType {
     object Void : JavascriptTokenType()
     object Delete : JavascriptTokenType()
     object InstanceOf : JavascriptTokenType()
+    object Break : JavascriptTokenType()
+    object Continue : JavascriptTokenType()
 
     data class RegularExpression(val regex: kotlin.String, val flags: kotlin.String) : JavascriptTokenType()
     data class String(val value: kotlin.String) : JavascriptTokenType()

@@ -218,6 +218,14 @@ class JavascriptInterpreter {
                 interruptControlFlowWith(ControlFlowInterruption.Return(value))
                 return JavascriptReference.Undefined
             }
+            is JavascriptStatement.Break -> {
+                interruptControlFlowWith(ControlFlowInterruption.Break(statement.label))
+                return JavascriptReference.Undefined
+            }
+            is JavascriptStatement.Continue -> {
+                interruptControlFlowWith(ControlFlowInterruption.Continue(statement.label))
+                return JavascriptReference.Undefined
+            }
             is JavascriptStatement.Throw -> {
                 throwError(interpret(statement.expression))
                 return JavascriptReference.Undefined
@@ -322,6 +330,17 @@ class JavascriptInterpreter {
             is JavascriptStatement.WhileLoop -> {
                 while (!hasControlFlowInterrupted() && interpretPrimitiveValueOf(statement.condition).isTruthy) {
                     statement.body?.let { interpret(it) }
+
+                    when {
+                        hasControlFlowInterruptedDueTo<ControlFlowInterruption.Break>() -> {
+                            consumeControlFlowInterrupt<ControlFlowInterruption.Break>()
+                            break
+                        }
+                        hasControlFlowInterruptedDueTo<ControlFlowInterruption.Continue>() -> {
+                            consumeControlFlowInterrupt<ControlFlowInterruption.Continue>()
+                            continue
+                        }
+                    }
                 }
                 return JavascriptReference.Undefined
             }
@@ -1116,6 +1135,9 @@ class JavascriptInterpreter {
 
     sealed class ControlFlowInterruption {
         data class Return(val value: JavascriptValue) : ControlFlowInterruption()
+        data class Break(val label: String?) : ControlFlowInterruption()
+        data class Continue(val label: String?) : ControlFlowInterruption()
+
         data class Error(
             val value: JavascriptValue,
             val trace: List<JavascriptStackFrame>

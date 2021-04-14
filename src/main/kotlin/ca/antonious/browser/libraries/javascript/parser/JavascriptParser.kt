@@ -116,11 +116,37 @@ class JavascriptParser(
             is JavascriptTokenType.OpenCurlyBracket -> expectBlock()
             is JavascriptTokenType.Try -> expectTryStatement()
             is JavascriptTokenType.Throw -> expectThrowStatement()
+            is JavascriptTokenType.Break -> expectBreakStatement()
+            is JavascriptTokenType.Continue -> expectContinueStatement()
             else -> {
                 val expression = expectExpression()
                 JavascriptStatement.Expression(sourceInfo = expression.sourceInfo, expression = expression)
             }
         }
+    }
+
+    private fun expectBreakStatement(): JavascriptStatement {
+        val sourceInfo = expectSourceInfo<JavascriptTokenType.Break>()
+
+        val label = if (maybeGetCurrentToken() is JavascriptTokenType.Identifier) {
+            expectToken<JavascriptTokenType.Identifier>().name
+        } else {
+            null
+        }
+
+        return JavascriptStatement.Break(sourceInfo = sourceInfo, label = label)
+    }
+
+    private fun expectContinueStatement(): JavascriptStatement {
+        val sourceInfo = expectSourceInfo<JavascriptTokenType.Continue>()
+
+        val label = if (maybeGetCurrentToken() is JavascriptTokenType.Identifier) {
+            expectToken<JavascriptTokenType.Identifier>().name
+        } else {
+            null
+        }
+
+        return JavascriptStatement.Continue(sourceInfo = sourceInfo, label = label)
     }
 
     private fun expectThrowStatement(): JavascriptStatement {
