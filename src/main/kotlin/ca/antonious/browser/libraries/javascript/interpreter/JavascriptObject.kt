@@ -108,6 +108,10 @@ open class JavascriptObject(
             "${it.key}: $valueString"
         }}}"
     }
+
+    fun hasOwnProperty(propertyName: String): Boolean {
+        return propertyName in properties
+    }
 }
 
 data class JavascriptProperty(

@@ -19,5 +19,12 @@ class ObjectPrototype(interpreter: JavascriptInterpreter) : JavascriptObject(int
         setNonEnumerableNativeFunction("toString") { nativeExecutionContext ->
             JavascriptValue.String(nativeExecutionContext.thisBinding.toString())
         }
+
+        setNonEnumerableNativeFunction("hasOwnProperty") { nativeExecutionContext ->
+            val propertyName = nativeExecutionContext.arguments.firstOrNull()?.toPrimitiveString()
+                ?: return@setNonEnumerableNativeFunction JavascriptValue.Boolean(false)
+
+            JavascriptValue.Boolean(nativeExecutionContext.thisBinding.hasOwnProperty(propertyName))
+        }
     }
 }
