@@ -4,6 +4,7 @@ import ca.antonious.browser.libraries.javascript.ast.JavascriptValue
 import ca.antonious.browser.libraries.javascript.interpreter.JavascriptInterpreter
 import ca.antonious.browser.libraries.javascript.interpreter.JavascriptObject
 import ca.antonious.browser.libraries.javascript.interpreter.builtins.array.ArrayObject
+import ca.antonious.browser.libraries.javascript.interpreter.builtins.function.FunctionObject
 import ca.antonious.browser.libraries.javascript.interpreter.builtins.function.JavascriptFunction
 import ca.antonious.browser.libraries.javascript.interpreter.builtins.function.NativeFunction
 import ca.antonious.browser.libraries.javascript.interpreter.builtins.regex.RegExpObject
@@ -73,16 +74,38 @@ class StringPrototype(interpreter: JavascriptInterpreter) : JavascriptObject(int
             val replacer = executionContext.arguments.getOrNull(1) ?: JavascriptValue.Undefined
 
             val valueToReplace = when (replacer) {
-                is JavascriptValue.Object -> {
-                    when (replacer.value) {
-                        is JavascriptFunction, is NativeFunction -> error("String.replace doesn't support passing a function as a replacer.")
-                        else -> replacer.value.toString()
-                    }
-                }
-                else -> replacer.toString()
+                is JavascriptValue.Object -> replacer.value
+                else -> replacer
             }
 
-            JavascriptValue.String(stringObject.value.replace(Regex(patternToMatch), valueToReplace))
+            val patternRegex = Regex(patternToMatch)
+
+            if (valueToReplace is FunctionObject) {
+                var hasMatched = false
+                val result = patternRegex.replace(stringObject.value) { matchResult ->
+                    if (!hasMatched) {
+                        hasMatched = true
+                        valueToReplace.call(
+                            executionContext.copy(
+                                arguments = listOf(
+                                    JavascriptValue.String(matchResult.value)
+                                ) + matchResult.groupValues.drop(1).map { groupValue ->
+                                    JavascriptValue.String(groupValue)
+                                } + listOf(
+                                    JavascriptValue.Number(matchResult.range.first.toDouble()),
+                                    JavascriptValue.String(stringObject.value)
+                                )
+                            )
+                        ).toPrimitiveString()
+                    } else {
+                        matchResult.value
+                    }
+                }
+
+                JavascriptValue.String(result)
+            } else {
+                JavascriptValue.String(patternRegex.replaceFirst(stringObject.value, valueToReplace.toString()))
+            }
         }
 
         setNonEnumerableNativeFunction("split") { executionContext ->
