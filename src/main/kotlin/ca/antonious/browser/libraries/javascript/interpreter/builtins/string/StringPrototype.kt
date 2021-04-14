@@ -3,6 +3,7 @@ package ca.antonious.browser.libraries.javascript.interpreter.builtins.string
 import ca.antonious.browser.libraries.javascript.ast.JavascriptValue
 import ca.antonious.browser.libraries.javascript.interpreter.JavascriptInterpreter
 import ca.antonious.browser.libraries.javascript.interpreter.JavascriptObject
+import ca.antonious.browser.libraries.javascript.interpreter.builtins.array.ArrayObject
 import ca.antonious.browser.libraries.javascript.interpreter.builtins.function.JavascriptFunction
 import ca.antonious.browser.libraries.javascript.interpreter.builtins.function.NativeFunction
 import ca.antonious.browser.libraries.javascript.interpreter.builtins.regex.RegExpObject
@@ -119,6 +120,24 @@ class StringPrototype(interpreter: JavascriptInterpreter) : JavascriptObject(int
             val stringsToConcat = executionContext.arguments.map { it.toString() }
 
             JavascriptValue.String(value = (listOf(stringObject.value) + stringsToConcat).joinToString())
+        }
+
+        setNonEnumerableNativeFunction("slice") { nativeExecutionContext ->
+            val stringObject = nativeExecutionContext.thisBinding as? StringObject
+                ?: return@setNonEnumerableNativeFunction JavascriptValue.Undefined
+
+            var startIndex = (nativeExecutionContext.arguments.getOrNull(0)?.coerceToNumber() ?: 0).toInt()
+            var endIndex = (nativeExecutionContext.arguments.getOrNull(1)?.coerceToNumber() ?: stringObject.value.length).toInt()
+
+            if (startIndex < 0) {
+                startIndex += stringObject.value.length
+            }
+
+            if (endIndex < 0) {
+                endIndex += stringObject.value.length
+            }
+
+            JavascriptValue.String(stringObject.value.substring(startIndex, endIndex))
         }
     }
 }
