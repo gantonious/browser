@@ -52,6 +52,7 @@ class JavascriptDebuggerServer(
 
     private val gson = Gson()
     private var error: JavascriptInterpreter.ControlFlowInterruption.Error? = null
+    private var isEvaluating = false
     private var evaluatedObjects = mutableMapOf<String, JavascriptObject>()
     private val loadedSources = mutableMapOf<String, String>()
 
@@ -236,6 +237,7 @@ class JavascriptDebuggerServer(
                         try {
                             val body = call.receive<JavascriptDebuggerRequest.Evaluate>()
                             val evaluationStack = stack.take(body.frameIndex + 1)
+                            isEvaluating = true
                             val value = withContext(debuggerExecutor.asCoroutineDispatcher()) {
                                 interpreter.interpretWithExplicitStack(
                                     javascript = body.javascript,
@@ -245,6 +247,7 @@ class JavascriptDebuggerServer(
                                     }
                                 )
                             }
+                            isEvaluating = false
 
                             call.respond(
                                 JavascriptDebuggerResponse.EvaluationFinished(
@@ -302,7 +305,13 @@ class JavascriptDebuggerServer(
         if (executionLock.isLocked) return
 
         this.error = error
-        debuggerExecutor.submit { executionLock.lock() }.get()
+
+        if (isEvaluating) {
+            executionLock.lock()
+        } else {
+            debuggerExecutor.submit { executionLock.lock() }.get()
+        }
+
         sendMessage(JavascriptDebuggerMessage.UncaughtError(error = error.value.toString()))
     }
 
