@@ -8,6 +8,17 @@ import ca.antonious.browser.libraries.javascript.interpreter.testrunner.asA
 
 class ArrayPrototype(interpreter: JavascriptInterpreter) : JavascriptObject(interpreter.objectPrototype) {
     override fun initialize() {
+        setNonEnumerableNativeFunction("shift") { nativeExecutionContext ->
+            val array = nativeExecutionContext.thisBinding as? ArrayObject
+                ?: return@setNonEnumerableNativeFunction JavascriptValue.Undefined
+
+            if (array.array.isEmpty()) {
+                return@setNonEnumerableNativeFunction JavascriptValue.Undefined
+            }
+
+            array.array.removeAt(0)
+        }
+
         setHigherOrderArrayFunction("forEach") { sourceArrayIterator ->
             sourceArrayIterator.invoke { _, _ -> true }
             JavascriptValue.Undefined
