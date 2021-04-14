@@ -19,6 +19,28 @@ class ArrayPrototype(interpreter: JavascriptInterpreter) : JavascriptObject(inte
             array.array.removeAt(0)
         }
 
+        setNonEnumerableNativeFunction("slice") { nativeExecutionContext ->
+            val array = nativeExecutionContext.thisBinding as? ArrayObject
+                ?: return@setNonEnumerableNativeFunction JavascriptValue.Undefined
+
+            var startIndex = (nativeExecutionContext.arguments.getOrNull(0)?.coerceToNumber() ?: 0).toInt()
+            var endIndex = (nativeExecutionContext.arguments.getOrNull(1)?.coerceToNumber() ?: array.array.size).toInt()
+
+            if (startIndex < 0) {
+                startIndex += array.array.size
+            }
+
+            if (endIndex < 0) {
+                endIndex += array.array.size
+            }
+
+            if (endIndex <= startIndex) {
+                return@setNonEnumerableNativeFunction JavascriptValue.Object(interpreter.makeArray())
+            }
+
+            JavascriptValue.Object(interpreter.makeArray(array.array.subList(startIndex, endIndex)))
+        }
+
         setHigherOrderArrayFunction("forEach") { sourceArrayIterator ->
             sourceArrayIterator.invoke { _, _ -> true }
             JavascriptValue.Undefined
