@@ -73,6 +73,20 @@ class DOM {
                     )
                 }
 
+                setNonEnumerableNativeFunction("getElementsByTagName") { executionContext ->
+                    val tagName = executionContext.arguments.first() as JavascriptValue.String
+                    val matchingNodes = rootNode.children.filterIsInstance<DOMElementNode>().flatMap { it.getElementsByTagName(tagName.value) }
+                    JavascriptValue.Object(
+                        interpreter.makeArray(
+                            matchingNodes.map {
+                                JavascriptValue.Object(
+                                    JavascriptHtmlElement(interpreter, it)
+                                )
+                            }
+                        )
+                    )
+                }
+
                 setNonEnumerableNativeFunction("getElementById") { executionContext ->
                     val id = executionContext.arguments.first() as JavascriptValue.String
                     val node = findNodeWithId(id.value, rootNode.children.map { it as DOMLayoutNode })
