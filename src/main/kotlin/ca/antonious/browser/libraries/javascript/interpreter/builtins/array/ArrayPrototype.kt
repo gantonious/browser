@@ -5,6 +5,8 @@ import ca.antonious.browser.libraries.javascript.interpreter.JavascriptInterpret
 import ca.antonious.browser.libraries.javascript.interpreter.JavascriptObject
 import ca.antonious.browser.libraries.javascript.interpreter.builtins.function.NativeExecutionContext
 import ca.antonious.browser.libraries.javascript.interpreter.testrunner.asA
+import kotlin.math.max
+import kotlin.math.min
 
 class ArrayPrototype(interpreter: JavascriptInterpreter) : JavascriptObject(interpreter.objectPrototype) {
     override fun initialize() {
@@ -39,6 +41,38 @@ class ArrayPrototype(interpreter: JavascriptInterpreter) : JavascriptObject(inte
             }
 
             JavascriptValue.Object(interpreter.makeArray(array.array.subList(startIndex, endIndex)))
+        }
+
+        setNonEnumerableNativeFunction("splice") { nativeExecutionContext ->
+            val array = nativeExecutionContext.thisBinding as? ArrayObject
+                ?: return@setNonEnumerableNativeFunction JavascriptValue.Undefined
+
+            if (nativeExecutionContext.arguments.isEmpty()) {
+                return@setNonEnumerableNativeFunction JavascriptValue.Object(interpreter.makeArray())
+            }
+
+            var startIndex = (nativeExecutionContext.arguments.getOrNull(0)?.coerceToNumber() ?: 0).toInt()
+
+            if (startIndex < 0) {
+                startIndex = max(array.array.size + startIndex, 0)
+            }
+
+            startIndex = min(startIndex, array.array.size)
+
+            var deleteCount = (nativeExecutionContext.arguments.getOrNull(1)?.coerceToNumber() ?: array.array.size - startIndex).toInt()
+            deleteCount = min(max(deleteCount, 0), array.array.size - startIndex)
+
+            val splicedElements = mutableListOf<JavascriptValue>()
+
+            (0 until deleteCount).forEach { _ ->
+                splicedElements += array.array.removeAt(startIndex)
+            }
+
+            nativeExecutionContext.arguments.drop(2).reversed().forEach {
+                array.array.add(startIndex, it)
+            }
+
+            JavascriptValue.Object(interpreter.makeArray(splicedElements))
         }
 
         setHigherOrderArrayFunction("forEach") { sourceArrayIterator ->
