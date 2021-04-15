@@ -62,6 +62,11 @@ class ArrayObject(
         if (keyAsNumber == null) {
             super.setProperty(key, value)
         } else {
+            if (keyAsNumber >= array.size) {
+                (array.size .. keyAsNumber).forEach { _ ->
+                    array.add(JavascriptValue.Undefined)
+                }
+            }
             array[keyAsNumber] = value
         }
     }
