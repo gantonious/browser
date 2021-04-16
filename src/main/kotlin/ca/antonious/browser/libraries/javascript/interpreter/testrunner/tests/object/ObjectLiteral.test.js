@@ -84,4 +84,16 @@ describe("ObjectLiteral", () => {
     expect(Object.keys(obj)).toBe(["get", "set"]);
     expect(Object.values(obj)).toBe([0, 1]);
   });
+
+  test("supports spreading objects", () => {
+    const objectToSpread = {
+      a: 2,
+      c: { d: "str" },
+      e: 7,
+    };
+
+    const obj = { a: 5, b: false, ...objectToSpread, e: null };
+
+    expect(obj).toBe({ a: 2, b: false, c: { d: "str" }, e: null });
+  });
 });

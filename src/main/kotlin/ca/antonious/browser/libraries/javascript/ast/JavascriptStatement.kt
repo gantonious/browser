@@ -88,6 +88,7 @@ sealed class JavascriptExpression : JavascriptStatement() {
             data class Value(val name: String, val rhs: JavascriptExpression) : Field()
             data class Setter(val name: String, val rhs: AnonymousFunction) : Field()
             data class Getter(val name: String, val rhs: AnonymousFunction) : Field()
+            data class Spread(val expression: JavascriptExpression) : Field()
         }
     }
 

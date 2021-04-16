@@ -690,6 +690,12 @@ class JavascriptInterpreter {
                                 )
                             )
                         }
+                        is JavascriptExpression.ObjectLiteral.Field.Spread -> {
+                            val objectToSpread = interpretAsObject(field.expression)
+                            objectToSpread.enumerableProperties.forEach { (key, value) ->
+                                newObject.setProperty(key, value)
+                            }
+                        }
                     }
                 }
 

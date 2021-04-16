@@ -3,6 +3,7 @@ package ca.antonious.browser.libraries.javascript.lexer
 sealed class JavascriptTokenType {
     data class Identifier(val name: kotlin.String) : JavascriptTokenType()
     object Dot : JavascriptTokenType()
+    object TripleDot : JavascriptTokenType()
     object Comma : JavascriptTokenType()
     object Colon : JavascriptTokenType()
     object SemiColon : JavascriptTokenType()

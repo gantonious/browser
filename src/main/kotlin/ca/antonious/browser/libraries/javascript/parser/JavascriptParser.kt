@@ -916,6 +916,13 @@ class JavascriptParser(
     }
 
     private fun expectObjectField(): JavascriptExpression.ObjectLiteral.Field {
+        if (getCurrentToken() is JavascriptTokenType.TripleDot) {
+            expectToken<JavascriptTokenType.TripleDot>()
+            return JavascriptExpression.ObjectLiteral.Field.Spread(
+                expression = expectSubExpression()
+            )
+        }
+
         val objectKey = expectObjectKey()
 
         return if (getCurrentToken() is JavascriptTokenType.Colon) {
