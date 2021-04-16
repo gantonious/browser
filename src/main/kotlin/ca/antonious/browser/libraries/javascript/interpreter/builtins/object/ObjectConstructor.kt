@@ -3,7 +3,7 @@ package ca.antonious.browser.libraries.javascript.interpreter.builtins.`object`
 import ca.antonious.browser.libraries.javascript.ast.JavascriptExpression
 import ca.antonious.browser.libraries.javascript.ast.JavascriptValue
 import ca.antonious.browser.libraries.javascript.interpreter.JavascriptInterpreter
-import ca.antonious.browser.libraries.javascript.interpreter.JavascriptProperty
+import ca.antonious.browser.libraries.javascript.interpreter.JavascriptPropertyDescriptor
 import ca.antonious.browser.libraries.javascript.interpreter.builtins.function.NativeFunction
 import ca.antonious.browser.libraries.javascript.interpreter.builtins.number.NumberObject
 import ca.antonious.browser.libraries.javascript.interpreter.builtins.string.StringObject
@@ -93,7 +93,7 @@ class ObjectConstructor(interpreter: JavascriptInterpreter) : NativeFunction(
 
             obj.setProperty(
                 key = prop,
-                property = JavascriptProperty(
+                descriptor = JavascriptPropertyDescriptor(
                     value = descriptor.getProperty("value"),
                     enumerable = descriptor.getProperty("enumerable").isTruthy,
                     writable = descriptor.getProperty("writable").isTruthy,

@@ -82,8 +82,13 @@ sealed class JavascriptExpression : JavascriptStatement() {
         JavascriptExpression()
 
     data class Reference(override val sourceInfo: SourceInfo, val name: String) : JavascriptExpression()
+
     data class ObjectLiteral(override val sourceInfo: SourceInfo, val fields: List<Field>) : JavascriptExpression() {
-        data class Field(val name: String, val rhs: JavascriptExpression)
+        sealed class Field {
+            data class Value(val name: String, val rhs: JavascriptExpression) : Field()
+            data class Setter(val name: String, val rhs: AnonymousFunction) : Field()
+            data class Getter(val name: String, val rhs: AnonymousFunction) : Field()
+        }
     }
 
     data class ArrayLiteral(override val sourceInfo: SourceInfo, val items: List<JavascriptExpression>) : JavascriptExpression()

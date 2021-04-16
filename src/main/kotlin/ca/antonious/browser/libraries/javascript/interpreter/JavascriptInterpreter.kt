@@ -656,10 +656,40 @@ class JavascriptInterpreter {
                 val newObject = makeObject()
 
                 for (field in statement.fields) {
-                    newObject.setProperty(field.name, interpret(field.rhs))
+                    when (field) {
+                        is JavascriptExpression.ObjectLiteral.Field.Value -> {
+                            newObject.setProperty(field.name, interpret(field.rhs))
 
-                    if (hasControlFlowInterrupted()) {
-                        return JavascriptReference.Undefined
+                            if (hasControlFlowInterrupted()) {
+                                return JavascriptReference.Undefined
+                            }
+                        }
+                        is JavascriptExpression.ObjectLiteral.Field.Getter -> {
+                            val propertyDescriptor = newObject.getOwnPropertyDescriptor(field.name)
+                                ?: JavascriptPropertyDescriptor()
+
+                            newObject.setProperty(
+                                key = field.name,
+                                descriptor = propertyDescriptor.copy(
+                                    value = null,
+                                    writable = true,
+                                    get = interpret(field.rhs).asFunction()!!
+                                )
+                            )
+                        }
+                        is JavascriptExpression.ObjectLiteral.Field.Setter -> {
+                            val propertyDescriptor = newObject.getOwnPropertyDescriptor(field.name)
+                                ?: JavascriptPropertyDescriptor()
+
+                            newObject.setProperty(
+                                key = field.name,
+                                descriptor = propertyDescriptor.copy(
+                                    value = null,
+                                    writable = true,
+                                    set = interpret(field.rhs).asFunction()!!
+                                )
+                            )
+                        }
                     }
                 }
 

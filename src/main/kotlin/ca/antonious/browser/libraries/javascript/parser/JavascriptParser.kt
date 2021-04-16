@@ -916,10 +916,43 @@ class JavascriptParser(
     }
 
     private fun expectObjectField(): JavascriptExpression.ObjectLiteral.Field {
-        return JavascriptExpression.ObjectLiteral.Field(
-            name = expectObjectKey().also { expectToken<JavascriptTokenType.Colon>() },
-            rhs = expectSubExpression()
-        )
+        val objectKey = expectObjectKey()
+
+        return if (getCurrentToken() is JavascriptTokenType.Colon) {
+            expectToken<JavascriptTokenType.Colon>()
+            JavascriptExpression.ObjectLiteral.Field.Value(
+                name = objectKey,
+                rhs = expectSubExpression()
+            )
+        } else {
+            when (objectKey) {
+                "get" -> {
+                    val (key, sourceInfo) = expectTokenAndSourceInfo<JavascriptTokenType.Identifier>()
+                    JavascriptExpression.ObjectLiteral.Field.Getter(
+                        name = key.name,
+                        rhs = JavascriptExpression.AnonymousFunction(
+                            sourceInfo = sourceInfo,
+                            name = "get ${key.name}",
+                            parameterNames = expectFunctionParameters().map { it.name },
+                            body = expectBlock()
+                        )
+                    )
+                }
+                "set" -> {
+                    val (key, sourceInfo) = expectTokenAndSourceInfo<JavascriptTokenType.Identifier>()
+                    JavascriptExpression.ObjectLiteral.Field.Setter(
+                        name = key.name,
+                        rhs = JavascriptExpression.AnonymousFunction(
+                            sourceInfo = sourceInfo,
+                            name = "set ${key.name}",
+                            parameterNames = expectFunctionParameters().map { it.name },
+                            body = expectBlock()
+                        )
+                    )
+                }
+                else -> throwUnexpectedTokenFound()
+            }
+        }
     }
 
     private fun expectObjectKey(): String {
@@ -995,9 +1028,19 @@ class JavascriptParser(
     private fun expectAnonymousFunctionExpression(): JavascriptExpression {
         val sourceInfo = expectSourceInfo<JavascriptTokenType.Function>()
         val name = tryGetToken<JavascriptTokenType.Identifier>()?.name
-        expectToken<JavascriptTokenType.OpenParentheses>()
 
+        return JavascriptExpression.AnonymousFunction(
+            sourceInfo = sourceInfo,
+            name = name,
+            parameterNames = expectFunctionParameters().map { it.name },
+            body = expectBlock()
+        )
+    }
+
+    private fun expectFunctionParameters(): List<JavascriptTokenType.Identifier> {
         val parameterNames = mutableListOf<JavascriptTokenType.Identifier>()
+
+        expectToken<JavascriptTokenType.OpenParentheses>()
 
         if (getCurrentToken() !is JavascriptTokenType.CloseParentheses) {
             parameterNames += expectToken<JavascriptTokenType.Identifier>()
@@ -1010,12 +1053,7 @@ class JavascriptParser(
 
         expectToken<JavascriptTokenType.CloseParentheses>()
 
-        return JavascriptExpression.AnonymousFunction(
-            sourceInfo = sourceInfo,
-            name = name,
-            parameterNames = parameterNames.map { it.name },
-            body = expectBlock()
-        )
+        return parameterNames
     }
 
     private fun advanceCursor() {
