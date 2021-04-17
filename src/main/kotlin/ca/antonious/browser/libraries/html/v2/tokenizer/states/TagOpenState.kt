@@ -1,9 +1,9 @@
-package ca.antonious.browser.libraries.html.v2.states
+package ca.antonious.browser.libraries.html.v2.tokenizer.states
 
 import ca.antonious.browser.libraries.html.v2.HtmlParserError
-import ca.antonious.browser.libraries.html.v2.HtmlToken
-import ca.antonious.browser.libraries.html.v2.HtmlTokenizer
-import ca.antonious.browser.libraries.html.v2.HtmlTokenizerState
+import ca.antonious.browser.libraries.html.v2.tokenizer.HtmlToken
+import ca.antonious.browser.libraries.html.v2.tokenizer.HtmlTokenizer
+import ca.antonious.browser.libraries.html.v2.tokenizer.HtmlTokenizerState
 
 object TagOpenState : HtmlTokenizerState {
     override fun tickState(tokenizer: HtmlTokenizer) {

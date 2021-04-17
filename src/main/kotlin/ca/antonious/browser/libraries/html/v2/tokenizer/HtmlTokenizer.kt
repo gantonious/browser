@@ -1,6 +1,7 @@
-package ca.antonious.browser.libraries.html.v2
+package ca.antonious.browser.libraries.html.v2.tokenizer
 
-import ca.antonious.browser.libraries.html.v2.states.DataState
+import ca.antonious.browser.libraries.html.v2.HtmlParserError
+import ca.antonious.browser.libraries.html.v2.tokenizer.states.DataState
 
 class HtmlTokenizer(val source: String) {
     private var cursor = 0
@@ -50,6 +51,7 @@ class HtmlTokenizer(val source: String) {
     }
 
     fun emitError(error: HtmlParserError) {
+
     }
 
     fun createToken(token: HtmlToken) {
@@ -82,15 +84,4 @@ class HtmlTokenizer(val source: String) {
         emitToken(currentToken!!)
         currentToken = null
     }
-}
-
-interface HtmlTokenizerState {
-    fun tickState(tokenizer: HtmlTokenizer)
-}
-
-fun Char.isHtmlWhiteSpace(): Boolean {
-    return this == '\t' ||
-        this == '\n' ||
-        this == '\u000C' ||
-        this == ' '
 }

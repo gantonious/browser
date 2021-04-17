@@ -1,4 +1,4 @@
-package ca.antonious.browser.libraries.html.v2
+package ca.antonious.browser.libraries.html.v2.tokenizer
 
 sealed class HtmlToken {
     data class Character(val char: Char) : HtmlToken()

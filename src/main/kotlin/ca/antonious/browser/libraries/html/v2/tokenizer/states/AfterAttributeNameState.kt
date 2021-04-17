@@ -1,6 +1,10 @@
-package ca.antonious.browser.libraries.html.v2.states
+package ca.antonious.browser.libraries.html.v2.tokenizer.states
 
-import ca.antonious.browser.libraries.html.v2.*
+import ca.antonious.browser.libraries.html.v2.HtmlParserError
+import ca.antonious.browser.libraries.html.v2.tokenizer.HtmlToken
+import ca.antonious.browser.libraries.html.v2.tokenizer.HtmlTokenizer
+import ca.antonious.browser.libraries.html.v2.tokenizer.HtmlTokenizerState
+import ca.antonious.browser.libraries.html.v2.tokenizer.isHtmlWhiteSpace
 
 object AfterAttributeNameState : HtmlTokenizerState {
     override fun tickState(tokenizer: HtmlTokenizer) {
