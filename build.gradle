@@ -40,3 +40,10 @@ compileKotlin {
 compileTestKotlin {
     kotlinOptions.jvmTarget = "1.8"
 }
+
+task testJS(type: Exec) {
+    dependsOn tasks.shadowJar
+    workingDir 'src/main/kotlin/ca/antonious/browser/libraries/javascript/interpreter/testrunner'
+
+    commandLine 'java', '-cp', '../../../../../../../../../../build/libs/browser-1.0-SNAPSHOT-all.jar', 'ca.antonious.browser.libraries.javascript.interpreter.testrunner.MainKt'
+}

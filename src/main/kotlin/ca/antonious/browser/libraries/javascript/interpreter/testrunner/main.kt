@@ -129,7 +129,11 @@ private fun printTestResults(testResults: List<TestResult>) {
 
     println()
 
-    exitProcess(0)
+    if (failedTests.isNotEmpty()) {
+        exitProcess(1)
+    } else {
+        exitProcess(0)
+    }
 }
 
 object ANSICode {
