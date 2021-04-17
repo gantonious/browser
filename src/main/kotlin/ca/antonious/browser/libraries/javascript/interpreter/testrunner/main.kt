@@ -10,7 +10,7 @@ fun main() {
     val interpreter = JavascriptInterpreter()
     interpreter.interpret(File("TestUtils.js"))
 
-    File("Tests").listFilesRecursively().forEach {
+    File("tests").listFilesRecursively().forEach {
         interpreter.interpret(it)
     }
 

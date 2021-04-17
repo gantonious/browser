@@ -26,6 +26,7 @@ import io.ktor.routing.route
 import io.ktor.routing.routing
 import io.ktor.server.engine.embeddedServer
 import io.ktor.server.netty.Netty
+import io.ktor.server.netty.NettyApplicationEngine
 import io.ktor.websocket.WebSockets
 import io.ktor.websocket.webSocket
 import kotlinx.coroutines.GlobalScope
@@ -55,6 +56,7 @@ class JavascriptDebuggerServer(
     private var isEvaluating = false
     private var evaluatedObjects = mutableMapOf<String, JavascriptObject>()
     private val loadedSources = mutableMapOf<String, String>()
+    private val server: NettyApplicationEngine
 
     private val stack: Stack<JavascriptStackFrame>
         get() {
@@ -70,7 +72,7 @@ class JavascriptDebuggerServer(
         }
 
     init {
-        embeddedServer(Netty, port = 31256) {
+        server = embeddedServer(Netty, port = 31256) {
             install(WebSockets)
             install(ContentNegotiation) {
                 gson()
@@ -279,7 +281,11 @@ class JavascriptDebuggerServer(
                     println("DebugServer: Client disconnected")
                 }
             }
-        }.start()
+        }
+    }
+
+    fun start() {
+        server.start()
     }
 
     fun updateSourceLocation(sourceInfo: SourceInfo) {
