@@ -58,7 +58,7 @@ class DOMElementNode(
         }
     }
 
-    override fun measure(
+    override fun onMeasure(
         measuringTape: MeasuringTape,
         widthConstraint: Float,
         heightConstraint: Float
@@ -224,13 +224,10 @@ class DOMElementNode(
             }
         }
 
-        return Size(width = calculatedWidth, height = calculatedHeight).also {
-            frame.width = it.width
-            frame.height = it.height
-        }
+        return Size(width = calculatedWidth, height = calculatedHeight)
     }
 
-    override fun drawTo(canvas: Canvas) {
+    override fun onDrawTo(canvas: Canvas) {
         val drawRect = Rect(
             marginInsets.start,
             marginInsets.top,

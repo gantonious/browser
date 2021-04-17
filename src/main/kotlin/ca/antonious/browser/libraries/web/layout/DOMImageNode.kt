@@ -27,18 +27,15 @@ class DOMImageNode(
         }
     }
 
-    override fun measure(measuringTape: MeasuringTape, widthConstraint: Float, heightConstraint: Float): Size {
+    override fun onMeasure(measuringTape: MeasuringTape, widthConstraint: Float, heightConstraint: Float): Size {
         return (
             bitmap?.let {
                 Size(min(widthConstraint, it.width.toFloat()), min(heightConstraint, it.height.toFloat()))
             } ?: Size(0f, 0f)
-            ).apply {
-            frame.width = width
-            frame.height = height
-        }
+        )
     }
 
-    override fun drawTo(canvas: Canvas) {
+    override fun onDrawTo(canvas: Canvas) {
         bitmap?.let {
             canvas.drawBitmap(it, 0f, 0f, frame.width, frame.height)
         }

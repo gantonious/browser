@@ -9,25 +9,22 @@ import ca.antonious.browser.libraries.graphics.core.Size
 import ca.antonious.browser.libraries.layout.core.InputEvent
 import ca.antonious.browser.libraries.layout.core.Key
 import ca.antonious.browser.libraries.layout.core.LayoutNode
+import kotlin.math.min
 
 class NavigationBar : LayoutNode() {
 
     var text = ""
     var onEnter: (String) -> Unit = { _ -> }
 
-    override fun measure(
+    override fun onMeasure(
         measuringTape: MeasuringTape,
         widthConstraint: Float,
         heightConstraint: Float
     ): Size {
-        return Size(widthConstraint, 60f).apply {
-            frame.width = width
-            frame.height = height
-        }
+        return Size(min(1000f, widthConstraint * 0.7f), 60f)
     }
 
-    override fun drawTo(canvas: Canvas) {
-        canvas.drawRect(frame, Paint(Color.black))
+    override fun onDrawTo(canvas: Canvas) {
         canvas.drawText(text, 32f, 16f, frame.width, Paint(Color.white), Font(name = "Arial", size = 40f))
     }
 

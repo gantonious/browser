@@ -18,7 +18,7 @@ class BlockNode : LayoutNode() {
         children.addAll(nodes)
     }
 
-    override fun measure(
+    override fun onMeasure(
         measuringTape: MeasuringTape,
         widthConstraint: Float,
         heightConstraint: Float
@@ -32,13 +32,10 @@ class BlockNode : LayoutNode() {
             width = max(width, childMeasureResult.width)
         }
 
-        return Size(width = width, height = height).also {
-            frame.width = it.width
-            frame.height = it.height
-        }
+        return Size(width = width, height = height)
     }
 
-    override fun drawTo(canvas: Canvas) {
+    override fun onDrawTo(canvas: Canvas) {
         var y = frame.y
 
         for (child in children) {

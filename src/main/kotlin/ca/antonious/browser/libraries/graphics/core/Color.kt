@@ -27,3 +27,7 @@ fun String.toColor(): Color {
         }
     }
 }
+
+fun rgbColorOf(r: Int, g: Int, b: Int): Color {
+    return Color(r / 256f, g / 256f, b / 256f, 1f)
+}

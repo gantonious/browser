@@ -11,16 +11,13 @@ class DOMTextNode(parent: DOMElementNode?, htmlElement: HtmlElement) : DOMLayout
 
     var font: Font? = null
 
-    override fun measure(measuringTape: MeasuringTape, widthConstraint: Float, heightConstraint: Float): Size {
+    override fun onMeasure(measuringTape: MeasuringTape, widthConstraint: Float, heightConstraint: Float): Size {
         font = Font("", parent!!.resolveFontSize(measuringTape))
 
-        return measuringTape.measureTextSize(htmlElement.requireAsText().text, widthConstraint, font!!).also {
-            frame.width = it.width
-            frame.height = it.height
-        }
+        return measuringTape.measureTextSize(htmlElement.requireAsText().text, widthConstraint, font!!)
     }
 
-    override fun drawTo(canvas: Canvas) {
+    override fun onDrawTo(canvas: Canvas) {
         val color = (parent as DOMElementNode).resolvedStyle.color
         font?.let {
             canvas.drawText(htmlElement.requireAsText().text, 0f, 0f, frame.width, Paint(color), it)
