@@ -10,13 +10,14 @@ import ca.antonious.browser.libraries.web.ui.NavigationBar
 class WebContentLayout(url: String) : LayoutNode() {
     private val navigationBar = NavigationBar().apply {
         backgroundColor = rgbColorOf(51, 50, 56)
+        backgroundRadius = 14f
     }
 
     private val navigationBarContainer = VStack().apply {
         alignment = VStack.Alignment.center
         backgroundColor = rgbColorOf(38, 37, 43)
-        padding.top = 24f
-        padding.bottom = 24f
+        padding.top = 26f
+        padding.bottom = 26f
         addChild(navigationBar)
     }
 

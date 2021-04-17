@@ -90,7 +90,25 @@ private class LibgdxLayoutRunnerApplication(val rootNode: LayoutNode) : Applicat
             val paint = drawRectCall.paint
             val rect = drawRectCall.rect
             shapeRenderer.color = Color(paint.color.r, paint.color.g, paint.color.b, paint.color.a)
-            shapeRenderer.rect(rect.x, rect.y, rect.width, rect.height)
+
+            if (drawRectCall.cornerRadius == null) {
+                shapeRenderer.rect(rect.x, rect.y, rect.width, rect.height)
+            } else {
+                val radius = drawRectCall.cornerRadius
+                val radius2 = radius * 2
+                // center, top, bottom, start, end
+                shapeRenderer.rect(rect.x + radius, rect.y + radius, rect.width - radius2, rect.height - radius2)
+                shapeRenderer.rect(rect.x + radius, rect.y, rect.width - radius2, radius)
+                shapeRenderer.rect(rect.x + radius, rect.y + rect.height - radius, rect.width - radius2, radius)
+                shapeRenderer.rect(rect.x, rect.y + radius, radius, rect.height - radius2)
+                shapeRenderer.rect(rect.x + rect.width - radius, rect.y + radius, radius, rect.height - radius2)
+
+                // top start, top end, bottom end, bottom start
+                shapeRenderer.arc(rect.x + radius, rect.y + radius, radius, 180f, 90f)
+                shapeRenderer.arc(rect.x + rect.width - radius, rect.y + radius, radius, 270f, 90f)
+                shapeRenderer.arc(rect.x + rect.width - radius, rect.y + rect.height - radius, radius, 0f, 90f)
+                shapeRenderer.arc(rect.x + radius, rect.y + rect.height - radius, radius, 90f, 90f)
+            }
         }
         shapeRenderer.end()
 

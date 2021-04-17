@@ -8,8 +8,8 @@ class CanvasView(
     override val globalCanvas = backingCanvas.globalCanvas
     override val size = Size(bounds.width, bounds.height)
 
-    override fun drawRect(rect: Rect, paint: Paint) {
-        backingCanvas.drawRect(Rect(rect.x + bounds.x, rect.y + bounds.y, rect.width, rect.height), paint)
+    override fun drawRect(rect: Rect, paint: Paint, cornerRadius: Float?) {
+        backingCanvas.drawRect(Rect(rect.x + bounds.x, rect.y + bounds.y, rect.width, rect.height), paint, cornerRadius)
     }
 
     override fun drawText(text: String, x: Float, y: Float, width: Float, paint: Paint, font: Font) {

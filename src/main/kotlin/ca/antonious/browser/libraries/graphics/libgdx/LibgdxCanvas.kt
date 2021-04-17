@@ -12,8 +12,8 @@ class LibgdxCanvas(override val size: Size) : Canvas {
 
     override val globalCanvas = this
 
-    override fun drawRect(rect: Rect, paint: Paint) {
-        drawCalls += LibgdxDrawCall.DrawRect(rect, paint)
+    override fun drawRect(rect: Rect, paint: Paint, cornerRadius: Float?) {
+        drawCalls += LibgdxDrawCall.DrawRect(rect, paint, cornerRadius)
     }
 
     override fun drawText(text: String, x: Float, y: Float, width: Float, paint: Paint, font: Font) {
@@ -28,7 +28,8 @@ class LibgdxCanvas(override val size: Size) : Canvas {
 sealed class LibgdxDrawCall {
     data class DrawRect(
         val rect: Rect,
-        val paint: Paint
+        val paint: Paint,
+        val cornerRadius: Float?
     ) : LibgdxDrawCall()
 
     data class DrawText(

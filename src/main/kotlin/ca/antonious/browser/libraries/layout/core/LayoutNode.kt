@@ -10,6 +10,7 @@ open class LayoutNode {
 
     var height: Float? = null
     var width: Float? = null
+    var backgroundRadius: Float? = null
 
     fun measure(
         measuringTape: MeasuringTape,
@@ -41,7 +42,7 @@ open class LayoutNode {
     fun drawTo(canvas: Canvas) {
         val boundsRect = frame.copy(x = 0f, y = 0f)
         val backgroundRect = boundsRect.rectWithin(margins)
-        canvas.drawRect(backgroundRect, Paint(backgroundColor))
+        canvas.drawRect(backgroundRect, Paint(backgroundColor), backgroundRadius)
         val viewRect = backgroundRect.rectWithin(padding)
         onDrawTo(canvas.subRegion(viewRect))
     }
