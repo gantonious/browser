@@ -12,11 +12,11 @@ object DataState : HtmlTokenizerState {
 
         when (val nextChar = tokenizer.consumeNextChar()) {
             '&' -> {
-                tokenizer.setReturnState(DataState)
+                tokenizer.setReturnStateTo(DataState)
                 tokenizer.switchStateTo(CharacterReferenceState)
             }
             '<' -> {
-                tokenizer.switchStateTo(HtmlTokenizerTagOpenState)
+                tokenizer.switchStateTo(TagOpenState)
             }
             null -> {
                 tokenizer.emitToken(HtmlToken.EndOfFile)

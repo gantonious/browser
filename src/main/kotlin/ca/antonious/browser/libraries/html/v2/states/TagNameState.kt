@@ -1,26 +1,27 @@
 package ca.antonious.browser.libraries.html.v2.states
 
-import ca.antonious.browser.libraries.html.v2.HtmlToken
-import ca.antonious.browser.libraries.html.v2.HtmlTokenizer
-import ca.antonious.browser.libraries.html.v2.HtmlTokenizerState
+import ca.antonious.browser.libraries.html.v2.*
 
 object TagNameState : HtmlTokenizerState {
     override fun tickState(tokenizer: HtmlTokenizer) {
-        when (val nextChar = tokenizer.consumeNextChar()) {
-            '\t', '\n', '\u000C', ' ' -> {
+        val nextChar = tokenizer.consumeNextChar()
+        when {
+            nextChar?.isHtmlWhiteSpace() == true -> {
                 tokenizer.switchStateTo(BeforeAttributeNameState)
             }
-            '/' -> {
+            nextChar == '/' -> {
                 tokenizer.switchStateTo(SelfClosingStartTagState)
             }
-            '>' -> {
+            nextChar == '>' -> {
+                tokenizer.switchStateTo(DataState)
                 tokenizer.emitCurrentToken()
             }
-            null -> {
+            nextChar == null -> {
+                tokenizer.emitError(HtmlParserError.EofInTag())
                 tokenizer.emitToken(HtmlToken.EndOfFile)
             }
             else -> {
-                tokenizer.getCurrentToken<HtmlToken.StartTag>().name += nextChar
+                tokenizer.getCurrentToken<HtmlToken.Tag>().name += nextChar
             }
         }
     }

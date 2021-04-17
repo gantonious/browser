@@ -20,7 +20,7 @@ class HtmlTokenizer(val source: String) {
             returnState?.let { switchStateTo(it) }
         }
 
-        return emittedTokenQueue.first()
+        return emittedTokenQueue.removeAt(0)
     }
 
     fun consumeNextChar(): Char? {
@@ -36,7 +36,7 @@ class HtmlTokenizer(val source: String) {
     }
 
 
-    fun setReturnState(state: HtmlTokenizerState) {
+    fun setReturnStateTo(state: HtmlTokenizerState) {
         returnState = state
     }
 
@@ -86,4 +86,11 @@ class HtmlTokenizer(val source: String) {
 
 interface HtmlTokenizerState {
     fun tickState(tokenizer: HtmlTokenizer)
+}
+
+fun Char.isHtmlWhiteSpace(): Boolean {
+    return this == '\t' ||
+        this == '\n' ||
+        this == '\u000C' ||
+        this == ' '
 }

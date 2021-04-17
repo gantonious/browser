@@ -1,20 +1,22 @@
 package ca.antonious.browser.libraries.html.v2.states
 
-import ca.antonious.browser.libraries.html.v2.HtmlParserError
-import ca.antonious.browser.libraries.html.v2.HtmlToken
-import ca.antonious.browser.libraries.html.v2.HtmlTokenizer
-import ca.antonious.browser.libraries.html.v2.HtmlTokenizerState
+import ca.antonious.browser.libraries.html.v2.*
 
 object BeforeAttributeNameState : HtmlTokenizerState {
     override fun tickState(tokenizer: HtmlTokenizer) {
-        when (tokenizer.consumeNextChar()) {
-            '\t', '\n', '\u000C', ' ' -> Unit
-            '/', '>', null -> tokenizer.reconsumeIn(AfterAttributeNameState)
-            '=' -> {
+        val nextChar = tokenizer.consumeNextChar()
+        when  {
+            nextChar?.isHtmlWhiteSpace() == true -> Unit
+            nextChar == '/' ||
+            nextChar == '>' ||
+            nextChar == null -> {
+                tokenizer.reconsumeIn(AfterAttributeNameState)
+            }
+            nextChar == '=' -> {
                 tokenizer.emitError(HtmlParserError.UnexpectedEqualsSignBeforeAttributeName())
             }
             else -> {
-                tokenizer.getCurrentToken<HtmlToken.StartTag>()
+                tokenizer.getCurrentToken<HtmlToken.StartTag>().addEmptyAttribute()
                 tokenizer.reconsumeIn(AttributeNameState)
             }
         }

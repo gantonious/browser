@@ -6,4 +6,9 @@ sealed class HtmlParserError(message: String? = null) : Exception(message) {
     class InvalidFirstCharacterOfTagName : HtmlParserError()
     class UnexpectedEqualsSignBeforeAttributeName : HtmlParserError()
     class UnexpectedCharacterInAttributeNameError : HtmlParserError()
+    class EofInTag : HtmlParserError()
+    class MissingAttributeValue : HtmlParserError()
+    class MissingWhitespaceBetweenAttributes : HtmlParserError()
+    class UnexpectedCharacterInUnquotedAttributeValue : HtmlParserError()
+    class UnexpectedSolidusInTag : HtmlParserError()
 }

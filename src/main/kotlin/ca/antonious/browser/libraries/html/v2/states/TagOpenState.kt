@@ -5,7 +5,7 @@ import ca.antonious.browser.libraries.html.v2.HtmlToken
 import ca.antonious.browser.libraries.html.v2.HtmlTokenizer
 import ca.antonious.browser.libraries.html.v2.HtmlTokenizerState
 
-object HtmlTokenizerTagOpenState : HtmlTokenizerState {
+object TagOpenState : HtmlTokenizerState {
     override fun tickState(tokenizer: HtmlTokenizer) {
         val nextChar = tokenizer.consumeNextChar()
 
@@ -28,6 +28,7 @@ object HtmlTokenizerTagOpenState : HtmlTokenizerState {
             }
             else -> {
                 tokenizer.emitError(HtmlParserError.InvalidFirstCharacterOfTagName())
+                tokenizer.emitToken(HtmlToken.Character('<'))
                 tokenizer.reconsumeIn(DataState)
             }
         }
