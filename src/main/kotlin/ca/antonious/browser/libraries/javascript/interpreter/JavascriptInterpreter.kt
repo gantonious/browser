@@ -37,7 +37,7 @@ import java.io.File
 import java.util.Stack
 import kotlin.random.Random
 
-class JavascriptInterpreter {
+class JavascriptInterpreter(startDebugger: Boolean = false) {
 
     val objectPrototype = ObjectPrototype(this)
     val stringPrototype = StringPrototype(this)
@@ -93,6 +93,10 @@ class JavascriptInterpreter {
         arrayPrototype.initialize()
         errorPrototype.initialize()
         typeErrorPrototype.initialize()
+
+        if (startDebugger) {
+            debugger.start()
+        }
     }
 
     fun interpret(file: File): JavascriptValue {
