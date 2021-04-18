@@ -17,4 +17,5 @@ sealed class HtmlParserError(message: String? = null) : Exception(message) {
     class MissingDoctypeName : HtmlParserError()
     class MissingSemiColonAfterCharacterReference : HtmlParserError()
     class UnknownNamedCharacterReference : HtmlParserError()
+    class InvalidCharacterSequenceAfterDoctypeName : HtmlParserError()
 }

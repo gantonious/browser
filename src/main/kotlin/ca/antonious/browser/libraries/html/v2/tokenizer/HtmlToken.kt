@@ -33,6 +33,11 @@ sealed class HtmlToken {
 
 
     }
-    class EndTag : Tag()
+    class EndTag : Tag() {
+        override fun toString(): String {
+            return "EndTag(name=$name)"
+        }
+    }
+
     object EndOfFile : HtmlToken()
 }

@@ -37,6 +37,14 @@ class HtmlTokenizer(val source: String) {
         return source[cursor++]
     }
 
+    fun peekCurrentNChars(n: Int): String {
+        if (isAtEof()) {
+            return ""
+        }
+
+        return source.substring(cursor - 1, min(cursor - 1, source.length))
+    }
+
     fun peekNextNChars(n: Int): String {
         if (isAtEof()) {
             return ""
