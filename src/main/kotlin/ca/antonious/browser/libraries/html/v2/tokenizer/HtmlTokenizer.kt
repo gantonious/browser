@@ -11,6 +11,8 @@ class HtmlTokenizer(val source: String) {
     private var emittedTokenQueue = mutableListOf<HtmlToken>()
     var temporaryBuffer = ""
 
+    var lastEmittedStartTag: HtmlToken.StartTag? = null
+
     fun nextToken(): HtmlToken {
         if (emittedTokenQueue.isNotEmpty()) {
             return emittedTokenQueue.removeAt(0)
@@ -60,6 +62,10 @@ class HtmlTokenizer(val source: String) {
     }
     fun emitToken(token: HtmlToken) {
         emittedTokenQueue.add(token)
+
+        if (token is HtmlToken.StartTag) {
+            lastEmittedStartTag = token
+        }
     }
 
     fun resetTemporaryBuffer() {
@@ -74,6 +80,10 @@ class HtmlTokenizer(val source: String) {
         for (char in temporaryBuffer) {
             emitToken(HtmlToken.Character(char))
         }
+    }
+
+    fun isCurrentEndTagAnAppropriateEndTagToken(): Boolean {
+        return  lastEmittedStartTag?.name == getCurrentToken<HtmlToken.EndTag>().name
     }
 
     inline fun <reified T> getCurrentToken(): T {

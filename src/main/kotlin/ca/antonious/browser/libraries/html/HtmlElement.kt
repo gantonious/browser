@@ -12,7 +12,7 @@ sealed class HtmlElement {
     }
 
     data class Text(
-        val text: String
+        var text: String
     ) : HtmlElement()
 
     fun requireAsText(): Text {
