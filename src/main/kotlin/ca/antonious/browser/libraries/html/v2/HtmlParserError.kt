@@ -11,4 +11,8 @@ sealed class HtmlParserError(message: String? = null) : Exception(message) {
     class MissingWhitespaceBetweenAttributes : HtmlParserError()
     class UnexpectedCharacterInUnquotedAttributeValue : HtmlParserError()
     class UnexpectedSolidusInTag : HtmlParserError()
+    class IncorrectlyOpenedComment : HtmlParserError()
+    class EofInDoctype : HtmlParserError()
+    class MissingWhitespaceBeforeDoctypeName : HtmlParserError()
+    class MissingDoctypeName : HtmlParserError()
 }

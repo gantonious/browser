@@ -1,9 +1,9 @@
 package ca.antonious.browser.libraries.html.v2.tokenizer
 
 sealed class HtmlToken {
-    class Doctype() : HtmlToken()
+    data class Doctype(var name: String = "", var forceQuirks: Boolean = false) : HtmlToken()
     data class Character(val char: Char) : HtmlToken()
-    data class Comment(val comment: String) : HtmlToken()
+    data class Comment(var comment: String = "") : HtmlToken()
     abstract class Tag(var name: String = "") : HtmlToken()
 
     class StartTag(

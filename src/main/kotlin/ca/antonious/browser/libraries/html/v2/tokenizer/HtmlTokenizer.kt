@@ -2,6 +2,7 @@ package ca.antonious.browser.libraries.html.v2.tokenizer
 
 import ca.antonious.browser.libraries.html.v2.HtmlParserError
 import ca.antonious.browser.libraries.html.v2.tokenizer.states.DataState
+import kotlin.math.min
 
 class HtmlTokenizer(val source: String) {
     private var cursor = 0
@@ -34,10 +35,21 @@ class HtmlTokenizer(val source: String) {
         return source[cursor++]
     }
 
+    fun peekNextNChars(n: Int): String {
+        if (isAtEof()) {
+            return ""
+        }
+
+        return source.substring(cursor, min(cursor + n, source.length))
+    }
+
+    fun consumeNextNChars(n: Int) {
+        cursor += n
+    }
+
     fun isAtEof(): Boolean {
         return cursor == source.length
     }
-
 
     fun setReturnStateTo(state: HtmlTokenizerState) {
         returnState = state
