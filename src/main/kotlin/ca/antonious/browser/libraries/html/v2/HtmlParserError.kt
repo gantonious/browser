@@ -16,4 +16,5 @@ sealed class HtmlParserError(message: String? = null) : Exception(message) {
     class MissingWhitespaceBeforeDoctypeName : HtmlParserError()
     class MissingDoctypeName : HtmlParserError()
     class MissingSemiColonAfterCharacterReference : HtmlParserError()
+    class UnknownNamedCharacterReference : HtmlParserError()
 }
