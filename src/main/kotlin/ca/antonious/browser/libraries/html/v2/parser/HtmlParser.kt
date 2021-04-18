@@ -20,13 +20,18 @@ class HtmlParser(source: String) {
     val originalInsertionMode: HtmlParserInsertionMode
         get() = _originalInsertionMode!!
 
-    fun parse() {
+    fun parse(): HtmlElement.Node {
         var nextToken = tokenizer.nextToken()
 
-        while (nextToken != HtmlToken.EndOfFile) {
+        while (true) {
             insertionMode.process(nextToken, this)
+            if (nextToken is HtmlToken.EndOfFile) {
+                break
+            }
             nextToken = tokenizer.nextToken()
         }
+
+        return currentNode
     }
 
     fun switchInsertionModeTo(insertionMode: HtmlParserInsertionMode) {
@@ -84,7 +89,50 @@ class HtmlParser(source: String) {
         insertionMode = originalInsertionMode
     }
 
+    fun reconstructTheActiveFormattingElements() {
+
+    }
+
+    fun setFramesetOkFlagToNotOk() {
+
+    }
+
+    fun insertComment(token: HtmlToken.Comment) {
+
+    }
+
+    fun hasTemplateOnStackOfOpenElements(): Boolean {
+        return stackOfOpenElements.any { it.name == "template" }
+    }
+
+    fun stopParsing() {
+        while (stackOfOpenElements.size > 1) {
+            stackOfOpenElements.pop()
+        }
+    }
+
+    fun generateImpliedEndTags(exceptFor: String) {
+        while (currentNode.name != exceptFor && currentNode.name in impliedEndTags) {
+            popCurrentNode()
+        }
+    }
+
     data class AdjustedInsertionLocation(
         val node: HtmlElement.Node
     )
+
+    companion object {
+        private val impliedEndTags = setOf(
+            "dd",
+            "dt",
+            "li",
+            "optgroup",
+            "option",
+            "p",
+            "rb",
+            "rp",
+            "rt",
+            "rtc"
+        )
+    }
 }
