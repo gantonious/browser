@@ -6,6 +6,7 @@ import ca.antonious.browser.libraries.html.v2.tokenizer.HtmlTokenizerState
 object CharacterReferenceState : HtmlTokenizerState {
     override fun tickState(tokenizer: HtmlTokenizer) {
         tokenizer.resetTemporaryBuffer()
+        tokenizer.appendToTemporaryBuffer('&')
         val nextChar = tokenizer.consumeNextChar()
 
         when {
@@ -13,6 +14,10 @@ object CharacterReferenceState : HtmlTokenizerState {
             nextChar == '#' -> {
                 tokenizer.appendToTemporaryBuffer(nextChar)
                 tokenizer.switchStateTo(NumericCharacterReferenceState)
+            }
+            else -> {
+                tokenizer.flushCodePointsConsumedAsACharacterReference()
+                tokenizer.reconsumeInReturnState()
             }
         }
     }

@@ -2,6 +2,9 @@ package ca.antonious.browser.libraries.html.v2.tokenizer
 
 import ca.antonious.browser.libraries.html.v2.HtmlParserError
 import ca.antonious.browser.libraries.html.v2.tokenizer.states.DataState
+import ca.antonious.browser.libraries.html.v2.tokenizer.states.DoubleQuotedAttributeValueState
+import ca.antonious.browser.libraries.html.v2.tokenizer.states.SingleQuotedAttributeValueState
+import ca.antonious.browser.libraries.html.v2.tokenizer.states.UnquotedAttributeValueState
 import kotlin.math.min
 
 class HtmlTokenizer(val source: String) {
@@ -21,7 +24,6 @@ class HtmlTokenizer(val source: String) {
 
         while (emittedTokenQueue.isEmpty()) {
             state.tickState(this)
-            returnState?.let { switchStateTo(it) }
         }
 
         return emittedTokenQueue.removeAt(0)
@@ -64,14 +66,22 @@ class HtmlTokenizer(val source: String) {
         this.state = state
     }
 
-    fun emitError(error: HtmlParserError) {
-
+    fun switchToReturnState() {
+        switchStateTo(returnState!!)
     }
 
+    fun reconsumeInReturnState() {
+        reconsumeIn(returnState!!)
+    }
+
+    fun emitError(error: HtmlParserError) {
+        println("Parse error: ${error.javaClass.simpleName}")
+    }
     fun createToken(token: HtmlToken) {
         this.currentToken = token
 
     }
+
     fun emitToken(token: HtmlToken) {
         emittedTokenQueue.add(token)
 
@@ -88,14 +98,26 @@ class HtmlTokenizer(val source: String) {
         temporaryBuffer += char
     }
 
+    fun isCharacterReferenceConsumedAsPartOfAnAttribute(): Boolean {
+        return returnState is DoubleQuotedAttributeValueState ||
+               returnState is SingleQuotedAttributeValueState ||
+               returnState is UnquotedAttributeValueState
+    }
+
     fun flushCodePointsConsumedAsACharacterReference() {
-        for (char in temporaryBuffer) {
-            emitToken(HtmlToken.Character(char))
+        if (isCharacterReferenceConsumedAsPartOfAnAttribute()) {
+            for (char in temporaryBuffer) {
+                getCurrentToken<HtmlToken.StartTag>().currentAttribute.value += char
+            }
+        } else {
+            for (char in temporaryBuffer) {
+                emitToken(HtmlToken.Character(char))
+            }
         }
     }
 
     fun isCurrentEndTagAnAppropriateEndTagToken(): Boolean {
-        return  lastEmittedStartTag?.name == getCurrentToken<HtmlToken.EndTag>().name
+        return lastEmittedStartTag?.name == getCurrentToken<HtmlToken.EndTag>().name
     }
 
     inline fun <reified T> getCurrentToken(): T {
