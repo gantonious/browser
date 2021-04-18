@@ -7,6 +7,7 @@ import ca.antonious.browser.libraries.html.v2.tokenizer.HtmlToken
 import ca.antonious.browser.libraries.html.v2.tokenizer.states.ScriptDataState
 
 object InHeadInsertionMode : HtmlParserInsertionMode {
+
     override fun process(token: HtmlToken, parser: HtmlParser) {
         when {
             token is HtmlToken.Character -> parser.insertCharacter(token.char)
@@ -14,6 +15,14 @@ object InHeadInsertionMode : HtmlParserInsertionMode {
             token is HtmlToken.Doctype -> Unit
             token is HtmlToken.StartTag && token.name == "html" -> {
                 InBodyInsertionMode.process(token, parser)
+            }
+            token is HtmlToken.StartTag && token.name == "base" ||
+            token is HtmlToken.StartTag && token.name == "basefront" ||
+            token is HtmlToken.StartTag && token.name == "bgsound" ||
+            token is HtmlToken.StartTag && token.name == "link" -> {
+                parser.insertHtmlElement(token)
+                parser.popCurrentNode()
+                token.acknowledgeSelfClosingIfSet()
             }
             token is HtmlToken.StartTag && token.name == "meta" -> {
                 parser.insertHtmlElement(token)
