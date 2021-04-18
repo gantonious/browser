@@ -18,4 +18,8 @@ sealed class HtmlParserError(message: String? = null) : Exception(message) {
     class MissingSemiColonAfterCharacterReference : HtmlParserError()
     class UnknownNamedCharacterReference : HtmlParserError()
     class InvalidCharacterSequenceAfterDoctypeName : HtmlParserError()
+    class AbruptClosingOfEmptyComment : HtmlParserError()
+    class EofInComment : HtmlParserError()
+    class NestedComment : HtmlParserError()
+    class IncorrectlyClosedComment : HtmlParserError()
 }
