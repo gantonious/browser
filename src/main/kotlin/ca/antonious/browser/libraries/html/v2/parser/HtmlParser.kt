@@ -5,6 +5,7 @@ import ca.antonious.browser.libraries.html.v2.parser.insertionmodes.InitialInser
 import ca.antonious.browser.libraries.html.v2.parser.insertionmodes.TextInsertionMode
 import ca.antonious.browser.libraries.html.v2.tokenizer.HtmlToken
 import ca.antonious.browser.libraries.html.v2.tokenizer.HtmlTokenizer
+import ca.antonious.browser.libraries.html.v2.tokenizer.states.RAWTEXTState
 import ca.antonious.browser.libraries.html.v2.tokenizer.states.RCDATAState
 import java.util.*
 
@@ -77,6 +78,13 @@ class HtmlParser(source: String) {
     fun parseTokenUsingRCDATA(token: HtmlToken.StartTag) {
         insertHtmlElement(token)
         tokenizer.switchStateTo(RCDATAState)
+        _originalInsertionMode = insertionMode
+        insertionMode = TextInsertionMode
+    }
+
+    fun parseTokenUsingRAWTEXT(token: HtmlToken.StartTag) {
+        insertHtmlElement(token)
+        tokenizer.switchStateTo(RAWTEXTState)
         _originalInsertionMode = insertionMode
         insertionMode = TextInsertionMode
     }

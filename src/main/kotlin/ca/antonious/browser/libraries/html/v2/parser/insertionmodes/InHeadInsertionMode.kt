@@ -32,6 +32,10 @@ object InHeadInsertionMode : HtmlParserInsertionMode {
             token is HtmlToken.StartTag && token.name == "title" -> {
                 parser.parseTokenUsingRCDATA(token)
             }
+            token is HtmlToken.StartTag && token.name == "noframes" ||
+            token is HtmlToken.StartTag &&  token.name == "style" -> {
+                parser.parseTokenUsingRAWTEXT(token)
+            }
             token is HtmlToken.StartTag && token.name == "script" -> {
                 val adjustedInsertionLocation = parser.findAppropriatePlaceForInsertingNode()
                 val element = token.toElement()
