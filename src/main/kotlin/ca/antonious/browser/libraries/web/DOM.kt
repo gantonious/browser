@@ -217,7 +217,17 @@ class DOM {
                     }
                 }
                 is HtmlElement.Text -> {
-                    layoutTree += DOMTextNode(parent = parent, htmlElement = htmlElement)
+                    layoutTree += DOMTextNode(
+                        parent = parent,
+                        htmlElement = htmlElement.copy(
+                        text = htmlElement.text
+                            .replace(Regex("[ \t]*\\n[ \t]*"), "")
+                            .replace("\t", " ")
+                            .replace("\n", " ")
+                            .replace("  ", "")
+                            .trim(' ')
+                        )
+                    )
                 }
             }
         }
