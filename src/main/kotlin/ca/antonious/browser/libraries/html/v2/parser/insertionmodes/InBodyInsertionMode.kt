@@ -62,6 +62,18 @@ object InBodyInsertionMode : HtmlParserInsertionMode {
                 parser.switchInsertionModeTo(AfterBodyInsertionMode)
                 AfterBodyInsertionMode.process(token, parser)
             }
+            token is HtmlToken.StartTag && token.name == "area" ||
+            token is HtmlToken.StartTag && token.name == "br" ||
+            token is HtmlToken.StartTag && token.name == "embed" ||
+            token is HtmlToken.StartTag && token.name == "img" ||
+            token is HtmlToken.StartTag && token.name == "keygen" ||
+            token is HtmlToken.StartTag && token.name == "wbt" -> {
+                parser.reconstructTheActiveFormattingElements()
+                parser.insertHtmlElement(token)
+                parser.popCurrentNode()
+                token.acknowledgeSelfClosingIfSet()
+                parser.setFramesetOkFlagToNotOk()
+            }
             // TODO handle non ordinary tags
             token is HtmlToken.StartTag -> {
                 parser.reconstructTheActiveFormattingElements()
