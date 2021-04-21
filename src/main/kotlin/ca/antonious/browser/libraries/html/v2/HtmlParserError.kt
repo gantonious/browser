@@ -22,4 +22,5 @@ sealed class HtmlParserError(message: String? = null) : Exception(message) {
     class EofInComment : HtmlParserError()
     class NestedComment : HtmlParserError()
     class IncorrectlyClosedComment : HtmlParserError()
+    class EofInScriptHtmlCommentLikeText : HtmlParserError()
 }

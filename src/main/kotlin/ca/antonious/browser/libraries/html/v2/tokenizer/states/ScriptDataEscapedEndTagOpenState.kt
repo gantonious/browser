@@ -4,17 +4,19 @@ import ca.antonious.browser.libraries.html.v2.tokenizer.HtmlToken
 import ca.antonious.browser.libraries.html.v2.tokenizer.HtmlTokenizer
 import ca.antonious.browser.libraries.html.v2.tokenizer.HtmlTokenizerState
 
-object ScriptDataEscapeStartState : HtmlTokenizerState {
+object ScriptDataEscapedEndTagOpenState : HtmlTokenizerState {
     override fun tickState(tokenizer: HtmlTokenizer) {
         val nextChar = tokenizer.consumeNextChar()
 
         when {
-            nextChar == '-' -> {
-                tokenizer.switchStateTo(ScriptDataEscapeStartDashState)
-                tokenizer.emitToken(HtmlToken.Character(nextChar))
+            nextChar?.isLetter() == true -> {
+                tokenizer.createToken(HtmlToken.EndTag())
+                tokenizer.reconsumeIn(ScriptDataEscapedEndTagNameState)
             }
             else -> {
-                tokenizer.reconsumeIn(ScriptDataState)
+                tokenizer.emitToken(HtmlToken.Character('<'))
+                tokenizer.emitToken(HtmlToken.Character('/'))
+                tokenizer.reconsumeIn(ScriptDataEscapedState)
             }
         }
     }
