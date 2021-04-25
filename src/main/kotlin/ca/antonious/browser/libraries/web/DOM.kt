@@ -4,7 +4,7 @@ import ca.antonious.browser.libraries.css.CssAttributeParser
 import ca.antonious.browser.libraries.css.CssParser
 import ca.antonious.browser.libraries.graphics.images.ImageLoader
 import ca.antonious.browser.libraries.html.HtmlElement
-import ca.antonious.browser.libraries.html.HtmlParser
+import ca.antonious.browser.libraries.html.v2.parser.HtmlParser
 import ca.antonious.browser.libraries.http.HttpClient
 import ca.antonious.browser.libraries.http.HttpMethod
 import ca.antonious.browser.libraries.http.HttpRequest
@@ -29,7 +29,6 @@ class DOM {
     private val httpClient = HttpClient()
     private var siteUrl: Uri? = null
 
-    private val htmlParser = HtmlParser()
     private val cssParser = CssParser()
     private val imageLoader = ImageLoader()
 
@@ -146,7 +145,8 @@ class DOM {
         val httpRequest = HttpRequest(url = siteUrl!!, method = HttpMethod.Get)
         httpClient.execute(httpRequest).onSuccess { response ->
             val rawHtml = response.body
-            replaceDocument(htmlParser.parse(rawHtml))
+            val parser = HtmlParser(rawHtml)
+            replaceDocument(listOf(parser.parse()))
         }
     }
 
@@ -205,6 +205,7 @@ class DOM {
                             layoutNode.setChildren(children = listOf(imageNode))
                             layoutTree += layoutNode
                         }
+                        "script" -> Unit
                         else -> {
                             val layoutNode = DOMElementNode(
                                 parent = parent,

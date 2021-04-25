@@ -83,8 +83,9 @@ class HtmlTokenizer(val source: String) {
     }
 
     fun emitError(error: HtmlParserError) {
-        println("Parse error: ${error.javaClass.simpleName}")
+
     }
+
     fun createToken(token: HtmlToken) {
         this.currentToken = token
 

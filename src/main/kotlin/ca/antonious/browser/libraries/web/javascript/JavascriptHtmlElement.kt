@@ -1,7 +1,7 @@
 package ca.antonious.browser.libraries.web.javascript
 
 import ca.antonious.browser.libraries.html.HtmlElement
-import ca.antonious.browser.libraries.html.HtmlParser
+import ca.antonious.browser.libraries.html.v2.parser.HtmlParser
 import ca.antonious.browser.libraries.javascript.ast.JavascriptValue
 import ca.antonious.browser.libraries.javascript.interpreter.JavascriptInterpreter
 import ca.antonious.browser.libraries.javascript.interpreter.JavascriptObject
@@ -26,12 +26,7 @@ class JavascriptHtmlElement(
                 domElementNode.htmlNode.attributes["class"] = className
             }
             "innerHTML" -> {
-                val html = "<div>${value}</div>"
-                val parsedHtml = try {
-                    HtmlParser().parse(html)
-                } catch (ex: Exception) {
-                    listOf(HtmlElement.Text(value.toString()))
-                }
+                val parsedHtml = HtmlParser(value.toString()).parseAsFragment(domElementNode.htmlNode)
 
                 domElementNode.children.clear()
                 domElementNode.children += createDomNodes(parsedHtml)
