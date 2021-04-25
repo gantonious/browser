@@ -1,6 +1,7 @@
 package ca.antonious.browser.libraries.javascript.parser
 
 import ca.antonious.browser.libraries.javascript.ast.AssignmentStatement
+import ca.antonious.browser.libraries.javascript.ast.AssignmentTarget
 import ca.antonious.browser.libraries.javascript.ast.JavascriptExpression
 import ca.antonious.browser.libraries.javascript.ast.JavascriptProgram
 import ca.antonious.browser.libraries.javascript.ast.JavascriptStatement
@@ -452,21 +453,23 @@ class JavascriptParser(
         loop@ while (true) {
             when (maybeGetCurrentToken()) {
                 is JavascriptTokenType.Comma -> expectToken<JavascriptTokenType.Comma>()
-                is JavascriptTokenType.Identifier -> {
-                    val identifier = expectToken<JavascriptTokenType.Identifier>()
-
-                    statements += if (maybeGetCurrentToken() is JavascriptTokenType.Operator.Assignment) {
-                        expectToken<JavascriptTokenType.Operator.Assignment>()
-                        AssignmentStatement(name = identifier.name, expression = expectSubExpression())
-                    } else {
-                        AssignmentStatement(name = identifier.name, expression = null)
-                    }
+                is JavascriptTokenType.Identifier,
+                is JavascriptTokenType.OpenBracket -> {
+                    statements += AssignmentStatement(
+                        target = expectAssignmentTarget(),
+                        expression = if (getCurrentToken() == JavascriptTokenType.Operator.Assignment) {
+                            expectToken<JavascriptTokenType.Operator.Assignment>()
+                            expectSubExpression()
+                        } else {
+                            null
+                        }
+                    )
 
                     if (maybeGetCurrentToken() !is JavascriptTokenType.Comma) {
                         break@loop
                     }
                 }
-                else -> break@loop
+                else ->  break@loop
             }
         }
 
@@ -1063,6 +1066,65 @@ class JavascriptParser(
         return parameterNames
     }
 
+    private fun expectAssignmentTarget(): AssignmentTarget {
+        return when (getCurrentToken()) {
+            is JavascriptTokenType.OpenBracket -> expectArrayDestructionTarget()
+            is JavascriptTokenType.Identifier -> expectSimpleTarget()
+            else -> throwUnexpectedTokenFound()
+        }
+    }
+
+    private fun expectArrayDestructionTarget(): AssignmentTarget.ArrayDestructure {
+        val targets = mutableListOf<AssignmentTarget.ArrayDestructure.DestructureTarget>()
+        expectToken<JavascriptTokenType.OpenBracket>()
+
+        while (getCurrentToken() != JavascriptTokenType.CloseBracket) {
+            when (getCurrentToken()) {
+                is JavascriptTokenType.Comma -> {
+                    expectToken<JavascriptTokenType.Comma>()
+                    targets += AssignmentTarget.ArrayDestructure.DestructureTarget.Empty
+                }
+                is JavascriptTokenType.TripleDot -> {
+                    expectToken<JavascriptTokenType.TripleDot>()
+                    val restName = expectToken<JavascriptTokenType.Identifier>()
+                    targets += AssignmentTarget.ArrayDestructure.DestructureTarget.Rest(name = restName.name)
+
+                    if (getCurrentToken() !is JavascriptTokenType.CloseBracket) {
+                        throwSyntaxError("Rest element must be last element")
+                    }
+                    break
+                }
+                else -> {
+                    val assignmentTarget = expectAssignmentTarget()
+
+                    val defaultValueExpression = if (getCurrentToken() is JavascriptTokenType.Operator.Assignment) {
+                        expectToken<JavascriptTokenType.Operator.Assignment>()
+                        expectSubExpression()
+                    } else {
+                        null
+                    }
+
+                    targets += AssignmentTarget.ArrayDestructure.DestructureTarget.Single(
+                        assignmentTarget = assignmentTarget,
+                        default = defaultValueExpression
+                    )
+                }
+            }
+
+            if (getCurrentToken() is JavascriptTokenType.Comma) {
+                expectToken<JavascriptTokenType.Comma>()
+            }
+        }
+
+        expectToken<JavascriptTokenType.CloseBracket>()
+
+        return AssignmentTarget.ArrayDestructure(targets)
+    }
+
+    private fun expectSimpleTarget(): AssignmentTarget.Simple {
+        return AssignmentTarget.Simple(name = expectToken<JavascriptTokenType.Identifier>().name)
+    }
+
     private fun advanceCursor() {
         cursor += 1
     }
@@ -1087,12 +1149,16 @@ class JavascriptParser(
     }
 
     private fun throwUnexpectedTokenFound(expectedToken: String? = null): Nothing {
+        throwSyntaxError("Unexpected token${expectedToken?.let { ", expected: $it" } ?: ""}")
+    }
+
+    private fun throwSyntaxError(message: String): Nothing {
         val sourceInfo = tokens[cursor].sourceInfo
         val topLine =
-            "(${sourceInfo.filename}:${sourceInfo.line + 1}) column:${sourceInfo.column + 1} Uncaught SyntaxError: Unexpected token"
+            "(${sourceInfo.filename}:${sourceInfo.line + 1}) column:${sourceInfo.column + 1} Uncaught SyntaxError: $message"
         val errorLines = sourceLines.subList(max(0, sourceInfo.line - 3), sourceInfo.line + 1)
 
-        val message = "$topLine${expectedToken?.let { ", expected: $it" } ?: ""}\n${errorLines.joinToString("\n")}\n${" ".repeat(sourceInfo.column)}^"
+        val message = "$topLine\n${errorLines.joinToString("\n")}\n${" ".repeat(sourceInfo.column)}^"
 
         throw UnexpectedTokenException(message)
     }

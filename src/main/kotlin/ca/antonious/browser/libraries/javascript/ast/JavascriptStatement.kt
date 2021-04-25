@@ -69,7 +69,19 @@ sealed class JavascriptStatement() {
     ) : JavascriptStatement()
 }
 
-data class AssignmentStatement(val name: String, val expression: JavascriptExpression?)
+data class AssignmentStatement(val target: AssignmentTarget, val expression: JavascriptExpression?)
+
+sealed class AssignmentTarget {
+    data class Simple(val name: String) : AssignmentTarget()
+
+    data class ArrayDestructure(val assignmentTargets: List<DestructureTarget>) : AssignmentTarget() {
+        sealed class DestructureTarget {
+            object Empty : DestructureTarget()
+            data class Rest(val name: String) : DestructureTarget()
+            data class Single(val assignmentTarget: AssignmentTarget, val default: JavascriptExpression?) : DestructureTarget()
+        }
+    }
+}
 
 sealed class JavascriptExpression : JavascriptStatement() {
     data class NewCall(override val sourceInfo: SourceInfo, val function: FunctionCall) : JavascriptExpression()

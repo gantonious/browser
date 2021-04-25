@@ -1,5 +1,6 @@
 package ca.antonious.browser.libraries.javascript.interpreter
 
+import ca.antonious.browser.libraries.javascript.ast.AssignmentTarget
 import ca.antonious.browser.libraries.javascript.ast.JavascriptExpression
 import ca.antonious.browser.libraries.javascript.ast.JavascriptProgram
 import ca.antonious.browser.libraries.javascript.ast.JavascriptStatement
@@ -296,38 +297,20 @@ class JavascriptInterpreter(startDebugger: Boolean = false) {
             }
             is JavascriptStatement.LetAssignment -> {
                 for (assignment in statement.assignments) {
-                    val value = if (assignment.expression == null) {
-                        JavascriptValue.Undefined
-                    } else {
-                        interpret(assignment.expression)
-                    }
-
-                    currentScope.setVariable(assignment.name, value)
+                    assignExpressionToTarget(target = assignment.target, expression = assignment.expression)
                 }
 
                 return JavascriptReference.Undefined
             }
             is JavascriptStatement.ConstAssignment -> {
                 for (assignment in statement.assignments) {
-                    val value = if (assignment.expression == null) {
-                        JavascriptValue.Undefined
-                    } else {
-                        interpret(assignment.expression)
-                    }
-
-                    currentScope.setVariable(assignment.name, value)
+                    assignExpressionToTarget(target = assignment.target, expression = assignment.expression)
                 }
                 return JavascriptReference.Undefined
             }
             is JavascriptStatement.VarAssignment -> {
                 for (assignment in statement.assignments) {
-                    val value = if (assignment.expression == null) {
-                        JavascriptValue.Undefined
-                    } else {
-                        interpret(assignment.expression)
-                    }
-
-                    currentScope.setVariable(assignment.name, value)
+                    assignExpressionToTarget(target = assignment.target, expression = assignment.expression)
                 }
                 return JavascriptReference.Undefined
             }
@@ -969,6 +952,56 @@ class JavascriptInterpreter(startDebugger: Boolean = false) {
             ?: error("Uncaught SyntaxError: Invalid left-hand side in assignment")
 
         return valueToAssign.toReference()
+    }
+
+    private fun assignExpressionToTarget(target: AssignmentTarget, expression: JavascriptExpression?) {
+        val expression = expression ?: JavascriptExpression.Literal(
+            value = JavascriptValue.Undefined,
+            sourceInfo = SourceInfo.unknown()
+        )
+
+        when (target) {
+            is AssignmentTarget.Simple -> {
+                currentScope.setVariable(key = target.name, value = interpret(expression))
+            }
+            is AssignmentTarget.ArrayDestructure -> {
+                val value = interpret(expression)
+                val array = value.valueAs<JavascriptValue.Object>()?.value as? ArrayObject
+
+                if (array == null) {
+                    throwTypeError("$value is not iterable")
+                    return
+                }
+
+                target.assignmentTargets.forEachIndexed { arrayIndex, arrayAssignmentTarget ->
+                    when (arrayAssignmentTarget) {
+                        is AssignmentTarget.ArrayDestructure.DestructureTarget.Empty -> Unit
+                        is AssignmentTarget.ArrayDestructure.DestructureTarget.Single -> {
+                            var arrayValueAtIndex = array.getProperty(arrayIndex.toString())
+
+                            if (arrayValueAtIndex == JavascriptValue.Undefined && arrayAssignmentTarget.default != null) {
+                                arrayValueAtIndex = interpret(arrayAssignmentTarget.default)
+                            }
+
+                            val arrayExpressionAtIndex = JavascriptExpression.Literal(value = arrayValueAtIndex, sourceInfo = SourceInfo.unknown())
+                            assignExpressionToTarget(target = arrayAssignmentTarget.assignmentTarget, expression = arrayExpressionAtIndex)
+                        }
+                        is AssignmentTarget.ArrayDestructure.DestructureTarget.Rest -> {
+                            val remainingArrayValues = if (arrayIndex < array.array.size) {
+                                array.array.subList(arrayIndex, array.array.size)
+                            } else {
+                                emptyList()
+                            }
+
+                            currentScope.setVariable(
+                                key = arrayAssignmentTarget.name,
+                                value = JavascriptValue.Object(makeArray(remainingArrayValues))
+                            )
+                        }
+                    }
+                }
+            }
+        }
     }
 
     fun makeObject(prototype: JavascriptObject = objectPrototype): JavascriptObject {
