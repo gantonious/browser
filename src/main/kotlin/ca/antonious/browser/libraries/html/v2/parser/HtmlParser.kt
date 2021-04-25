@@ -1,19 +1,28 @@
 package ca.antonious.browser.libraries.html.v2.parser
 
 import ca.antonious.browser.libraries.html.HtmlElement
-import ca.antonious.browser.libraries.html.v2.parser.insertionmodes.InitialInsertionMode
-import ca.antonious.browser.libraries.html.v2.parser.insertionmodes.TextInsertionMode
+import ca.antonious.browser.libraries.html.v2.parser.insertionmodes.*
 import ca.antonious.browser.libraries.html.v2.tokenizer.HtmlToken
 import ca.antonious.browser.libraries.html.v2.tokenizer.HtmlTokenizer
+import ca.antonious.browser.libraries.html.v2.tokenizer.states.DataState
 import ca.antonious.browser.libraries.html.v2.tokenizer.states.RAWTEXTState
 import ca.antonious.browser.libraries.html.v2.tokenizer.states.RCDATAState
+import ca.antonious.browser.libraries.html.v2.tokenizer.states.ScriptDataState
 import java.util.*
+import kotlin.system.measureTimeMillis
+import kotlin.time.measureTime
 
 class HtmlParser(source: String) {
     val tokenizer = HtmlTokenizer(source)
+    private var headElement: HtmlElement.Node? = null
     private var _originalInsertionMode: HtmlParserInsertionMode? = null
     private var insertionMode: HtmlParserInsertionMode = InitialInsertionMode
     var stackOfOpenElements = Stack<HtmlElement.Node>()
+
+    private var fragmentCaseContext: HtmlElement.Node? = null
+
+    private val isFragmentCase: Boolean
+        get() = fragmentCaseContext != null
 
     val currentNode: HtmlElement.Node
         get() = stackOfOpenElements.peek()
@@ -35,6 +44,30 @@ class HtmlParser(source: String) {
         return currentNode
     }
 
+    fun parseAsFragment(context: HtmlElement.Node): List<HtmlElement> {
+        fragmentCaseContext = context
+
+        when (context.name) {
+            "title", "textarea" -> {
+                tokenizer.switchStateTo(RCDATAState)
+            }
+            "style", "xmp", "iframe", "noembed", "noframes" -> {
+                tokenizer.switchStateTo(RAWTEXTState)
+            }
+            "script" -> {
+                tokenizer.switchStateTo(ScriptDataState)
+            }
+        }
+
+        val rootElement = HtmlElement.Node(name = "html")
+        stackOfOpenElements.push(rootElement)
+
+        resetInsertionModeAppropriately()
+        parse()
+
+        return rootElement.children
+    }
+
     fun switchInsertionModeTo(insertionMode: HtmlParserInsertionMode) {
         this.insertionMode = insertionMode
     }
@@ -44,7 +77,7 @@ class HtmlParser(source: String) {
     }
 
     fun setHeadElementPointer(element: HtmlElement.Node) {
-
+        headElement = element
     }
 
     fun insertHtmlElement(token: HtmlToken.StartTag): HtmlElement.Node  {
@@ -122,6 +155,38 @@ class HtmlParser(source: String) {
     fun generateImpliedEndTags(exceptFor: String) {
         while (currentNode.name != exceptFor && currentNode.name in impliedEndTags) {
             popCurrentNode()
+        }
+    }
+
+    fun resetInsertionModeAppropriately() {
+        for (element in stackOfOpenElements.reversed()) {
+            val last = element == stackOfOpenElements.lastOrNull()
+
+            val node = if (last && isFragmentCase) {
+                fragmentCaseContext!!
+            } else {
+                element
+            }
+
+            when {
+                node.name == "head" && !last -> {
+                    switchInsertionModeTo(InHeadInsertionMode)
+                    return
+                }
+                node.name == "html" -> {
+                    if (headElement == null) {
+                        switchInsertionModeTo(BeforeHeadInsertionMode)
+                        return
+                    } else {
+                        switchInsertionModeTo(AfterHeadInsertionMode)
+                        return
+                    }
+                }
+                last -> {
+                    switchInsertionModeTo(InBodyInsertionMode)
+                    return
+                }
+            }
         }
     }
 
