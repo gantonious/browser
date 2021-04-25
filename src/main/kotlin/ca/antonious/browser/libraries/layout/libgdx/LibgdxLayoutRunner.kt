@@ -9,6 +9,8 @@ import ca.antonious.browser.libraries.graphics.libgdx.LibgdxMeasuringTape
 import ca.antonious.browser.libraries.layout.core.InputEvent
 import ca.antonious.browser.libraries.layout.core.LayoutNode
 import ca.antonious.browser.libraries.layout.core.LayoutRunner
+import ca.antonious.browser.libraries.shared.ApplicationExecutors
+import ca.antonious.browser.libraries.shared.RunnableQueueExecutor
 import com.badlogic.gdx.ApplicationAdapter
 import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.InputProcessor
@@ -22,19 +24,32 @@ import com.badlogic.gdx.graphics.Texture
 import com.badlogic.gdx.graphics.g2d.SpriteBatch
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer
 import com.badlogic.gdx.utils.Align
+import java.util.concurrent.Executor
 
 class LibgdxLayoutRunner : LayoutRunner {
+
+    override val mainThreadExecutor: Executor
+        = RunnableQueueExecutor()
+
+    init {
+        ApplicationExecutors.mainThreadExecutor = mainThreadExecutor
+    }
+
     override fun runLayout(layoutNode: LayoutNode) {
         val config = LwjglApplicationConfiguration().apply {
             title = "Browser"
             useHDPI = true
         }
 
-        LwjglApplication(LibgdxLayoutRunnerApplication(layoutNode), config)
+        LwjglApplication(LibgdxLayoutRunnerApplication(layoutNode, mainThreadExecutor as RunnableQueueExecutor), config)
     }
 }
 
-private class LibgdxLayoutRunnerApplication(val rootNode: LayoutNode) : ApplicationAdapter(), InputProcessor {
+private class LibgdxLayoutRunnerApplication(
+    val rootNode: LayoutNode,
+    private val executor: RunnableQueueExecutor
+) : ApplicationAdapter(), InputProcessor {
+
     private lateinit var spriteBatch: SpriteBatch
     private lateinit var shapeRenderer: ShapeRenderer
     private lateinit var camera: OrthographicCamera
@@ -69,6 +84,8 @@ private class LibgdxLayoutRunnerApplication(val rootNode: LayoutNode) : Applicat
         shapeRenderer.projectionMatrix = camera.combined
 
         val measureTape = LibgdxMeasuringTape(fontProvider)
+
+        executor.runQueue()
 
         for (inputEvent in inputEventsToProcess) {
             rootNode.handleInputEvent(inputEvent)
