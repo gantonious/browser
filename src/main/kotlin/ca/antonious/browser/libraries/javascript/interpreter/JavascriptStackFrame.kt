@@ -1,6 +1,6 @@
 package ca.antonious.browser.libraries.javascript.interpreter
 
-import ca.antonious.browser.libraries.javascript.lexer.SourceInfo
+import ca.antonious.browser.libraries.shared.SourceInfo
 
 data class JavascriptStackFrame(
     val name: String,

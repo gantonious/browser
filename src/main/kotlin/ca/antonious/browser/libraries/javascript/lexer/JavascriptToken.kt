@@ -1,5 +1,7 @@
 package ca.antonious.browser.libraries.javascript.lexer
 
+import ca.antonious.browser.libraries.shared.SourceInfo
+
 sealed class JavascriptTokenType {
     data class Identifier(val name: kotlin.String) : JavascriptTokenType()
     object Dot : JavascriptTokenType()
@@ -88,9 +90,3 @@ data class JavascriptToken(
     val sourceInfo: SourceInfo
 )
 
-data class SourceInfo(
-    val line: Int,
-    val column: Int,
-    val filename: String = "unknown",
-    val source: String = ""
-)

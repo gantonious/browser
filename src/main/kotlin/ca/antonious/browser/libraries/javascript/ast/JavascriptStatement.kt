@@ -1,12 +1,11 @@
 package ca.antonious.browser.libraries.javascript.ast
 
-import ca.antonious.browser.libraries.javascript.interpreter.JavascriptInterpreter
 import ca.antonious.browser.libraries.javascript.interpreter.JavascriptObject
 import ca.antonious.browser.libraries.javascript.interpreter.builtins.function.FunctionObject
 import ca.antonious.browser.libraries.javascript.interpreter.builtins.function.JavascriptFunction
 import ca.antonious.browser.libraries.javascript.interpreter.builtins.function.NativeFunction
 import ca.antonious.browser.libraries.javascript.lexer.JavascriptTokenType
-import ca.antonious.browser.libraries.javascript.lexer.SourceInfo
+import ca.antonious.browser.libraries.shared.SourceInfo
 
 data class JavascriptProgram(val body: List<JavascriptStatement>)
 

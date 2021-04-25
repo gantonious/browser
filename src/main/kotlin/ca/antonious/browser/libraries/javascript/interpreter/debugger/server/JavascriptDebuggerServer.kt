@@ -8,7 +8,7 @@ import ca.antonious.browser.libraries.javascript.interpreter.JavascriptStackFram
 import ca.antonious.browser.libraries.javascript.interpreter.debugger.protocol.JavascriptDebuggerMessage
 import ca.antonious.browser.libraries.javascript.interpreter.debugger.protocol.JavascriptDebuggerRequest
 import ca.antonious.browser.libraries.javascript.interpreter.debugger.protocol.JavascriptDebuggerResponse
-import ca.antonious.browser.libraries.javascript.lexer.SourceInfo
+import ca.antonious.browser.libraries.shared.SourceInfo
 import com.google.gson.Gson
 import io.ktor.application.call
 import io.ktor.application.install

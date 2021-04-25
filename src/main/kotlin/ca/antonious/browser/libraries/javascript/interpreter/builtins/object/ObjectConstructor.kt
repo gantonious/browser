@@ -7,7 +7,7 @@ import ca.antonious.browser.libraries.javascript.interpreter.JavascriptPropertyD
 import ca.antonious.browser.libraries.javascript.interpreter.builtins.function.NativeFunction
 import ca.antonious.browser.libraries.javascript.interpreter.builtins.number.NumberObject
 import ca.antonious.browser.libraries.javascript.interpreter.builtins.string.StringObject
-import ca.antonious.browser.libraries.javascript.lexer.SourceInfo
+import ca.antonious.browser.libraries.shared.SourceInfo
 
 class ObjectConstructor(interpreter: JavascriptInterpreter) : NativeFunction(
     interpreter = interpreter,
