@@ -1,7 +1,7 @@
 package ca.antonious.browser.libraries.web.javascript
 
 import ca.antonious.browser.libraries.html.HtmlElement
-import ca.antonious.browser.libraries.html.v2.parser.HtmlParser
+import ca.antonious.browser.libraries.html.parser.HtmlParser
 import ca.antonious.browser.libraries.javascript.ast.JavascriptValue
 import ca.antonious.browser.libraries.javascript.interpreter.JavascriptInterpreter
 import ca.antonious.browser.libraries.javascript.interpreter.JavascriptObject

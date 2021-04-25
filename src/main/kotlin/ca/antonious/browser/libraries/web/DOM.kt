@@ -4,7 +4,7 @@ import ca.antonious.browser.libraries.css.CssAttributeParser
 import ca.antonious.browser.libraries.css.CssParser
 import ca.antonious.browser.libraries.graphics.images.ImageLoader
 import ca.antonious.browser.libraries.html.HtmlElement
-import ca.antonious.browser.libraries.html.v2.parser.HtmlParser
+import ca.antonious.browser.libraries.html.parser.HtmlParser
 import ca.antonious.browser.libraries.http.HttpClient
 import ca.antonious.browser.libraries.http.HttpMethod
 import ca.antonious.browser.libraries.http.HttpRequest
