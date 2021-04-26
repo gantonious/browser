@@ -1,0 +1,2 @@
+#!/usr/bin/env bash
+java -cp build/libs/browser-1.0-SNAPSHOT-all.jar ca.antonious.browser.libraries.javascript.MainKt
