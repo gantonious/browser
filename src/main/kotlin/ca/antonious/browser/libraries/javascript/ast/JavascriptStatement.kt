@@ -81,6 +81,18 @@ sealed class AssignmentTarget {
             data class Single(val assignmentTarget: AssignmentTarget, val default: JavascriptExpression?) : DestructureTarget()
         }
     }
+
+    data class ObjectDestructure(val assignmentTargets: List<DestructureTarget>) : AssignmentTarget() {
+        sealed class DestructureTarget {
+            data class Rest(val name: String) : DestructureTarget()
+            data class Single(
+                val propertyName: String,
+                val assignmentTarget: AssignmentTarget?,
+                val newName: String? = null,
+                val default: JavascriptExpression?
+            ) : DestructureTarget()
+        }
+    }
 }
 
 sealed class JavascriptExpression : JavascriptStatement() {

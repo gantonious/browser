@@ -25,6 +25,15 @@ describe("ArrayDestructuring", () => {
     expect(d).toBe(4);
   });
 
+  test("supports nested objects", () => {
+    let [a, { b, c = 5, ...rest }, d] = [1, { b: 2, e: 9 }, 4];
+    expect(a).toBe(1);
+    expect(b).toBe(2);
+    expect(c).toBe(5);
+    expect(rest).toBe({ e: 9 });
+    expect(d).toBe(4);
+  });
+
   test("supports default values", () => {
     let [a, b = 3, c = 7] = [1, undefined];
     expect(a).toBe(1);

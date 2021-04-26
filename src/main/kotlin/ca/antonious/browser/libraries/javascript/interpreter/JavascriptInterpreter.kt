@@ -1001,6 +1001,59 @@ class JavascriptInterpreter(startDebugger: Boolean = false) {
                     }
                 }
             }
+            is AssignmentTarget.ObjectDestructure -> {
+                val obj = interpretAsObject(expression)
+
+                target.assignmentTargets.forEach { objectAssignmentTarget ->
+                    when (objectAssignmentTarget) {
+                        is AssignmentTarget.ObjectDestructure.DestructureTarget.Single -> {
+                            var propertyValue = obj.getProperty(objectAssignmentTarget.propertyName)
+
+                            if (propertyValue == JavascriptValue.Undefined && objectAssignmentTarget.default != null) {
+                                propertyValue = interpret(objectAssignmentTarget.default)
+                            }
+
+                            when (val propertyAssignmentTarget = objectAssignmentTarget.assignmentTarget) {
+                                is AssignmentTarget.Simple -> {
+                                    currentScope.setVariable(
+                                        key = propertyAssignmentTarget.name,
+                                        value = propertyValue
+                                    )
+                                }
+                                null -> {
+                                    currentScope.setVariable(
+                                        key = objectAssignmentTarget.propertyName,
+                                        value = propertyValue
+                                    )
+                                }
+                                else -> {
+                                    val valueExpression = JavascriptExpression.Literal(value = propertyValue, sourceInfo = SourceInfo.unknown())
+
+                                    assignExpressionToTarget(
+                                        target = propertyAssignmentTarget,
+                                        expression = valueExpression
+                                    )
+                                }
+                            }
+                        }
+                        is AssignmentTarget.ObjectDestructure.DestructureTarget.Rest -> {
+                            val remainingKeys = obj.enumerableKeys.toSet() -
+                                target.assignmentTargets
+                                    .filterIsInstance<AssignmentTarget.ObjectDestructure.DestructureTarget.Single>()
+                                    .map { it.propertyName }
+
+                            currentScope.setVariable(
+                                key = objectAssignmentTarget.name,
+                                value = JavascriptValue.Object(makeObject().apply {
+                                    remainingKeys.forEach { key ->
+                                        setProperty(key, obj.getProperty(key))
+                                    }
+                                })
+                            )
+                        }
+                    }
+                }
+            }
         }
     }
 

@@ -454,7 +454,8 @@ class JavascriptParser(
             when (maybeGetCurrentToken()) {
                 is JavascriptTokenType.Comma -> expectToken<JavascriptTokenType.Comma>()
                 is JavascriptTokenType.Identifier,
-                is JavascriptTokenType.OpenBracket -> {
+                is JavascriptTokenType.OpenBracket,
+                is JavascriptTokenType.OpenCurlyBracket -> {
                     statements += AssignmentStatement(
                         target = expectAssignmentTarget(),
                         expression = if (getCurrentToken() == JavascriptTokenType.Operator.Assignment) {
@@ -1068,10 +1069,70 @@ class JavascriptParser(
 
     private fun expectAssignmentTarget(): AssignmentTarget {
         return when (getCurrentToken()) {
+            is JavascriptTokenType.OpenCurlyBracket -> expectObjectDestructionTarget()
             is JavascriptTokenType.OpenBracket -> expectArrayDestructionTarget()
             is JavascriptTokenType.Identifier -> expectSimpleTarget()
             else -> throwUnexpectedTokenFound()
         }
+    }
+
+    private fun expectObjectDestructionTarget(): AssignmentTarget.ObjectDestructure {
+        val targets = mutableListOf<AssignmentTarget.ObjectDestructure.DestructureTarget>()
+        expectToken<JavascriptTokenType.OpenCurlyBracket>()
+
+        while (getCurrentToken() != JavascriptTokenType.CloseCurlyBracket) {
+            if (getCurrentToken() is JavascriptTokenType.TripleDot) {
+                expectToken<JavascriptTokenType.TripleDot>()
+                val restName = expectToken<JavascriptTokenType.Identifier>()
+                targets += AssignmentTarget.ObjectDestructure.DestructureTarget.Rest(name = restName.name)
+
+                if (getCurrentToken() !is JavascriptTokenType.CloseCurlyBracket) {
+                    throwSyntaxError("Rest element must be last element")
+                }
+
+                break
+            }
+
+            val identifier = expectToken<JavascriptTokenType.Identifier>()
+
+            val assignmentTarget = if (getCurrentToken() is JavascriptTokenType.Colon) {
+                expectToken<JavascriptTokenType.Colon>()
+
+                when (getCurrentToken()) {
+                    is JavascriptTokenType.Identifier,
+                    is JavascriptTokenType.OpenCurlyBracket,
+                    is JavascriptTokenType.OpenBracket -> {
+                        expectAssignmentTarget()
+                    }
+                    else -> null
+                }
+            } else {
+                null
+            }
+
+            val defaultExpression = if (getCurrentToken() is JavascriptTokenType.Operator.Assignment) {
+                expectToken<JavascriptTokenType.Operator.Assignment>()
+                expectSubExpression()
+            } else {
+                null
+            }
+
+            targets += AssignmentTarget.ObjectDestructure.DestructureTarget.Single(
+                propertyName = identifier.name,
+                assignmentTarget = assignmentTarget,
+                default = defaultExpression
+            )
+
+            if (getCurrentToken() is JavascriptTokenType.Comma) {
+                expectToken<JavascriptTokenType.Comma>()
+            } else {
+                break
+            }
+        }
+
+        expectToken<JavascriptTokenType.CloseCurlyBracket>()
+
+        return AssignmentTarget.ObjectDestructure(targets)
     }
 
     private fun expectArrayDestructionTarget(): AssignmentTarget.ArrayDestructure {
