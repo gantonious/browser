@@ -9,42 +9,42 @@ describe("Class", () => {
   });
 
   test("supports instance members", () => {
-    const memberInvocations = [];
+    const memberInvocationCount = 0;
 
     class Test {
       member = (() => {
-        memberInvocations.push(null);
+        memberInvocationCount++;
         return 3;
       })();
     }
 
-    expect(memberInvocations.length).toBe(0);
+    expect(memberInvocationCount).toBe(0);
 
     const instance = new Test();
     expect(instance).toBe({ member: 3 });
-    expect(memberInvocations.length).toBe(1);
+    expect(memberInvocationCount).toBe(1);
 
     const instance2 = new Test();
-    expect(memberInvocations.length).toBe(2);
+    expect(memberInvocationCount).toBe(2);
   });
 
   test("supports static members", () => {
-    const memberInvocations = [];
+    const memberInvocationCount = 0;
 
     class Test {
       static staticMember = (() => {
-        memberInvocations.push(null);
+        memberInvocationCount++;
         return 3;
       })();
     }
 
-    expect(memberInvocations.length).toBe(1);
+    expect(memberInvocationCount).toBe(1);
     expect(Test.staticMember).toBe(3);
 
     const instance = new Test();
     expect(instance).toBe({});
     expect(instance.staticMember).toBeUndefined();
-    expect(memberInvocations.length).toBe(1);
+    expect(memberInvocationCount).toBe(1);
   });
 
   test("supports constructors", () => {
@@ -101,5 +101,63 @@ describe("Class", () => {
     expect(instance).toBe({ a: 4, b: 7 });
     expect(instance.returnA()).toBe(4);
     expect(instance.returnB()).toBe(7);
+  });
+
+  test("supports extending constructor", () => {
+    let test1InvocationCount = 0;
+
+    function Test1() {
+      test1InvocationCount++;
+      this.a = 2;
+    }
+
+    Test1.prototype.returnB = function () {
+      return this.b;
+    };
+
+    class Test2 extends Test1 {
+      b = 4;
+    }
+
+    expect(test1InvocationCount).toBe(0);
+
+    const instance = new Test2();
+    expect(instance).toBe({ a: 2, b: 4 });
+    expect(instance instanceof Test2).toBeTrue();
+    expect(instance instanceof Test1).toBeTrue();
+    expect(instance instanceof Object).toBeTrue();
+    expect(instance.returnB()).toBe(4);
+    expect(test1InvocationCount).toBe(1);
+  });
+
+  test("uses return value of super constructor as this binding", () => {
+    const thisValue = {
+      a: 2,
+    };
+
+    function SuperClass() {
+      return thisValue;
+    }
+
+    class Subclass extends SuperClass {}
+
+    expect(new Subclass()).toBe(thisValue);
+  });
+
+  test("supports extending null", () => {
+    class TestClass extends null {}
+
+    const instance = new TestClass();
+    expect(instance instanceof TestClass).toBeTrue();
+    expect(instance instanceof Object).toBeFalse();
+    expect(instance.valueOf).toBeUndefined();
+  });
+
+  test("throws type error if extending unsupported value", () => {
+    expect(() => {
+      class TestClass extends 5 {}
+    }).toThrowError(
+      new TypeError("Class extends value 5 is not a constructor or null")
+    );
   });
 });

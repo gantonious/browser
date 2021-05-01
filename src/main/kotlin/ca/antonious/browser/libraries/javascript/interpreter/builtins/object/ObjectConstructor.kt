@@ -13,10 +13,14 @@ class ObjectConstructor(interpreter: JavascriptInterpreter) : NativeFunction(
     interpreter = interpreter,
     functionPrototype = interpreter.objectPrototype,
     body = { executionContext ->
-        when (val input = executionContext.arguments.first()) {
-            is JavascriptValue.String -> JavascriptValue.Object(StringObject(interpreter, input.value))
-            is JavascriptValue.Number -> JavascriptValue.Object(NumberObject(interpreter, input.value))
-            else -> input
+        if (executionContext.arguments.isEmpty()) {
+            JavascriptValue.Object(interpreter.makeObject())
+        } else {
+            when (val input = executionContext.arguments.first()) {
+                is JavascriptValue.String -> JavascriptValue.Object(StringObject(interpreter, input.value))
+                is JavascriptValue.Number -> JavascriptValue.Object(NumberObject(interpreter, input.value))
+                else -> input
+            }
         }
     }
 ) {
@@ -72,11 +76,9 @@ class ObjectConstructor(interpreter: JavascriptInterpreter) : NativeFunction(
                 JavascriptExpression.Literal(SourceInfo(0, 0), executionContext.arguments.first())
             )
 
-            if (javascriptObject.prototype != null) {
-                JavascriptValue.Object(javascriptObject.prototype)
-            } else {
-                JavascriptValue.Undefined
-            }
+            javascriptObject.prototype?.let {
+                JavascriptValue.Object(it)
+            } ?: JavascriptValue.Undefined
         }
 
         setNonEnumerableNativeFunction("defineProperty") { executionContext ->

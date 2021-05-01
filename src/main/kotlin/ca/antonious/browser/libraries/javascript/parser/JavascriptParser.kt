@@ -1211,6 +1211,13 @@ class JavascriptParser(
     }
 
     private fun expectClassBody(): ClassBody {
+        val extendsExpression = if (getCurrentToken() is JavascriptTokenType.Extends) {
+            expectToken<JavascriptTokenType.Extends>()
+            expectExpression()
+        } else {
+            null
+        }
+
         val classStatements = mutableListOf<ClassBody.Statement>()
         expectToken<JavascriptTokenType.OpenCurlyBracket>()
 
@@ -1241,6 +1248,7 @@ class JavascriptParser(
 
         return ClassBody(
             constructor = constructor,
+            extends = extendsExpression,
             statements = classStatements
         )
     }

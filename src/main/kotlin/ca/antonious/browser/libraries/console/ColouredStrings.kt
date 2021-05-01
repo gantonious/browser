@@ -7,6 +7,7 @@ object ANSICode {
     const val red = "\u001B[31m"
     const val green = "\u001B[32m"
     const val yellow = "\u001B[33m"
+    const val magenta = "\u001B[35m"
     const val cyan = "\u001B[36m"
     const val reset = "\u001B[0m"
 }
@@ -14,6 +15,11 @@ object ANSICode {
 fun String.gray(): String {
     return "${ANSICode.gray}$this${ANSICode.reset}"
 }
+
+fun String.magenta(): String {
+    return "${ANSICode.magenta}$this${ANSICode.reset}"
+}
+
 
 fun String.cyan(): String {
     return "${ANSICode.cyan}$this${ANSICode.reset}"

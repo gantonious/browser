@@ -3,18 +3,17 @@ package ca.antonious.browser.libraries.javascript
 import ca.antonious.browser.libraries.console.cyan
 import ca.antonious.browser.libraries.console.gray
 import ca.antonious.browser.libraries.console.green
+import ca.antonious.browser.libraries.console.magenta
 import ca.antonious.browser.libraries.console.red
 import ca.antonious.browser.libraries.console.yellow
 import ca.antonious.browser.libraries.javascript.ast.JavascriptValue
 import ca.antonious.browser.libraries.javascript.interpreter.JavascriptInterpreter
-import ca.antonious.browser.libraries.javascript.interpreter.JavascriptObject
-import ca.antonious.browser.libraries.javascript.interpreter.builtins.`object`.ObjectPrototype
 import ca.antonious.browser.libraries.javascript.interpreter.builtins.array.ArrayObject
+import ca.antonious.browser.libraries.javascript.interpreter.builtins.date.DateObject
 import ca.antonious.browser.libraries.javascript.interpreter.builtins.function.ClassConstructor
 import ca.antonious.browser.libraries.javascript.interpreter.builtins.function.FunctionObject
 import ca.antonious.browser.libraries.javascript.interpreter.builtins.number.NumberObject
 import ca.antonious.browser.libraries.javascript.interpreter.builtins.string.StringObject
-import ca.antonious.browser.libraries.javascript.interpreter.testrunner.asA
 import ca.antonious.browser.libraries.javascript.lexer.JavascriptLexer
 import ca.antonious.browser.libraries.javascript.parser.JavascriptParser
 
@@ -49,7 +48,7 @@ fun main() {
                 continue
             }
 
-            println(interpreter.interpret(program).toReplOutputString())
+            println(interpreter.interpret(program).toDescriptiveString())
         } catch (ex: Exception) {
             println(ex.message?.red())
         }
@@ -58,7 +57,7 @@ fun main() {
     }
 }
 
-private fun JavascriptValue.toReplOutputString(): String {
+private fun JavascriptValue.toDescriptiveString(): String {
     return when (this) {
         is JavascriptValue.Undefined -> "$this".gray()
         is JavascriptValue.Number,
@@ -66,13 +65,16 @@ private fun JavascriptValue.toReplOutputString(): String {
         is JavascriptValue.String -> "'$this'".green()
         is JavascriptValue.Object -> {
             when (val obj = this.requireAsObject()) {
+                is DateObject -> {
+                    obj.date.toString().magenta()
+                }
                 is ArrayObject -> {
-                    val arrayValues = obj.array.map { it.toReplOutputString() }
-                    val arrayProperties = obj.enumerableProperties.map { "${it.first}: ${it.second.toReplOutputString()}" }
+                    val arrayValues = obj.array.map { it.toDescriptiveString() }
+                    val arrayProperties = obj.enumerableProperties.map { "${it.first}: ${it.second.toDescriptiveString()}" }
                     "[ ${(arrayValues + arrayProperties).joinToString(", ")} ]"
                 }
                 else -> {
-                    val objectValues = obj.enumerableProperties.map { "${it.first}: ${it.second.toReplOutputString()}" }
+                    val objectValues = obj.enumerableProperties.map { "${it.first}: ${it.second.toDescriptiveString()}" }
                     val charCount = objectValues.sumBy { it.length }
                     val objectStart = if (charCount > 80) {
                         "\n  "

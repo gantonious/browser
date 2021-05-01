@@ -15,6 +15,7 @@ class JavascriptLexer(
             "class" to JavascriptTokenType.Class,
             "constructor" to JavascriptTokenType.Constructor,
             "static" to JavascriptTokenType.Static,
+            "extends" to JavascriptTokenType.Extends,
             "if" to JavascriptTokenType.If,
             "else" to JavascriptTokenType.Else,
             "while" to JavascriptTokenType.While,

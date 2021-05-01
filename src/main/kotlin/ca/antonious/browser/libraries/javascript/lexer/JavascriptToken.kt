@@ -22,6 +22,7 @@ sealed class JavascriptTokenType {
     object Class : JavascriptTokenType()
     object Constructor : JavascriptTokenType()
     object Static : JavascriptTokenType()
+    object Extends : JavascriptTokenType()
     object Do : JavascriptTokenType()
     object While : JavascriptTokenType()
     object For : JavascriptTokenType()

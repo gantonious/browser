@@ -78,7 +78,7 @@ class JavascriptInterpreter(startDebugger: Boolean = false) {
         )
     }
 
-    private var controlFlowInterruption: ControlFlowInterruption? = null
+    var controlFlowInterruption: ControlFlowInterruption? = null
 
     private val currentScope: JavascriptScope
         get() = stack.peek().scope
@@ -843,17 +843,32 @@ class JavascriptInterpreter(startDebugger: Boolean = false) {
             .filterIsInstance<ClassBody.Statement.Member>()
             .filterNot { it.isStatic }
 
+        val superConstructor = if (classBody.extends == null) {
+            globalObject.getProperty("Object").asFunction()!!
+        } else {
+            val valueToExtend = interpret(classBody.extends)
+
+            when {
+                valueToExtend == JavascriptValue.Null -> null
+                valueToExtend.asFunction() != null -> {
+                    valueToExtend.asFunction()
+                }
+                else -> {
+                    throwTypeError("Class extends value $valueToExtend is not a constructor or null")
+                    return JavascriptValue.Undefined
+                }
+            }
+        }
+
         val classConstructor = if (classBody.constructor == null) {
             ClassConstructor(
                 interpreter = this,
                 name = name,
                 parameterNames = emptyList(),
-                body = JavascriptStatement.Block(
-                    sourceInfo = SourceInfo.unknown(),
-                    body = emptyList()
-                ),
+                body = null,
                 parentScope = currentScope,
-                classMembers = nonStaticMembers
+                classMembers = nonStaticMembers,
+                superConstructor = superConstructor
             )
         } else {
             ClassConstructor(
@@ -862,7 +877,8 @@ class JavascriptInterpreter(startDebugger: Boolean = false) {
                 parameterNames = classBody.constructor.parameterNames,
                 body = classBody.constructor.body,
                 parentScope = currentScope,
-                classMembers = nonStaticMembers
+                classMembers = nonStaticMembers,
+                superConstructor = superConstructor
             )
         }
 
@@ -1158,7 +1174,7 @@ class JavascriptInterpreter(startDebugger: Boolean = false) {
         return maybeConsumeControlFlowInterrupt<ControlFlowInterruption.Return>()?.value ?: JavascriptValue.Undefined
     }
 
-    private fun enterFunction(
+    fun enterFunction(
         sourceInfo: SourceInfo,
         functionName: String,
         parameterNames: List<String>,
@@ -1192,7 +1208,7 @@ class JavascriptInterpreter(startDebugger: Boolean = false) {
         )
     }
 
-    private fun exitFunction() {
+    fun exitFunction() {
         stack.pop()
     }
 
@@ -1243,7 +1259,7 @@ class JavascriptInterpreter(startDebugger: Boolean = false) {
         controlFlowInterruption = interruption
     }
 
-    private inline fun <reified T : ControlFlowInterruption> maybeConsumeControlFlowInterrupt(): T? {
+    inline fun <reified T : ControlFlowInterruption> maybeConsumeControlFlowInterrupt(): T? {
         if (controlFlowInterruption !is T) {
             return null
         }

@@ -7,7 +7,7 @@ import ca.antonious.browser.libraries.javascript.interpreter.builtins.function.N
 
 open class JavascriptObject(
     val interpreter: JavascriptInterpreter,
-    val prototype: JavascriptObject?
+    var prototype: JavascriptObject?
 ) {
     constructor(prototype: JavascriptObject) : this(
         interpreter = prototype.interpreter,
@@ -55,16 +55,7 @@ open class JavascriptObject(
         }
 
     init {
-        if (prototype != null) {
-            setProperty(
-                key = "__proto__",
-                descriptor = JavascriptPropertyDescriptor(
-                    value = JavascriptValue.Object(prototype),
-                    enumerable = false,
-                    configurable = false
-                )
-            )
-        }
+        updatePrototype(prototype)
     }
 
     open fun initialize() = Unit
@@ -111,6 +102,23 @@ open class JavascriptObject(
         } else {
             setProperty(key, JavascriptPropertyDescriptor(value))
         }
+    }
+
+    fun updatePrototype(obj: JavascriptObject?) {
+        this.prototype = obj
+
+        setProperty(
+            key = "__proto__",
+            descriptor = JavascriptPropertyDescriptor(
+                value = if (obj == null) {
+                    JavascriptValue.Null
+                } else {
+                    JavascriptValue.Object(obj)
+                },
+                enumerable = false,
+                configurable = false
+            )
+        )
     }
 
     open fun deleteProperty(key: String) {

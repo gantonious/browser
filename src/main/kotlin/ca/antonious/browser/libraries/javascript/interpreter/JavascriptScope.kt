@@ -3,7 +3,7 @@ package ca.antonious.browser.libraries.javascript.interpreter
 import ca.antonious.browser.libraries.javascript.ast.JavascriptValue
 
 class JavascriptScope(
-    val thisBinding: JavascriptObject,
+    var thisBinding: JavascriptObject,
     val parentScope: JavascriptScope?,
     val globalObject: JavascriptObject,
     val type: Type = Type.Block

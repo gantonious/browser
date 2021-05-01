@@ -163,7 +163,11 @@ sealed class JavascriptExpression : JavascriptStatement() {
     ) : JavascriptExpression()
 }
 
-data class ClassBody(val constructor: Constructor?, val statements: List<Statement>) {
+data class ClassBody(
+    val constructor: Constructor?,
+    val extends: JavascriptExpression?,
+    val statements: List<Statement>
+) {
     data class Constructor(
         val parameterNames: List<String>,
         val body: JavascriptStatement.Block
@@ -320,7 +324,7 @@ sealed class JavascriptValue {
         override fun isSameType(other: JavascriptValue) = other is Object
 
         override val typeName = when (value) {
-            is JavascriptFunction, is NativeFunction -> "function"
+            is FunctionObject -> "function"
             else -> "object"
         }
     }
