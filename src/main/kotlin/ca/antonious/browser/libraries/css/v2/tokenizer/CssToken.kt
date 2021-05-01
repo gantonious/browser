@@ -1,6 +1,6 @@
 package ca.antonious.browser.libraries.css.v2.tokenizer
 
-import ca.antonious.browser.libraries.shared.SourceInfo
+import ca.antonious.browser.libraries.shared.parsing.SourceInfo
 
 sealed class CssTokenType {
     object OpenParentheses : CssTokenType()

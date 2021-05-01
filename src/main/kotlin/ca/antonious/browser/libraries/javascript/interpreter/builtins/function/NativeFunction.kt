@@ -3,7 +3,7 @@ package ca.antonious.browser.libraries.javascript.interpreter.builtins.function
 import ca.antonious.browser.libraries.javascript.ast.JavascriptValue
 import ca.antonious.browser.libraries.javascript.interpreter.JavascriptInterpreter
 import ca.antonious.browser.libraries.javascript.interpreter.JavascriptObject
-import ca.antonious.browser.libraries.shared.SourceInfo
+import ca.antonious.browser.libraries.shared.parsing.SourceInfo
 
 open class NativeFunction(
     interpreter: JavascriptInterpreter,

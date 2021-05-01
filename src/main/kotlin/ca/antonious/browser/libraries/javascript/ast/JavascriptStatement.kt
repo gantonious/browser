@@ -5,7 +5,7 @@ import ca.antonious.browser.libraries.javascript.interpreter.builtins.function.F
 import ca.antonious.browser.libraries.javascript.interpreter.builtins.function.JavascriptFunction
 import ca.antonious.browser.libraries.javascript.interpreter.builtins.function.NativeFunction
 import ca.antonious.browser.libraries.javascript.lexer.JavascriptTokenType
-import ca.antonious.browser.libraries.shared.SourceInfo
+import ca.antonious.browser.libraries.shared.parsing.SourceInfo
 
 data class JavascriptProgram(val body: List<JavascriptStatement>)
 

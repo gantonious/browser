@@ -32,7 +32,7 @@ import ca.antonious.browser.libraries.javascript.interpreter.builtins.string.Str
 import ca.antonious.browser.libraries.javascript.interpreter.debugger.server.JavascriptDebuggerServer
 import ca.antonious.browser.libraries.javascript.lexer.JavascriptLexer
 import ca.antonious.browser.libraries.javascript.lexer.JavascriptTokenType
-import ca.antonious.browser.libraries.shared.SourceInfo
+import ca.antonious.browser.libraries.shared.parsing.SourceInfo
 import ca.antonious.browser.libraries.javascript.parser.JavascriptParser
 import java.io.File
 import java.util.Stack

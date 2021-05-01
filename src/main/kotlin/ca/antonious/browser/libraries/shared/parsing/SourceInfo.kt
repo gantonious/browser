@@ -1,4 +1,4 @@
-package ca.antonious.browser.libraries.shared
+package ca.antonious.browser.libraries.shared.parsing
 
 data class SourceInfo(
     val line: Int,

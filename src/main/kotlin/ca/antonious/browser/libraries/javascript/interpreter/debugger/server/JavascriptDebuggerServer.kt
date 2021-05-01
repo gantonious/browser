@@ -8,7 +8,7 @@ import ca.antonious.browser.libraries.javascript.interpreter.JavascriptStackFram
 import ca.antonious.browser.libraries.javascript.interpreter.debugger.protocol.JavascriptDebuggerMessage
 import ca.antonious.browser.libraries.javascript.interpreter.debugger.protocol.JavascriptDebuggerRequest
 import ca.antonious.browser.libraries.javascript.interpreter.debugger.protocol.JavascriptDebuggerResponse
-import ca.antonious.browser.libraries.shared.SourceInfo
+import ca.antonious.browser.libraries.shared.parsing.SourceInfo
 import com.google.gson.Gson
 import io.ktor.application.call
 import io.ktor.application.install
@@ -49,7 +49,7 @@ class JavascriptDebuggerServer(
 
     private var breakOnNextStatement = false
     private val breakpoints = mutableSetOf<Int>()
-    private val filenameBreakpoints = mutableSetOf("jquery.js")
+    private val filenameBreakpoints = mutableSetOf<String>()
 
     private val gson = Gson()
     private var error: JavascriptInterpreter.ControlFlowInterruption.Error? = null

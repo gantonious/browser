@@ -9,8 +9,8 @@ import ca.antonious.browser.libraries.graphics.libgdx.LibgdxMeasuringTape
 import ca.antonious.browser.libraries.layout.core.InputEvent
 import ca.antonious.browser.libraries.layout.core.LayoutNode
 import ca.antonious.browser.libraries.layout.core.LayoutRunner
-import ca.antonious.browser.libraries.shared.ApplicationExecutors
-import ca.antonious.browser.libraries.shared.RunnableQueueExecutor
+import ca.antonious.browser.libraries.layout.core.ApplicationExecutors
+import ca.antonious.browser.libraries.shared.concurrency.RunnableQueueExecutor
 import com.badlogic.gdx.ApplicationAdapter
 import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.InputProcessor

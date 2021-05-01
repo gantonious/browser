@@ -1,4 +1,4 @@
-package ca.antonious.browser.libraries.shared
+package ca.antonious.browser.libraries.shared.concurrency
 
 import java.util.concurrent.Executor
 import java.util.concurrent.locks.ReentrantLock

@@ -1,6 +1,6 @@
 package ca.antonious.browser.libraries.javascript.lexer
 
-import ca.antonious.browser.libraries.shared.SourceInfo
+import ca.antonious.browser.libraries.shared.parsing.SourceInfo
 import org.junit.Assert.assertEquals
 import org.junit.Test
 

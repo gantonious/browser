@@ -1,8 +1,6 @@
 package ca.antonious.browser.libraries.css.v2.tokenizer
 
-import ca.antonious.browser.libraries.javascript.lexer.JavascriptLexer
-import ca.antonious.browser.libraries.javascript.lexer.JavascriptTokenType
-import ca.antonious.browser.libraries.shared.SourceInfo
+import ca.antonious.browser.libraries.shared.parsing.SourceInfo
 import kotlin.math.max
 import kotlin.math.min
 

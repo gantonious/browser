@@ -1,6 +1,6 @@
 package ca.antonious.browser.libraries.javascript.lexer
 
-import ca.antonious.browser.libraries.shared.SourceInfo
+import ca.antonious.browser.libraries.shared.parsing.SourceInfo
 import kotlin.math.max
 import kotlin.math.min
 
