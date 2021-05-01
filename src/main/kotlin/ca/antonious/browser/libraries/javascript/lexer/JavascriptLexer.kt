@@ -12,6 +12,9 @@ class JavascriptLexer(
     companion object {
         private val keywordTokenMap = mapOf(
             "function" to JavascriptTokenType.Function,
+            "class" to JavascriptTokenType.Class,
+            "constructor" to JavascriptTokenType.Constructor,
+            "static" to JavascriptTokenType.Static,
             "if" to JavascriptTokenType.If,
             "else" to JavascriptTokenType.Else,
             "while" to JavascriptTokenType.While,

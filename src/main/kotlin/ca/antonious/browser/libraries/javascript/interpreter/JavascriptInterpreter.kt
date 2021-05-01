@@ -1,6 +1,7 @@
 package ca.antonious.browser.libraries.javascript.interpreter
 
 import ca.antonious.browser.libraries.javascript.ast.AssignmentTarget
+import ca.antonious.browser.libraries.javascript.ast.ClassBody
 import ca.antonious.browser.libraries.javascript.ast.JavascriptExpression
 import ca.antonious.browser.libraries.javascript.ast.JavascriptProgram
 import ca.antonious.browser.libraries.javascript.ast.JavascriptStatement
@@ -16,6 +17,7 @@ import ca.antonious.browser.libraries.javascript.interpreter.builtins.error.Erro
 import ca.antonious.browser.libraries.javascript.interpreter.builtins.error.ErrorPrototype
 import ca.antonious.browser.libraries.javascript.interpreter.builtins.error.TypeErrorConstructor
 import ca.antonious.browser.libraries.javascript.interpreter.builtins.error.TypeErrorPrototype
+import ca.antonious.browser.libraries.javascript.interpreter.builtins.function.ClassConstructor
 import ca.antonious.browser.libraries.javascript.interpreter.builtins.function.FunctionObject
 import ca.antonious.browser.libraries.javascript.interpreter.builtins.function.FunctionPrototype
 import ca.antonious.browser.libraries.javascript.interpreter.builtins.function.JavascriptFunction
@@ -143,7 +145,7 @@ class JavascriptInterpreter(startDebugger: Boolean = false) {
         }
     }
 
-    private fun interpret(statement: JavascriptStatement): JavascriptValue {
+    fun interpret(statement: JavascriptStatement): JavascriptValue {
         return interpretAsReference(statement).value
     }
 
@@ -206,6 +208,11 @@ class JavascriptInterpreter(startDebugger: Boolean = false) {
                         parentScope = currentScope
                     )
                 )
+                currentScope.setVariable(key = statement.name, value = value)
+                return JavascriptReference.Undefined
+            }
+            is JavascriptStatement.ClassDeclaration -> {
+                val value = interpretClassBody(name = statement.name, classBody = statement.body)
                 currentScope.setVariable(key = statement.name, value = value)
                 return JavascriptReference.Undefined
             }
@@ -709,6 +716,12 @@ class JavascriptInterpreter(startDebugger: Boolean = false) {
                     )
                 ).toReference()
             }
+            is JavascriptExpression.Class -> {
+                return interpretClassBody(
+                    name = statement.name ?: "anonymous",
+                    classBody = statement.body
+                ).toReference()
+            }
             is JavascriptExpression.ArrowFunction -> {
                 return JavascriptValue.Object(
                     JavascriptFunction(
@@ -823,6 +836,64 @@ class JavascriptInterpreter(startDebugger: Boolean = false) {
             }
             else -> interpretExpressionThenInterpretPrimitiveValue()
         }
+    }
+
+    private fun interpretClassBody(name: String, classBody: ClassBody) : JavascriptValue {
+        val nonStaticMembers = classBody.statements
+            .filterIsInstance<ClassBody.Statement.Member>()
+            .filterNot { it.isStatic }
+
+        val classConstructor = if (classBody.constructor == null) {
+            ClassConstructor(
+                interpreter = this,
+                name = name,
+                parameterNames = emptyList(),
+                body = JavascriptStatement.Block(
+                    sourceInfo = SourceInfo.unknown(),
+                    body = emptyList()
+                ),
+                parentScope = currentScope,
+                classMembers = nonStaticMembers
+            )
+        } else {
+            ClassConstructor(
+                interpreter = this,
+                name = name,
+                parameterNames = classBody.constructor.parameterNames,
+                body = classBody.constructor.body,
+                parentScope = currentScope,
+                classMembers = nonStaticMembers
+            )
+        }
+
+        for (classStatement in classBody.statements) {
+            when (classStatement) {
+                is ClassBody.Statement.Member -> {
+                    if (classStatement.isStatic) {
+                        classConstructor.setProperty(classStatement.name, interpret(classStatement.expression))
+                    }
+                }
+                is ClassBody.Statement.Method -> {
+                    val function = JavascriptValue.Object(
+                        JavascriptFunction(
+                            interpreter = this,
+                            name = classStatement.name,
+                            parameterNames = classStatement.parameterNames,
+                            body = classStatement.body,
+                            parentScope = currentScope
+                        )
+                    )
+
+                    if (classStatement.isStatic) {
+                        classConstructor.setProperty(classStatement.name, function)
+                    } else {
+                        classConstructor.functionPrototype.setProperty(classStatement.name, function)
+                    }
+                }
+            }
+        }
+
+        return JavascriptValue.Object(classConstructor)
     }
 
     fun interpretAsObject(expression: JavascriptExpression): JavascriptObject {

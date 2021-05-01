@@ -1,22 +1,31 @@
 package ca.antonious.browser.libraries.javascript.interpreter.builtins.function
 
+import ca.antonious.browser.libraries.javascript.ast.ClassBody
 import ca.antonious.browser.libraries.javascript.ast.JavascriptStatement
 import ca.antonious.browser.libraries.javascript.ast.JavascriptValue
 import ca.antonious.browser.libraries.javascript.interpreter.JavascriptInterpreter
 import ca.antonious.browser.libraries.javascript.interpreter.JavascriptScope
 
-open class JavascriptFunction(
+open class ClassConstructor(
     interpreter: JavascriptInterpreter,
-    override val name: String,
-    val parameterNames: List<String>,
-    val body: JavascriptStatement.Block,
-    val parentScope: JavascriptScope,
-) : FunctionObject(
+    name: String,
+    parameterNames: List<String>,
+    body: JavascriptStatement.Block,
+    parentScope: JavascriptScope,
+    private val classMembers: List<ClassBody.Statement.Member>
+) : JavascriptFunction(
     interpreter = interpreter,
-    functionPrototype = interpreter.makeObject()
+    name = name,
+    parameterNames = parameterNames,
+    body = body,
+    parentScope = parentScope
 ) {
 
     override fun call(nativeExecutionContext: NativeExecutionContext): JavascriptValue {
+        for (member in classMembers) {
+            nativeExecutionContext.thisBinding.setProperty(member.name, nativeExecutionContext.interpreter.interpret(member.expression))
+        }
+
         return nativeExecutionContext.interpreter.interpretFunction(
             callLocation = nativeExecutionContext.callLocation,
             thisBinding = nativeExecutionContext.thisBinding,
@@ -26,6 +35,6 @@ open class JavascriptFunction(
     }
 
     override fun toString(): String {
-        return "function (${parameterNames.joinToString(", ")}) {...}"
+        return "class (${parameterNames.joinToString(", ")}) {...}"
     }
 }

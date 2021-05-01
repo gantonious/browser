@@ -15,6 +15,7 @@ sealed class JavascriptStatement() {
     data class LabeledStatement(override val sourceInfo: SourceInfo, val label: String, val statement: JavascriptStatement) : JavascriptStatement()
     data class Block(override val sourceInfo: SourceInfo, val body: List<JavascriptStatement>, val createsScope: Boolean = true) : JavascriptStatement()
     data class Function(override val sourceInfo: SourceInfo, val name: String, val parameterNames: List<String>, val body: Block) : JavascriptStatement()
+    data class ClassDeclaration(override val sourceInfo: SourceInfo, val name: String, val body: ClassBody) : JavascriptStatement()
     data class Return(override val sourceInfo: SourceInfo, val expression: JavascriptExpression?) : JavascriptStatement()
     data class IfStatement(override val sourceInfo: SourceInfo, val conditions: List<ConditionAndStatement>) : JavascriptStatement() {
         data class ConditionAndStatement(val condition: JavascriptExpression, val body: JavascriptStatement)
@@ -70,6 +71,7 @@ sealed class JavascriptStatement() {
 }
 
 data class AssignmentStatement(val target: AssignmentTarget, val expression: JavascriptExpression?)
+
 
 sealed class AssignmentTarget {
     data class Simple(val name: String) : AssignmentTarget()
@@ -153,6 +155,34 @@ sealed class JavascriptExpression : JavascriptStatement() {
         val parameterNames: List<String>,
         val body: JavascriptStatement
     ) : JavascriptExpression()
+
+    data class Class(
+        override val sourceInfo: SourceInfo,
+        val name: String?,
+        val body: ClassBody
+    ) : JavascriptExpression()
+}
+
+data class ClassBody(val constructor: Constructor?, val statements: List<Statement>) {
+    data class Constructor(
+        val parameterNames: List<String>,
+        val body: JavascriptStatement.Block
+    )
+
+    sealed class Statement {
+        data class Member(
+            val isStatic: Boolean,
+            val name: String,
+            val expression: JavascriptExpression
+        ) : Statement()
+
+        data class Method(
+            val isStatic: Boolean,
+            val name: String,
+            val parameterNames: List<String>,
+            val body: JavascriptStatement.Block
+        ) : Statement()
+    }
 }
 
 sealed class JavascriptValue {

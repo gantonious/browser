@@ -9,6 +9,8 @@ abstract class FunctionObject(
     functionPrototype: JavascriptObject,
 ) : JavascriptObject(prototype = interpreter.functionPrototype) {
 
+    open val name: String = "anonymous"
+
     open var boundThis: JavascriptObject? = null
 
     val functionPrototype: JavascriptObject

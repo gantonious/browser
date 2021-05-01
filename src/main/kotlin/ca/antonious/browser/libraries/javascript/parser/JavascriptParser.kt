@@ -2,6 +2,7 @@ package ca.antonious.browser.libraries.javascript.parser
 
 import ca.antonious.browser.libraries.javascript.ast.AssignmentStatement
 import ca.antonious.browser.libraries.javascript.ast.AssignmentTarget
+import ca.antonious.browser.libraries.javascript.ast.ClassBody
 import ca.antonious.browser.libraries.javascript.ast.JavascriptExpression
 import ca.antonious.browser.libraries.javascript.ast.JavascriptProgram
 import ca.antonious.browser.libraries.javascript.ast.JavascriptStatement
@@ -105,6 +106,7 @@ class JavascriptParser(
     private fun expectStatement(): JavascriptStatement {
         return when (getCurrentToken()) {
             is JavascriptTokenType.Function -> expectFunctionDeclaration()
+            is JavascriptTokenType.Class -> expectClassDeclaration()
             is JavascriptTokenType.While -> expectWhileLoop()
             is JavascriptTokenType.If -> expectIfStatement()
             is JavascriptTokenType.Return -> expectReturnStatement()
@@ -273,6 +275,17 @@ class JavascriptParser(
             name = functionName.name,
             parameterNames = parameterNames.map { it.name },
             body = expectBlock()
+        )
+    }
+
+    private fun expectClassDeclaration(): JavascriptStatement.ClassDeclaration {
+        val sourceInfo = expectSourceInfo<JavascriptTokenType.Class>()
+        val className = expectToken<JavascriptTokenType.Identifier>()
+
+        return JavascriptStatement.ClassDeclaration(
+            sourceInfo = sourceInfo,
+            name = className.name,
+            body = expectClassBody()
         )
     }
 
@@ -838,6 +851,7 @@ class JavascriptParser(
             is JavascriptTokenType.OpenCurlyBracket -> expectObjectLiteral()
             is JavascriptTokenType.OpenBracket -> expectArrayLiteral()
             is JavascriptTokenType.Function -> expectAnonymousFunctionExpression()
+            is JavascriptTokenType.Class -> expectClassExpression()
             is JavascriptTokenType.Number -> {
                 val sourceInfo = expectSourceInfo<JavascriptTokenType>()
                 JavascriptExpression.Literal(sourceInfo = sourceInfo, value = JavascriptValue.Number(currentToken.value))
@@ -1180,6 +1194,91 @@ class JavascriptParser(
         expectToken<JavascriptTokenType.CloseBracket>()
 
         return AssignmentTarget.ArrayDestructure(targets)
+    }
+
+    private fun expectClassExpression(): JavascriptExpression.Class {
+        val sourceInfo = expectSourceInfo<JavascriptTokenType.Class>()
+
+        return JavascriptExpression.Class(
+            sourceInfo = sourceInfo,
+            name = if (getCurrentToken() is JavascriptTokenType.OpenCurlyBracket) {
+                null
+            } else {
+                expectToken<JavascriptTokenType.Identifier>().name
+            },
+            body = expectClassBody()
+        )
+    }
+
+    private fun expectClassBody(): ClassBody {
+        val classStatements = mutableListOf<ClassBody.Statement>()
+        expectToken<JavascriptTokenType.OpenCurlyBracket>()
+
+        var constructor: ClassBody.Constructor? = null
+
+        while (getCurrentToken() !is JavascriptTokenType.CloseCurlyBracket) {
+            when (getCurrentToken()) {
+                is JavascriptTokenType.Constructor -> {
+                    if (constructor != null) {
+                        throwSyntaxError("A class may only have one constructor")
+                    }
+                    constructor = expectClassConstructor()
+                }
+                is JavascriptTokenType.Identifier -> classStatements += expectClassMethodOrMember(isStatic = false)
+                is JavascriptTokenType.Static -> {
+                    expectToken<JavascriptTokenType.Static>()
+                    classStatements += when (getCurrentToken()) {
+                        is JavascriptTokenType.Identifier -> expectClassMethodOrMember(isStatic = true)
+                        else -> throwUnexpectedTokenFound()
+                    }
+                }
+                is JavascriptTokenType.SemiColon -> expectToken<JavascriptTokenType.SemiColon>()
+                else -> throwUnexpectedTokenFound()
+            }
+        }
+
+        expectToken<JavascriptTokenType.CloseCurlyBracket>()
+
+        return ClassBody(
+            constructor = constructor,
+            statements = classStatements
+        )
+    }
+
+    private fun expectClassConstructor(): ClassBody.Constructor {
+        expectToken<JavascriptTokenType.Constructor>()
+
+        return ClassBody.Constructor(
+            parameterNames = expectFunctionParameters().map { it.name },
+            body = expectBlock()
+        )
+    }
+
+    private fun expectClassMethodOrMember(isStatic: Boolean): ClassBody.Statement {
+        return when (maybeGetNextToken()) {
+            is JavascriptTokenType.Operator.Assignment -> expectClassMember(isStatic = isStatic)
+            is JavascriptTokenType.OpenParentheses -> expectClassMethod(isStatic = isStatic)
+            else -> throwUnexpectedTokenFound()
+        }
+    }
+
+    private fun expectClassMember(isStatic: Boolean): ClassBody.Statement.Member {
+        return ClassBody.Statement.Member(
+            isStatic = isStatic,
+            name = expectToken<JavascriptTokenType.Identifier>().name.also {
+                expectToken<JavascriptTokenType.Operator.Assignment>()
+            },
+            expression = expectExpression()
+        )
+    }
+
+    private fun expectClassMethod(isStatic: Boolean): ClassBody.Statement.Method {
+        return ClassBody.Statement.Method(
+            isStatic = isStatic,
+            name = expectToken<JavascriptTokenType.Identifier>().name,
+            parameterNames = expectFunctionParameters().map { it.name },
+            body = expectBlock()
+        )
     }
 
     private fun expectSimpleTarget(): AssignmentTarget.Simple {
