@@ -3,11 +3,17 @@ package ca.antonious.browser.libraries.console
 object ANSICode {
     const val redBackground = "\u001B[30;41m"
     const val greenBackground = "\u001B[30;42m"
+    const val gray = "\u001B[38;5;240m"
     const val red = "\u001B[31m"
     const val green = "\u001B[32m"
     const val yellow = "\u001B[33m"
     const val reset = "\u001B[0m"
 }
+
+fun String.gray(): String {
+    return "${ANSICode.gray}$this${ANSICode.reset}"
+}
+
 
 fun String.red(): String {
     return "${ANSICode.red}$this${ANSICode.reset}"
