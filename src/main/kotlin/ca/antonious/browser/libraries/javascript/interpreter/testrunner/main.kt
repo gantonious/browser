@@ -1,5 +1,9 @@
 package ca.antonious.browser.libraries.javascript.interpreter.testrunner
 
+import ca.antonious.browser.libraries.console.green
+import ca.antonious.browser.libraries.console.greenBackground
+import ca.antonious.browser.libraries.console.red
+import ca.antonious.browser.libraries.console.redBackground
 import ca.antonious.browser.libraries.javascript.ast.JavascriptValue
 import ca.antonious.browser.libraries.javascript.interpreter.JavascriptInterpreter
 import ca.antonious.browser.libraries.javascript.interpreter.builtins.array.ArrayObject
@@ -134,30 +138,6 @@ private fun printTestResults(testResults: List<TestResult>) {
     } else {
         exitProcess(0)
     }
-}
-
-object ANSICode {
-    const val redBackground = "\u001B[30;41m"
-    const val greenBackground = "\u001B[30;42m"
-    const val red = "\u001B[31m"
-    const val green = "\u001B[32m"
-    const val reset = "\u001B[0m"
-}
-
-fun String.red(): String {
-    return "${ANSICode.red}$this${ANSICode.reset}"
-}
-
-fun String.green(): String {
-    return "${ANSICode.green}$this${ANSICode.reset}"
-}
-
-fun String.redBackground(): String {
-    return "${ANSICode.redBackground}$this${ANSICode.reset}"
-}
-
-fun String.greenBackground(): String {
-    return "${ANSICode.greenBackground}$this${ANSICode.reset}"
 }
 
 private fun File.listFilesRecursively(): List<File> {
