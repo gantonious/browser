@@ -4,6 +4,7 @@ import ca.antonious.browser.libraries.console.cyan
 import ca.antonious.browser.libraries.console.gray
 import ca.antonious.browser.libraries.console.green
 import ca.antonious.browser.libraries.console.magenta
+import ca.antonious.browser.libraries.console.orange
 import ca.antonious.browser.libraries.console.red
 import ca.antonious.browser.libraries.console.yellow
 import ca.antonious.browser.libraries.javascript.ast.JavascriptValue
@@ -20,7 +21,7 @@ import ca.antonious.browser.libraries.javascript.parser.JavascriptParser
 
 fun main() {
     val interpreter = JavascriptInterpreter()
-    
+
     interpreter.globalObject
         .getProperty("console")
         .requireAsObject()
@@ -77,7 +78,12 @@ fun main() {
     }
 }
 
-private fun JavascriptValue.toDescriptiveString(indentationLevel: Int = 1, seenObjects: Set<JavascriptObject> = emptySet()): String {
+private fun JavascriptValue.toDescriptiveString(
+    indentationLevel: Int = 1,
+    objectPath: Set<JavascriptObject> = emptySet(),
+    foundObjects: MutableSet<JavascriptObject> = mutableSetOf(),
+    objectReferences: MutableMap<JavascriptObject, Int> = mutableMapOf()
+): String {
     val previousIndentation = "  ".repeat(indentationLevel - 1)
     val indentation = "  ".repeat(indentationLevel)
 
@@ -87,9 +93,6 @@ private fun JavascriptValue.toDescriptiveString(indentationLevel: Int = 1, seenO
         is JavascriptValue.Boolean -> "$this".yellow()
         is JavascriptValue.String -> "'$this'".green()
         is JavascriptValue.Object -> {
-            if (this.requireAsObject() in seenObjects) {
-                return "[Circular ref]".cyan()
-            }
             when (val obj = this.requireAsObject()) {
                 is DateObject -> {
                     obj.date.toString().magenta()
@@ -100,8 +103,17 @@ private fun JavascriptValue.toDescriptiveString(indentationLevel: Int = 1, seenO
                     "[ ${(arrayValues + arrayProperties).joinToString(", ")} ]"
                 }
                 else -> {
+                    if (obj in objectPath) {
+                        foundObjects.add(obj)
+                        return "[Circular *${objectReferences[obj]}]".orange()
+                    }
+
+                    if (obj !in objectReferences) {
+                        objectReferences[obj] = objectReferences.size
+                    }
+
                     val objectValues = obj.enumerableProperties.map {
-                        "${it.first}: ${it.second.toDescriptiveString(indentationLevel + 1, seenObjects + obj)}"
+                        "${it.first}: ${it.second.toDescriptiveString(indentationLevel + 1, objectPath + obj, foundObjects, objectReferences)}"
                     }
 
                     val charCount = objectValues.sumBy { it.length }
@@ -122,7 +134,15 @@ private fun JavascriptValue.toDescriptiveString(indentationLevel: Int = 1, seenO
                     } else {
                         ", "
                     }
-                    val objectBody = "{$objectStart${objectValues.joinToString(valueSeparator)}$objectEnd}".trimStart()
+
+                    val circularReferenceIndicator = if (obj in foundObjects) {
+                        "<ref *${objectReferences[obj]}> ".orange()
+                    } else {
+                        objectReferences.remove(obj)
+                        ""
+                    }
+
+                    val objectBody = "$circularReferenceIndicator{$objectStart${objectValues.joinToString(valueSeparator)}$objectEnd}".trimStart()
 
                     when (obj) {
                         is StringObject -> "[String: ${obj.value}]".green() + if (objectValues.isEmpty()) "" else " $objectBody"
