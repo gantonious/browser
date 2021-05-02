@@ -30,20 +30,31 @@ fun main() {
         }
 
     var programBuffer = ""
+    var indentationLevel = 0
+    var programBracketBalance = 0
 
     while (true) {
         if (programBuffer.isEmpty()) {
             print("> ")
         } else {
-            print("... ")
+            print(".${"..".repeat(indentationLevel)} ")
         }
 
-        programBuffer += readLine() ?: ""
+        val nextLine = readLine() ?: ""
+        val lineBracketBalance = nextLine.count { it == '{' } - nextLine.count { it == '}' }
+        programBracketBalance += lineBracketBalance
 
-        if (programBuffer == ".exit") {
+        if (lineBracketBalance > 0) {
+            indentationLevel++
+        } else if (programBracketBalance < indentationLevel) {
+            indentationLevel = programBracketBalance
+        }
+
+        programBuffer += "\n${nextLine}"
+
+        if (nextLine == ".exit") {
             break
         }
-
 
         try {
             val tokens = JavascriptLexer(programBuffer, sourceFilename = "REPL").lex()
