@@ -8,6 +8,7 @@ import ca.antonious.browser.libraries.console.red
 import ca.antonious.browser.libraries.console.yellow
 import ca.antonious.browser.libraries.javascript.ast.JavascriptValue
 import ca.antonious.browser.libraries.javascript.interpreter.JavascriptInterpreter
+import ca.antonious.browser.libraries.javascript.interpreter.JavascriptObject
 import ca.antonious.browser.libraries.javascript.interpreter.builtins.array.ArrayObject
 import ca.antonious.browser.libraries.javascript.interpreter.builtins.date.DateObject
 import ca.antonious.browser.libraries.javascript.interpreter.builtins.function.ClassConstructor
@@ -57,39 +58,48 @@ fun main() {
     }
 }
 
-private fun JavascriptValue.toDescriptiveString(): String {
+private fun JavascriptValue.toDescriptiveString(indentationLevel: Int = 1, seenObjects: Set<JavascriptObject> = emptySet()): String {
+    val previousIndentation = "  ".repeat(indentationLevel - 1)
+    val indentation = "  ".repeat(indentationLevel)
+
     return when (this) {
         is JavascriptValue.Undefined -> "$this".gray()
         is JavascriptValue.Number,
         is JavascriptValue.Boolean -> "$this".yellow()
         is JavascriptValue.String -> "'$this'".green()
         is JavascriptValue.Object -> {
+            if (this.requireAsObject() in seenObjects) {
+                return "[Circular ref]".cyan()
+            }
             when (val obj = this.requireAsObject()) {
                 is DateObject -> {
                     obj.date.toString().magenta()
                 }
                 is ArrayObject -> {
                     val arrayValues = obj.array.map { it.toDescriptiveString() }
-                    val arrayProperties = obj.enumerableProperties.map { "${it.first}: ${it.second.toDescriptiveString()}" }
+                    val arrayProperties = obj.enumerableProperties.map { "${it.first}: ${it.second.toDescriptiveString(indentationLevel + 1)}" }
                     "[ ${(arrayValues + arrayProperties).joinToString(", ")} ]"
                 }
                 else -> {
-                    val objectValues = obj.enumerableProperties.map { "${it.first}: ${it.second.toDescriptiveString()}" }
+                    val objectValues = obj.enumerableProperties.map {
+                        "${it.first}: ${it.second.toDescriptiveString(indentationLevel + 1, seenObjects + obj)}"
+                    }
+
                     val charCount = objectValues.sumBy { it.length }
                     val objectStart = if (charCount > 80) {
-                        "\n  "
+                        "\n$indentation"
                     } else {
                         " "
                     }
 
                     val objectEnd= if (charCount > 80) {
-                        "\n"
+                        "\n$previousIndentation"
                     } else {
                         " "
                     }
 
                     val valueSeparator = if (charCount > 80) {
-                        ",\n  "
+                        ",\n$indentation"
                     } else {
                         ", "
                     }
