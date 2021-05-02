@@ -20,6 +20,14 @@ import ca.antonious.browser.libraries.javascript.parser.JavascriptParser
 
 fun main() {
     val interpreter = JavascriptInterpreter()
+    
+    interpreter.globalObject
+        .getProperty("console")
+        .requireAsObject()
+        .setNonEnumerableNativeFunction("log") {
+            println(it.arguments.joinToString(" ") { it.toDescriptiveString() })
+            JavascriptValue.Undefined
+        }
 
     var programBuffer = ""
 
