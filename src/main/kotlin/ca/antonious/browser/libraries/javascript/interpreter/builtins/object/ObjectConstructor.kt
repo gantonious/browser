@@ -16,11 +16,7 @@ class ObjectConstructor(interpreter: JavascriptInterpreter) : NativeFunction(
         if (executionContext.arguments.isEmpty()) {
             JavascriptValue.Object(interpreter.makeObject())
         } else {
-            when (val input = executionContext.arguments.first()) {
-                is JavascriptValue.String -> JavascriptValue.Object(StringObject(interpreter, input.value))
-                is JavascriptValue.Number -> JavascriptValue.Object(NumberObject(interpreter, input.value))
-                else -> input
-            }
+            JavascriptValue.Object(interpreter.interpretAsObject(executionContext.arguments.first()))
         }
     }
 ) {
