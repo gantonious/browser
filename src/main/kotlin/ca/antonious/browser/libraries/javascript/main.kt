@@ -98,9 +98,29 @@ private fun JavascriptValue.toDescriptiveString(
                     obj.date.toString().magenta()
                 }
                 is ArrayObject -> {
-                    val arrayValues = obj.array.map { it.toDescriptiveString() }
+                    val arrayValues = obj.array.map { it.toDescriptiveString(indentationLevel + 1) }
                     val arrayProperties = obj.enumerableProperties.map { "${it.first}: ${it.second.toDescriptiveString(indentationLevel + 1)}" }
-                    "[ ${(arrayValues + arrayProperties).joinToString(", ")} ]"
+                    val charCount = (arrayValues + arrayProperties).sumBy { it.length }
+
+                    val arrayStart = if (charCount > 80) {
+                        "[\n$indentation"
+                    } else {
+                        "[ "
+                    }
+
+                    val arrayEnd = if (charCount > 80) {
+                        "\n$previousIndentation]"
+                    } else {
+                        " ]"
+                    }
+
+                    val valueSeparator = if (charCount > 80) {
+                        ",\n$indentation"
+                    } else {
+                        ", "
+                    }
+
+                    "${arrayStart}${(arrayValues + arrayProperties).joinToString(valueSeparator)}${arrayEnd}"
                 }
                 else -> {
                     if (obj in objectPath) {
@@ -145,7 +165,7 @@ private fun JavascriptValue.toDescriptiveString(
                     val objectBody = "$circularReferenceIndicator{$objectStart${objectValues.joinToString(valueSeparator)}$objectEnd}".trimStart()
 
                     when (obj) {
-                        is StringObject -> "[String: ${obj.value}]".green() + if (objectValues.isEmpty()) "" else " $objectBody"
+                        is StringObject -> "[String: '${obj.value}']".green() + if (objectValues.isEmpty()) "" else " $objectBody"
                         is NumberObject -> "[Number: ${obj.value}]".yellow() + if (objectValues.isEmpty()) "" else " $objectBody"
                         is ClassConstructor -> "[class: ${obj.name}]".cyan() + if (objectValues.isEmpty()) "" else " $objectBody"
                         is FunctionObject -> "[Function: ${obj.name}]".cyan() + if (objectValues.isEmpty()) "" else " $objectBody"
