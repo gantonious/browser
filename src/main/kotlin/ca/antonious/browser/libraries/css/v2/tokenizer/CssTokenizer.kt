@@ -12,16 +12,16 @@ class CssTokenizer(
     companion object {
 
         private val singleCharTokenMap = mapOf(
-            "(" to CssTokenType.OpenParentheses,
-            ")" to CssTokenType.CloseParentheses,
-            "[" to CssTokenType.OpenSquareBracket,
-            "]" to CssTokenType.CloseSquareBracket,
-            "{" to CssTokenType.OpenCurlyBracket,
-            "}" to CssTokenType.CloseCurlyBracket,
-            "," to CssTokenType.Comma,
-            "." to CssTokenType.Dot,
-            ":" to CssTokenType.Colon,
-            ";" to CssTokenType.SemiColon
+            '(' to CssTokenType.OpenParentheses,
+            ')' to CssTokenType.CloseParentheses,
+            '[' to CssTokenType.OpenSquareBracket,
+            ']' to CssTokenType.CloseSquareBracket,
+            '{' to CssTokenType.OpenCurlyBracket,
+            '}' to CssTokenType.CloseCurlyBracket,
+            ',' to CssTokenType.Comma,
+            '.' to CssTokenType.Dot,
+            ':' to CssTokenType.Colon,
+            ';' to CssTokenType.SemiColon
         )
     }
 
