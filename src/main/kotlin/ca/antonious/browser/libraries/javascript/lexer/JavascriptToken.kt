@@ -65,6 +65,7 @@ sealed class JavascriptTokenType {
         object OrOr : Operator()
         object Mod : Operator()
         object Xor : Operator()
+        object QuestionQuestion : Operator()
         object LessThan : Operator()
         object LessThanOrEqual : Operator()
         object GreaterThan : Operator()

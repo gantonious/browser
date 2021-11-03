@@ -532,7 +532,7 @@ class JavascriptParser(
     }
 
     private fun expectTernaryExpression(): JavascriptExpression {
-        val expression = expectLogicalOrExpression()
+        val expression = expectNullishCoalescingExpression()
 
         if (maybeGetCurrentToken() is JavascriptTokenType.QuestionMark) {
             val sourceInfo = expectSourceInfo<JavascriptTokenType.QuestionMark>()
@@ -546,6 +546,24 @@ class JavascriptParser(
 
         return expression
     }
+
+    private fun expectNullishCoalescingExpression(): JavascriptExpression {
+        var expression = expectLogicalOrExpression()
+
+        while (maybeGetCurrentToken() is JavascriptTokenType.Operator.QuestionQuestion) {
+            val (token, sourceInfo) = expectTokenAndSourceInfo<JavascriptTokenType>()
+
+            expression = JavascriptExpression.BinaryOperation(
+                sourceInfo = sourceInfo,
+                operator = token,
+                lhs = expression,
+                rhs = expectLogicalOrExpression()
+            )
+        }
+
+        return expression
+    }
+
 
     private fun expectLogicalOrExpression(): JavascriptExpression {
         var expression = expectLogicalAndExpression()

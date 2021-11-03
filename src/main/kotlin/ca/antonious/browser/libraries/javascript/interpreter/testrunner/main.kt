@@ -14,7 +14,7 @@ fun main() {
     val interpreter = JavascriptInterpreter()
     interpreter.interpret(File("TestUtils.js"))
 
-    File("tests").listFilesRecursively().forEach {
+    File("tests").listFilesRecursively().filter { it.extension == "js" }.forEach {
         interpreter.interpret(it)
     }
 

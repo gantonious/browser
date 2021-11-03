@@ -447,6 +447,16 @@ class JavascriptInterpreter(startDebugger: Boolean = false) {
                             lhsValue.toReference()
                         }
                     }
+                    is JavascriptTokenType.Operator.QuestionQuestion -> {
+                        val lhsValue = interpret(statement.lhs)
+                        if (hasControlFlowInterrupted()) return JavascriptReference.Undefined
+
+                        if (lhsValue is JavascriptValue.Null || lhsValue is JavascriptValue.Undefined) {
+                            interpret(statement.rhs).toReference()
+                        } else {
+                            lhsValue.toReference()
+                        }
+                    }
                     is JavascriptTokenType.Operator.StrictEquals -> {
                         val lhsValue = interpret(statement.lhs)
                         if (hasControlFlowInterrupted()) return JavascriptReference.Undefined
