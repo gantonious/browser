@@ -39,18 +39,21 @@ fun main() {
         }
     """.trimIndent()
 
-    val tokenizer = CssTokenizer(source = css, filename = "")
-    val tokens = mutableListOf<CssTokenType>()
+//    val tokenizer = CssTokenizer(source = css, filename = "")
+//    val tokens = mutableListOf<CssTokenType>()
+//
+//    while (true) {
+//        val nextToken = tokenizer.consumeToken()
+//
+//        if (nextToken is CssTokenType.EndOfFile) {
+//            break
+//        }
+//
+//        tokens += nextToken
+//    }
 
-    while (true) {
-        val nextToken = tokenizer.consumeToken()
-
-        if (nextToken is CssTokenType.EndOfFile) {
-            break
-        }
-
-        tokens += nextToken
-    }
+    val parser = CssParser()
+    val stylesheet = parser.parseAStyleSheet(CssTokenStream(RawCssInputStream(source = css)))
 
     return
 }
