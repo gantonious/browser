@@ -244,21 +244,29 @@ class DOM {
                 when (htmlElement.name) {
                     "style" -> {
                         val text = htmlElement.requireChildrenAsText().text
-                        cssStyleResolver.addRules(cssParser.parse(text))
+                        try {
+                            cssStyleResolver.addRules(cssParser.parse(text))
+                        } catch (ex: Exception) {
+                            println("CSS: Failed to parse inline style element because of: ${ex.message}")
+                        }
                     }
                     "script" -> {
                         val src = htmlElement.attributes["src"]
 
                         if (src == null) {
                             val script = htmlElement.requireChildrenAsText().text
-                            javascriptInterpreter.interpret(script)
+                            try {
+                                javascriptInterpreter.interpret(script)
+                            } catch (ex: Exception) {
+                                println("JS: Failed to interpret inline script element because of: ${ex.message}")
+                            }
                         } else {
                             httpClient.execute(HttpRequest(resolveUrl(src), HttpMethod.Get)).onSuccess { response ->
                                 try {
                                     javascriptInterpreter.interpret(response.body, filename = src)
                                     javascriptInterpreter.interpret("window.onload()")
                                 } catch (ex: Exception) {
-                                    println(ex.message)
+                                    println("JS: Failed to interpret '$src' because of: ${ex.message}")
                                 }
                             }
                         }
@@ -269,8 +277,19 @@ class DOM {
                                 val href = htmlElement.attributes["href"] ?: ""
                                 val styleSheetUrl = resolveUrl(href)
                                 httpClient.execute(HttpRequest(styleSheetUrl, HttpMethod.Get)).onSuccess { response ->
-                                    cssStyleResolver.addRules(cssParser.parse(response.body.replace(Regex("\\/\\*.*\\/"), "")))
-                                    resolveStyles(rootNode.children.map { it as DOMLayoutNode })
+                                    try {
+                                        cssStyleResolver.addRules(
+                                            cssParser.parse(
+                                                response.body.replace(
+                                                    Regex("\\/\\*.*\\/"),
+                                                    ""
+                                                )
+                                            )
+                                        )
+                                        resolveStyles(rootNode.children.map { it as DOMLayoutNode })
+                                    } catch (ex: Exception) {
+                                        println("CSS: Failed to parse '$styleSheetUrl' because of: ${ex.message}")
+                                    }
                                 }
                             }
                         }
