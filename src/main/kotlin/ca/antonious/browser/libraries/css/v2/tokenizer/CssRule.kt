@@ -20,3 +20,9 @@ data class CssFunction(
     val name: CssTokenType,
     val value: MutableList<ComponentValue>
 )
+
+data class StyleDeclaration(
+    val name: CssTokenType.Ident,
+    val value: MutableList<ComponentValue>,
+    var important: Boolean
+)

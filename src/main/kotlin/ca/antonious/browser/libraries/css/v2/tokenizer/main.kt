@@ -3,7 +3,7 @@ package ca.antonious.browser.libraries.css.v2.tokenizer
 fun main() {
     val css = """
         body {
-        	background-color: #264653;
+        	background-color: #264653 !important;
         }
 
         .square {
@@ -53,7 +53,7 @@ fun main() {
 //    }
 
     val parser = CssParser()
-    val stylesheet = parser.parseAStyleSheet(CssTokenStream(RawCssInputStream(source = css)))
+    val stylesheet = parser.parseACssStyleSheet(CssTokenStream(RawCssInputStream(source = css)))
 
     return
 }

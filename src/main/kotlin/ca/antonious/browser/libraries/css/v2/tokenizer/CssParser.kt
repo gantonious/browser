@@ -1,20 +1,26 @@
 package ca.antonious.browser.libraries.css.v2.tokenizer
 
-import ca.antonious.browser.libraries.graphics.images.Result
 
 class CssParser {
     private var topLevel = false
 
-    fun parseAStyleSheet(inputStream: CssTokenStream): CssStylesheet {
-        val stylesheet = CssStylesheet(location = "null", rules = listOf())
+    fun parseACssStyleSheet(inputStream: CssTokenStream): CssStylesheet {
+        val styleSheet = parseAStyleSheet(inputStream)
+
+        return CssStylesheet(
+            styleRules = styleSheet.rules.mapNotNull {
+                if (it is CssRule.QualifiedRule) {
+                    interpretAsStyleRule(it)
+                } else {
+                    null
+                }
+            }
+        )
+    }
+    fun parseAStyleSheet(inputStream: CssTokenStream): Stylesheet {
+        val stylesheet = Stylesheet(location = "null", rules = listOf())
         topLevel = true
         stylesheet.rules = consumeAListOfRules(inputStream)
-
-        stylesheet.rules.forEach {
-            if (it is CssRule.QualifiedRule) {
-                interpretAsStyleRule(it)
-            }
-        }
         return stylesheet
     }
 
@@ -134,7 +140,11 @@ class CssParser {
             is CssTokenType.Function -> {
                 ComponentValue.Function(consumeAFunction(inputStream))
             }
-            else -> ComponentValue.Token(tokenType = currentInputToken as CssTokenType)
+            else -> when (currentInputToken) {
+                is ComponentValue -> currentInputToken
+                is CssTokenType -> ComponentValue.Token(currentInputToken)
+                else -> error("Current input token must be a CSS token or component value.")
+            }
         }
     }
 
@@ -156,10 +166,19 @@ class CssParser {
         }
     }
 
-    private fun interpretAsStyleRule(qualifiedRule: CssRule.QualifiedRule) {
+    private fun interpretAsStyleRule(qualifiedRule: CssRule.QualifiedRule): CssStyleRule? {
         val preludeTokenStream = CssTokenStream(input = ComponentValueStreamInput(qualifiedRule.prelude))
-        val selector = consumeSelectorList(inputStream = preludeTokenStream)
-        return
+        val selectors = consumeSelectorList(inputStream = preludeTokenStream).safeResult() ?: return null
+
+        val styleBlockContents = qualifiedRule.block?.let {
+            val inputStream = CssTokenStream(input = ComponentValueStreamInput(it.value))
+            consumeAStyleBlocksContents(inputStream)
+        } ?: return null
+
+        return CssStyleRule(
+            selectors = selectors,
+            contents = styleBlockContents
+        )
     }
 
     private fun consumeSelectorList(inputStream: CssTokenStream): ResultOrFailure<List<CssSelector>> {
@@ -237,7 +256,123 @@ class CssParser {
         }
     }
 
+    private fun consumeAStyleBlocksContents(inputStream: CssTokenStream): List<StyleDeclaration> {
+        val decls = mutableListOf<StyleDeclaration>()
+        val rules = mutableListOf<CssRule>()
+
+        while (true) {
+            val currentInputToken = inputStream.consumeNextInputToken()
+            when {
+                currentInputToken is CssTokenType.Whitespace ||
+                currentInputToken is CssTokenType.SemiColon -> continue
+                currentInputToken is CssTokenType.EndOfFile -> {
+                    return decls
+                }
+                currentInputToken is CssTokenType.AtKeyword -> {
+                    inputStream.reconsumeTheCurrentInputToken()
+                    rules += consumeAnAtRule(inputStream)
+                }
+                currentInputToken is CssTokenType.Ident -> {
+                    val tempList = mutableListOf<ComponentValue>(ComponentValue.Token(inputStream.currentInputToken() as CssTokenType))
+
+                    while (true) {
+                        when (inputStream.nextInputToken()) {
+                            is CssTokenType.SemiColon,
+                            is CssTokenType.EndOfFile -> break
+                        }
+
+                        tempList += consumeAComponentValue(inputStream)
+                    }
+
+                    val declarationInputStream = CssTokenStream(input = ComponentValueStreamInput(tempList))
+                    val declaration = consumeADeclaration(declarationInputStream)
+
+                    if (declaration != null) {
+                        decls += declaration
+                    }
+                }
+                currentInputToken is CssTokenType.Delim && currentInputToken.value == '&' -> {
+                    inputStream.reconsumeTheCurrentInputToken()
+                    val qualifiedRule = consumeAQualifiedRule(inputStream)
+
+                    if (qualifiedRule != null) {
+                        rules += qualifiedRule
+                    }
+                }
+                else -> {
+                    raiseParseError()
+                    inputStream.reconsumeTheCurrentInputToken()
+
+                    when (inputStream.nextInputToken()) {
+                        is CssTokenType.SemiColon,
+                        is CssTokenType.EndOfFile -> Unit
+                        else -> consumeAComponentValue(inputStream)
+                    }
+                }
+            }
+        }
+    }
+
+    private fun consumeADeclaration(inputStream: CssTokenStream): StyleDeclaration? {
+        var indexOfLastNonWhitespaceToken = -1
+
+        val declaration = StyleDeclaration(
+            name = inputStream.consumeNextInputToken() as CssTokenType.Ident,
+            value = mutableListOf(),
+            important = false
+        )
+
+        while (inputStream.nextInputToken() is CssTokenType.Whitespace) {
+            inputStream.consumeNextInputToken()
+        }
+
+        if (inputStream.nextInputToken() !is CssTokenType.Colon) {
+            raiseParseError()
+            return null
+        }
+
+        inputStream.consumeNextInputToken()
+
+        while (inputStream.nextInputToken() is CssTokenType.Whitespace) {
+            inputStream.consumeNextInputToken()
+        }
+
+        while (inputStream.nextInputToken() !is CssTokenType.EndOfFile) {
+            val componentValue = consumeAComponentValue(inputStream)
+
+            if (componentValue.maybeAsA<ComponentValue.Token>()?.tokenType !is CssTokenType.Whitespace) {
+                indexOfLastNonWhitespaceToken = declaration.value.size
+            }
+
+            declaration.value += componentValue
+        }
+
+        if (
+            indexOfLastNonWhitespaceToken - 1 >= 0 &&
+            declaration.value.getOrNull(indexOfLastNonWhitespaceToken - 1)?.maybeAsA<ComponentValue.Token>()?.tokenType?.maybeAsA<CssTokenType.Delim>()?.value == '!' &&
+            declaration.value.getOrNull(indexOfLastNonWhitespaceToken)?.maybeAsA<ComponentValue.Token>()?.tokenType?.maybeAsA<CssTokenType.Ident>()?.value?.lowercase() == "important"
+        ) {
+            declaration.important = true
+            declaration.value.removeAt(indexOfLastNonWhitespaceToken - 1)
+            declaration.value.removeAt(indexOfLastNonWhitespaceToken - 1)
+        }
+
+        if (declaration.value.lastOrNull()?.maybeAsA<ComponentValue.Token>()?.tokenType is CssTokenType.Whitespace) {
+            declaration.value.removeLast()
+        }
+
+        return declaration
+    }
+
     private fun raiseParseError() {
 
     }
+}
+
+inline fun <reified T> Any.maybeAsA(): T? {
+    if (this is T) {
+        return this
+    }
+
+    return null
 }

@@ -8,6 +8,12 @@ class CssTokenStream(private val input: CssTokenStreamInput) {
         return currentToken!!
     }
 
+    fun nextInputToken(): Any {
+        return consumeNextInputToken().also {
+            reconsumeTheCurrentInputToken()
+        }
+    }
+
     fun consumeWhiteSpace() {
         consumeNextInputToken()
 
@@ -52,6 +58,21 @@ class ComponentValueStreamInput(
         return CssTokenType.EndOfFile
     }
 }
+
+class AnyStreamInput(
+    private val values: List<Any>
+): CssTokenStreamInput {
+    private var cursor = 0
+
+    override fun nextToken(): Any {
+        if (cursor < values.size) {
+            return values[cursor++]
+        }
+
+        return CssTokenType.EndOfFile
+    }
+}
+
 
 class RawCssInputStream(
     private val source: String
