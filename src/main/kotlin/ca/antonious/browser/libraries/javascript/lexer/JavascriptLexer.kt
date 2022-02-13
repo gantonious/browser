@@ -120,28 +120,8 @@ class JavascriptLexer(
                         sourceColumn = 0
                     }
                 }
-                currentChar == '"' -> {
-                    advanceCursor()
-                    val stringStart = cursor
-
-                    while (!isAtEnd() && getCurrentChar() != '"' || (getCurrentChar() == '"' && getPreviousChar() == '\\')) {
-                        advanceCursor()
-                    }
-
-                    pushToken(JavascriptTokenType.String(source.substring(stringStart, cursor)))
-                    advanceCursor()
-                }
-                currentChar == '\'' -> {
-                    advanceCursor()
-                    val stringStart = cursor
-
-                    while (!isAtEnd() && getCurrentChar() != '\'' || (getCurrentChar() == '\'' && getPreviousChar() == '\\')) {
-                        advanceCursor()
-                    }
-
-                    pushToken(JavascriptTokenType.String(source.substring(stringStart, cursor)))
-                    advanceCursor()
-                }
+                currentChar == '"' -> pushString(closingChar = currentChar)
+                currentChar == '\'' -> pushString(closingChar = currentChar)
                 currentChar == '/' && peekNextChar() == '/' -> {
                     while (!isAtEnd() && getCurrentChar() != '\n') {
                         advanceCursor()
@@ -234,6 +214,43 @@ class JavascriptLexer(
         return tokens
     }
 
+    private fun pushString(closingChar: Char) {
+        // Advance cursor for string opening char
+        advanceCursor()
+
+        var stringChars = mutableListOf<Char>()
+        var escaping = false
+
+        while (true) {
+            when {
+                isAtEnd() -> abort("Unexpected end of file when tokenizing string")
+                getCurrentChar() == '\\' -> {
+                    if (escaping) {
+                        stringChars.add('\\')
+                        stringChars.add('\\')
+                    }
+                    escaping = !escaping
+                }
+                getCurrentChar() == closingChar -> {
+                    if (escaping) {
+                        escaping = false
+                        stringChars.add(closingChar)
+                    } else {
+                        break
+                    }
+                }
+                else -> {
+                    escaping = false
+                    stringChars.add(getCurrentChar())
+                }
+            }
+            advanceCursor()
+        }
+
+        pushToken(JavascriptTokenType.String(String(stringChars.toCharArray())))
+        advanceCursor()
+    }
+
     private fun pushNumber() {
         val currentChar = getCurrentChar()
         val nextChar = peekNextChar()
@@ -250,7 +267,7 @@ class JavascriptLexer(
                 }
 
                 val digitsString = source.substring(digitsStart, cursor)
-                pushToken(JavascriptTokenType.Number(digitsString.toInt(16).toDouble()))
+                pushToken(JavascriptTokenType.Number(digitsString.toLong(16).toDouble()))
             }
             currentChar == '0' && (nextChar == 'o' || nextChar == 'O') -> {
                 advanceCursor()
