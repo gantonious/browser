@@ -1,11 +1,11 @@
 describe("Array.prototype.flatMap", () => {
-  test("returns flattened output of callback", () => {
+  it("returns flattened output of callback", () => {
     expect([].flatMap(() => [])).toBe([]);
     expect([[]].flatMap(() => [])).toBe([]);
     expect([1, 2, 3].flatMap(() => [1, 2])).toBe([1, 2, 1, 2, 1, 2]);
   });
 
-  test("calls callback with correct element for each item and only flattens returned array", () => {
+  it("calls callback with correct element for each item and only flattens returned array", () => {
     expect([1, [2, [3, 4]], 5].flatMap((element) => element)).toBe([
       1,
       2,
@@ -14,7 +14,7 @@ describe("Array.prototype.flatMap", () => {
     ]);
   });
 
-  test("calls callback with correct index for each item", () => {
+  it("calls callback with correct index for each item", () => {
     expect([1, 2, 3].flatMap((element, index) => [element, index])).toBe([
       1,
       0,
@@ -25,7 +25,7 @@ describe("Array.prototype.flatMap", () => {
     ]);
   });
 
-  test("calls callback with correct array for each item", () => {
+  it("calls callback with correct array for each item", () => {
     const testArray = [1, 2, 3];
 
     expect(
@@ -33,7 +33,7 @@ describe("Array.prototype.flatMap", () => {
     ).toBe([1, testArray, 2, testArray, 3, testArray]);
   });
 
-  test("supports passing explicit this", () => {
+  it("supports passing explicit this", () => {
     const object = { a: 2 };
     const passedThisBindings = [];
 

@@ -1,5 +1,5 @@
 describe("Operators.Addition", () => {
-  test("test numeric addition", () => {
+  it("test numeric addition", () => {
     function CustomValueOf() {}
     CustomValueOf.prototype.valueOf = function () {
       return 2;
@@ -12,7 +12,7 @@ describe("Operators.Addition", () => {
     expect(2 + new CustomValueOf()).toBe(4);
   });
 
-  test("test string concatenation", () => {
+  it("test string concatenation", () => {
     function CustomValueOf() {}
     CustomValueOf.prototype.valueOf = function () {
       return " world!";

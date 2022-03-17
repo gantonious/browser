@@ -1,5 +1,5 @@
 describe("If", () => {
-  test("supports standalone if with block body", () => {
+  it("supports standalone if with block body", () => {
     let reachedFromTrue = false;
     let reachedFromFalse = false;
 
@@ -15,7 +15,7 @@ describe("If", () => {
     expect(reachedFromFalse).toBeFalse();
   });
 
-  test("support standalone if with statement body", () => {
+  it("support standalone if with statement body", () => {
     let reachedFromTrue = false;
     let reachedFromFalse = false;
 
@@ -26,7 +26,7 @@ describe("If", () => {
     expect(reachedFromFalse).toBeFalse();
   });
 
-  test("supports else clause with blocks", () => {
+  it("supports else clause with blocks", () => {
     for (let i = 0; i < 2; i++) {
       let reachedFromIfBlock = [false, false];
 
@@ -42,7 +42,7 @@ describe("If", () => {
     }
   });
 
-  test("support else clause with statements", () => {
+  it("support else clause with statements", () => {
     for (let i = 0; i < 2; i++) {
       let reachedFromIfBlock = [false, false];
 
@@ -55,7 +55,7 @@ describe("If", () => {
     }
   });
 
-  test("supports else if clauses with blocks", () => {
+  it("supports else if clauses with blocks", () => {
     for (let i = 0; i < 4; i++) {
       let reachedFromIfBlock = [false, false, false, false];
 
@@ -75,7 +75,7 @@ describe("If", () => {
     }
   });
 
-  test("support else if clauses with statements", () => {
+  it("support else if clauses with statements", () => {
     for (let i = 0; i < 4; i++) {
       let reachedFromIfBlock = [false, false, false, false];
 

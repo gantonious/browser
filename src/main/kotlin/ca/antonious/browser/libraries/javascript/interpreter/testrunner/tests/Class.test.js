@@ -1,5 +1,5 @@
 describe("Class", () => {
-  test("supports empty body", () => {
+  it("supports empty body", () => {
     class Test {}
     const instance = new Test();
 
@@ -8,7 +8,7 @@ describe("Class", () => {
     expect(instance.__proto__).toBe(Test.prototype);
   });
 
-  test("supports instance members", () => {
+  it("supports instance members", () => {
     const memberInvocationCount = 0;
 
     class Test {
@@ -28,7 +28,7 @@ describe("Class", () => {
     expect(memberInvocationCount).toBe(2);
   });
 
-  test("supports static members", () => {
+  it("supports static members", () => {
     const memberInvocationCount = 0;
 
     class Test {
@@ -47,7 +47,7 @@ describe("Class", () => {
     expect(memberInvocationCount).toBe(1);
   });
 
-  test("supports constructors", () => {
+  it("supports constructors", () => {
     class Test {
       constructor(a) {
         this.a = a;
@@ -58,7 +58,7 @@ describe("Class", () => {
     expect(instance).toBe({ a: 5 });
   });
 
-  test("supports methods", () => {
+  it("supports methods", () => {
     class Test {
       method(a) {
         return a;
@@ -69,7 +69,7 @@ describe("Class", () => {
     expect(instance.method(54)).toBe(54);
   });
 
-  test("supports static methods", () => {
+  it("supports static methods", () => {
     class Test {
       static method(a) {
         return a;
@@ -81,7 +81,7 @@ describe("Class", () => {
     expect(instance.method).toBeUndefined();
   });
 
-  test("instance methods are able to reference this properties", () => {
+  it("instance methods are able to reference this properties", () => {
     class Test {
       constructor(a, b) {
         this.a = a;
@@ -103,7 +103,7 @@ describe("Class", () => {
     expect(instance.returnB()).toBe(7);
   });
 
-  test("supports extending constructor", () => {
+  it("supports extending constructor", () => {
     let test1InvocationCount = 0;
 
     function Test1() {
@@ -130,7 +130,7 @@ describe("Class", () => {
     expect(test1InvocationCount).toBe(1);
   });
 
-  test("uses return value of super constructor as this binding", () => {
+  it("uses return value of super constructor as this binding", () => {
     const thisValue = {
       a: 2,
     };
@@ -144,7 +144,7 @@ describe("Class", () => {
     expect(new Subclass()).toBe(thisValue);
   });
 
-  test("supports extending null", () => {
+  it("supports extending null", () => {
     class TestClass extends null {}
 
     const instance = new TestClass();
@@ -153,7 +153,7 @@ describe("Class", () => {
     expect(instance.valueOf).toBeUndefined();
   });
 
-  test("throws type error if extending unsupported value", () => {
+  it("throws type error if extending unsupported value", () => {
     expect(() => {
       class TestClass extends 5 {}
     }).toThrowError(

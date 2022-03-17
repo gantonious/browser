@@ -1,25 +1,25 @@
 describe("Operators.NullishCoalescing", () => {
-  test("test null", () => {
+  it("test null", () => {
     expect(null ?? 2).toBe(2);
   });
 
-  test("test undefined", () => {
+  it("test undefined", () => {
     expect(undefined ?? 2).toBe(2);
   });
 
-  test("test 0", () => {
+  it("test 0", () => {
     expect(0 ?? 2).toBe(0);
   });
 
-  test("test false", () => {
+  it("test false", () => {
     expect(false ?? 2).toBe(false);
   });
 
-  test("test empty string", () => {
+  it("test empty string", () => {
     expect("" ?? 2).toBe("");
   });
 
-  test("test object", () => {
+  it("test object", () => {
     expect({} ?? 2).toBe({});
   });
 });

@@ -1,5 +1,5 @@
 describe("Functions", () => {
-  test("when a function in isolation at the top level, this is set to the global object", () => {
+  it("when a function in isolation at the top level, this is set to the global object", () => {
     let thisBinding;
 
     function Test() {
@@ -10,7 +10,7 @@ describe("Functions", () => {
     expect(thisBinding).toBe(global);
   });
 
-  test("when a function in isolation within a context with a non-global this binding, this is set to the global object", () => {
+  it("when a function in isolation within a context with a non-global this binding, this is set to the global object", () => {
     let thisBinding;
     let object = { test: Test };
 
@@ -25,7 +25,7 @@ describe("Functions", () => {
     expect(thisBinding).toBe(global);
   });
 
-  test("when calling function as member, this is set to the target object", () => {
+  it("when calling function as member, this is set to the target object", () => {
     let thisBinding;
     let object = { test: Test };
 

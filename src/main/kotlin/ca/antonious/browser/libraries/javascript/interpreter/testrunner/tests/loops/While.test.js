@@ -1,5 +1,5 @@
 describe("While", () => {
-  test("never invokes block if conditions is not truthy", () => {
+  it("never invokes block if conditions is not truthy", () => {
     let loopInvocations = 0;
 
     while (false) {
@@ -9,7 +9,7 @@ describe("While", () => {
     expect(loopInvocations).toBe(0);
   });
 
-  test("invokes block until condition is false", () => {
+  it("invokes block until condition is false", () => {
     let loopInvocations = 0;
 
     while (loopInvocations < 5) {
@@ -19,7 +19,7 @@ describe("While", () => {
     expect(loopInvocations).toBe(5);
   });
 
-  test("invokes statement until condition is false", () => {
+  it("invokes statement until condition is false", () => {
     let loopInvocations = 0;
 
     while (loopInvocations < 5) loopInvocations++;
@@ -27,7 +27,7 @@ describe("While", () => {
     expect(loopInvocations).toBe(5);
   });
 
-  test("exits early if break is called", () => {
+  it("exits early if break is called", () => {
     let loopInvocations = 0;
 
     while (loopInvocations < 5) {
@@ -40,7 +40,7 @@ describe("While", () => {
     expect(loopInvocations).toBe(2);
   });
 
-  test("exits block early if continue is called", () => {
+  it("exits block early if continue is called", () => {
     let loopInvocations = 0;
     let postContinueInvocations = 0;
 

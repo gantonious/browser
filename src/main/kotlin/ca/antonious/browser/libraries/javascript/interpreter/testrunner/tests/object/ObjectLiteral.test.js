@@ -1,23 +1,23 @@
 describe("ObjectLiteral", () => {
-  test("supports defining empty object", () => {
+  it("supports defining empty object", () => {
     const obj = {};
     expect(Object.keys(obj)).toBe([]);
     expect(Object.values(obj)).toBe([]);
   });
 
-  test("supports defining flat object", () => {
+  it("supports defining flat object", () => {
     const obj = { a: 2, b: "str" };
     expect(Object.keys(obj)).toBe(["a", "b"]);
     expect(Object.values(obj)).toBe([2, "str"]);
   });
 
-  test("supports defining nested object", () => {
+  it("supports defining nested object", () => {
     const obj = { a: 2, b: { c: false } };
     expect(Object.keys(obj)).toBe(["a", "b"]);
     expect(Object.values(obj)).toBe([2, { c: false }]);
   });
 
-  test("supports defining object with getter", () => {
+  it("supports defining object with getter", () => {
     let thisBinding;
 
     const obj = {
@@ -36,7 +36,7 @@ describe("ObjectLiteral", () => {
     obj.a = 1;
   });
 
-  test("supports defining object with setter", () => {
+  it("supports defining object with setter", () => {
     let thisBinding;
     let setterInvocation;
 
@@ -56,7 +56,7 @@ describe("ObjectLiteral", () => {
     expect(thisBinding).toBe(obj);
   });
 
-  test("supports defining object with getter + setter for same property", () => {
+  it("supports defining object with getter + setter for same property", () => {
     const obj = {
       _a: 0,
       get a() {
@@ -75,7 +75,7 @@ describe("ObjectLiteral", () => {
     expect(obj.a).toBe(1);
   });
 
-  test("supports properties named get/set", () => {
+  it("supports properties named get/set", () => {
     const obj = {
       get: 0,
       set: 1,
@@ -85,7 +85,7 @@ describe("ObjectLiteral", () => {
     expect(Object.values(obj)).toBe([0, 1]);
   });
 
-  test("supports spreading objects", () => {
+  it("supports spreading objects", () => {
     const objectToSpread = {
       a: 2,
       c: { d: "str" },
@@ -97,7 +97,7 @@ describe("ObjectLiteral", () => {
     expect(obj).toBe({ a: 2, b: false, c: { d: "str" }, e: null });
   });
 
-  test("supports 'constructor' as key", () => {
+  it("supports 'constructor' as key", () => {
     const obj = { constructor: 0 };
     expect(obj.constructor).toBe(0);
   })

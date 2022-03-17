@@ -1,5 +1,5 @@
 describe("TestUtils", () => {
-  test("deepEquals supports primitives", () => {
+  it("deepEquals supports primitives", () => {
     expect(deepEquals(1, 1)).toBeTrue();
     expect(deepEquals("str", "str")).toBeTrue();
     expect(deepEquals(true, true)).toBeTrue();
@@ -14,7 +14,7 @@ describe("TestUtils", () => {
     expect(deepEquals(undefined, null)).toBeFalse();
   });
 
-  test("deepEquals supports object", () => {
+  it("deepEquals supports object", () => {
     expect(deepEquals({}, {})).toBeTrue();
     expect(deepEquals({ a: 2 }, { a: 2 })).toBeTrue();
     expect(deepEquals({ a: 2, b: 3 }, { a: 2, b: 3 })).toBeTrue();
@@ -31,7 +31,7 @@ describe("TestUtils", () => {
     ).toBeFalse();
   });
 
-  test("deepEquals supports arrays", () => {
+  it("deepEquals supports arrays", () => {
     expect(deepEquals([], [])).toBeTrue();
     expect(deepEquals([1, 2, 3], [1, 2, 3])).toBeTrue();
     expect(

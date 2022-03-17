@@ -1,5 +1,5 @@
 describe("Try/Catch", () => {
-  test("only invokes try block if no error is thrown", () => {
+  it("only invokes try block if no error is thrown", () => {
     let invocationOrder = [];
 
     try {
@@ -11,7 +11,7 @@ describe("Try/Catch", () => {
     expect(invocationOrder).toBe(["try"]);
   });
 
-  test("invokes catch block if an error is thrown", () => {
+  it("invokes catch block if an error is thrown", () => {
     let invocationOrder = [];
 
     try {
@@ -24,7 +24,7 @@ describe("Try/Catch", () => {
     expect(invocationOrder).toBe(["try", "catch"]);
   });
 
-  test("invokes catch block with correct catch parameter", () => {
+  it("invokes catch block with correct catch parameter", () => {
     let invocationOrder = [];
 
     try {
@@ -39,7 +39,7 @@ describe("Try/Catch", () => {
 });
 
 describe("Try/Finally", () => {
-  test("invokes both catch and finally block if no error is thrown", () => {
+  it("invokes both catch and finally block if no error is thrown", () => {
     let invocationOrder = [];
 
     try {
@@ -51,7 +51,7 @@ describe("Try/Finally", () => {
     expect(invocationOrder).toBe(["try", "finally"]);
   });
 
-  test("invokes finally block if error is thrown in catch block", () => {
+  it("invokes finally block if error is thrown in catch block", () => {
     let invocationOrder = [];
 
     try {
@@ -68,7 +68,7 @@ describe("Try/Finally", () => {
 });
 
 describe("Try/Catch/Finally", () => {
-  test("only invokes try/finally blocks if no error is thrown", () => {
+  it("only invokes try/finally blocks if no error is thrown", () => {
     let invocationOrder = [];
 
     try {
@@ -82,7 +82,7 @@ describe("Try/Catch/Finally", () => {
     expect(invocationOrder).toBe(["try", "finally"]);
   });
 
-  test("invokes catch/finally blocks if an error is thrown", () => {
+  it("invokes catch/finally blocks if an error is thrown", () => {
     let invocationOrder = [];
 
     try {
@@ -97,7 +97,7 @@ describe("Try/Catch/Finally", () => {
     expect(invocationOrder).toBe(["try", "catch", "finally"]);
   });
 
-  test("invokes catch block with correct catch parameter", () => {
+  it("invokes catch block with correct catch parameter", () => {
     let invocationOrder = [];
 
     try {
@@ -111,7 +111,7 @@ describe("Try/Catch/Finally", () => {
     expect(invocationOrder).toBe(["catch", "finally"]);
   });
 
-  test("invokes finally block even if catch returns early", () => {
+  it("invokes finally block even if catch returns early", () => {
     let invocationOrder = [];
 
     function testCase() {
@@ -130,7 +130,7 @@ describe("Try/Catch/Finally", () => {
     expect(invocationOrder).toBe(["catch(error)", "finally"]);
   });
 
-  test("biases to return in finally block", () => {
+  it("biases to return in finally block", () => {
     let invocationOrder = [];
 
     function testCase() {

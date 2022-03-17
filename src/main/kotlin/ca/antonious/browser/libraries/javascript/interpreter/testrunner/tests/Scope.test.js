@@ -1,5 +1,5 @@
 describe("Scopes", () => {
-  test("nested scopes can access variable in closest parent scope", () => {
+  it("nested scopes can access variable in closest parent scope", () => {
     let test = 3;
 
     if (true) {
@@ -9,7 +9,7 @@ describe("Scopes", () => {
     }
   });
 
-  test("nested scopes can update variable in closest parent scope", () => {
+  it("nested scopes can update variable in closest parent scope", () => {
     let test = 3;
 
     if (true) {

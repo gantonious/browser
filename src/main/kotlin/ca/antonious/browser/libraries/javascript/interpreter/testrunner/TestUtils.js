@@ -99,7 +99,7 @@ function describe(name, block) {
   this.__testContext.describeContext = null;
 }
 
-function test(name, tests) {
+function it(name, tests) {
   const testStartTime = new Date();
 
   function pushTestResult(result) {
