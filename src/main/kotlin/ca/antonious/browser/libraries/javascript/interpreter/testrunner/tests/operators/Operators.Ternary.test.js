@@ -13,4 +13,8 @@ describe("Operators.Ternary", () => {
     // prettier-ignore
     expect(false ? false ? 0 : 1 : true ? 2 : 3).toBe(2);
   });
+
+  test("supports nested assignment", () => {
+    expect(true ? b=1 : 0).toBe(1);
+  });
 });

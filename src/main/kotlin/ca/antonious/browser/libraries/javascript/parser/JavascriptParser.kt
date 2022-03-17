@@ -539,8 +539,8 @@ class JavascriptParser(
             return JavascriptExpression.TernaryOperation(
                 sourceInfo = sourceInfo,
                 condition = expression,
-                ifTruthy = expectTernaryExpression().also { expectToken<JavascriptTokenType.Colon>() },
-                ifNot = expectTernaryExpression()
+                ifTruthy = expectAssignmentExpression().also { expectToken<JavascriptTokenType.Colon>() },
+                ifNot = expectAssignmentExpression()
             )
         }
 
@@ -1335,7 +1335,7 @@ class JavascriptParser(
     }
 
     private fun throwUnexpectedTokenFound(expectedToken: String? = null): Nothing {
-        throwSyntaxError("Unexpected token${expectedToken?.let { ", expected: $it" } ?: ""}")
+        throwSyntaxError("Unexpected token: ${getCurrentToken()::class.java.simpleName}${expectedToken?.let { ", expected: $it" } ?: ""}")
     }
 
     private fun throwSyntaxError(message: String): Nothing {
