@@ -179,6 +179,7 @@ private class LibgdxLayoutRunnerApplication(
     }
 
     override fun mouseMoved(screenX: Int, screenY: Int): Boolean {
+        inputEventsToProcess += InputEvent.PointerMove(Point(screenX.toFloat(), screenY.toFloat()))
         return true
     }
 

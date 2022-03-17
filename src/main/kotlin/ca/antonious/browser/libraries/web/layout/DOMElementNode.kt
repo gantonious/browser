@@ -36,6 +36,7 @@ class DOMElementNode(
 
     val attributes = htmlNode.attributes.toMutableMap()
 
+    var isHovered = false
     var resolvedStyle = ResolvedStyle()
     var marginInsets = Insets.zero()
     val children = mutableListOf<DOMLayoutNode>()
@@ -257,6 +258,8 @@ class DOMElementNode(
                 )
             )
         }
+
+        isHovered = false
     }
 
     override fun handleInputEvent(inputEvent: InputEvent) {
@@ -271,6 +274,14 @@ class DOMElementNode(
                 for (child in children) {
                     if (child.frame.contains(inputEvent.mousePosition)) {
                         child.handleInputEvent(InputEvent.TouchUp(inputEvent.mousePosition.positionInsideOf(child.frame)))
+                    }
+                }
+            }
+            is InputEvent.PointerMove -> {
+                isHovered = true
+                for (child in children) {
+                    if (child.frame.contains(inputEvent.position)) {
+                        child.handleInputEvent(InputEvent.PointerMove(inputEvent.position.positionInsideOf(child.frame)))
                     }
                 }
             }

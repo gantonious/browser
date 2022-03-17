@@ -55,7 +55,12 @@ sealed class CssSelector {
 
     data class MatchesState(val selector: CssSelector, val requiredState: String) : CssSelector() {
         override fun matches(domElement: DOMElementNode): Boolean {
-            return false
+            val matchesState = when (requiredState) {
+                "hover" -> domElement.isHovered
+                else -> false
+            }
+
+            return matchesState && selector.matches(domElement)
         }
     }
 }

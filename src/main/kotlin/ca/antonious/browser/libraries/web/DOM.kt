@@ -276,6 +276,9 @@ class DOM {
                             "stylesheet" -> {
                                 val href = htmlElement.attributes["href"] ?: ""
                                 val styleSheetUrl = resolveUrl(href)
+                                if (styleSheetUrl.host.contains("google")) {
+                                    continue
+                                }
                                 httpClient.execute(HttpRequest(styleSheetUrl, HttpMethod.Get)).onSuccess { response ->
                                     try {
                                         cssStyleResolver.addRules(

@@ -62,6 +62,9 @@ class WebContentLayout(url: String) : LayoutNode() {
                 is InputEvent.TouchUp -> InputEvent.TouchUp(
                     inputEvent.mousePosition.copy(y = inputEvent.mousePosition.y - navigationBar.frame.height)
                 )
+                is InputEvent.PointerMove -> InputEvent.PointerMove(
+                    inputEvent.position.copy(y = inputEvent.position.y - navigationBar.frame.height)
+                )
                 else -> inputEvent
             }
         )
