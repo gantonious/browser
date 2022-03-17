@@ -8,7 +8,9 @@
   "version": "0.0.1",
   "publisher": "gantonious",
   "scripts": {
-    "compile": "rm -rf dist && tsc -p ."
+    "compile": "rm -rf dist && tsc -p .",
+    "package": "yarn compile && rm -rf bin && mkdir bin && vsce package -o bin/browser-js.vsix",
+    "install": "yarn package && code --install-extension bin/browser-js.vsix"
   },
   "engines": {
     "vscode": "^1.55.0"
@@ -58,7 +60,8 @@
   "devDependencies": {
     "@types/vscode": "^1.55.0",
     "@types/ws": "^7.4.1",
-    "typescript": "^4.2.3"
+    "typescript": "^4.2.3",
+    "vsce": "^2.7.0"
   },
   "dependencies": {
     "axios": "^0.21.1",
