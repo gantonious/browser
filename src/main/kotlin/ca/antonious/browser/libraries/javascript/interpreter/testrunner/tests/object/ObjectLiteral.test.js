@@ -96,4 +96,9 @@ describe("ObjectLiteral", () => {
 
     expect(obj).toBe({ a: 2, b: false, c: { d: "str" }, e: null });
   });
+
+  test("supports 'constructor' as key", () => {
+    const obj = { constructor: 0 };
+    expect(obj.constructor).toBe(0);
+  })
 });

@@ -10,6 +10,7 @@ import ca.antonious.browser.libraries.javascript.ast.JavascriptValue
 import ca.antonious.browser.libraries.javascript.lexer.JavascriptToken
 import ca.antonious.browser.libraries.javascript.lexer.JavascriptTokenType
 import ca.antonious.browser.libraries.shared.parsing.SourceInfo
+import org.intellij.lang.annotations.Identifier
 import java.util.Stack
 import kotlin.math.max
 
@@ -1020,6 +1021,10 @@ class JavascriptParser(
                 advanceCursor()
                 currentToken.name
             }
+            is JavascriptTokenType.Constructor -> {
+                advanceCursor()
+                "constructor"
+            }
             else -> throwUnexpectedTokenFound()
         }
     }
@@ -1316,6 +1321,15 @@ class JavascriptParser(
     }
 
     private inline fun <reified T : JavascriptTokenType> expectTokenAndSourceInfo(): Pair<T, SourceInfo> {
+        val constructorIdentifier = JavascriptTokenType.Identifier("constructor")
+
+        if (constructorIdentifier is T && getCurrentToken() is JavascriptTokenType.Constructor) {
+            val token = tokens[cursor]
+            return (constructorIdentifier to token.sourceInfo).also {
+                advanceCursor()
+            }
+        }
+
         if (getCurrentToken() !is T) {
             throwUnexpectedTokenFound(T::class.java.simpleName)
         }
