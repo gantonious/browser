@@ -34,7 +34,7 @@ class DOM {
     private val cssParser = CssParser()
     private val imageLoader = ImageLoader()
 
-    private val javascriptInterpreter = JavascriptInterpreter().apply {
+    private val javascriptInterpreter = JavascriptInterpreter(startDebugger = true).apply {
         val interpreter = this
         val documentObject = JavascriptValue.Object(
             makeObject().apply {
