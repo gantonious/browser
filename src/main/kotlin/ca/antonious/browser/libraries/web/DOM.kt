@@ -358,6 +358,10 @@ class DOM {
             return url.toUri()
         }
 
+        if (url.startsWith("//")) {
+            return url.replace("//", "${siteUrl?.scheme}://").toUri()
+        }
+
         return siteUrl!!.uriForPath(url)
     }
 }
