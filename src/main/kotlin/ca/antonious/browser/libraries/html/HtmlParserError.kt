@@ -1,6 +1,7 @@
 package ca.antonious.browser.libraries.html
 
 sealed class HtmlParserError(message: String? = null) : Exception(message) {
+    class AbsenceOfDigitsInNumericCharacterReference() : HtmlParserError()
     class EofBeforeTagName : HtmlParserError()
     class UnexpectedQuestionMarkBeforeTagName : HtmlParserError()
     class InvalidFirstCharacterOfTagName : HtmlParserError()
@@ -23,4 +24,9 @@ sealed class HtmlParserError(message: String? = null) : Exception(message) {
     class NestedComment : HtmlParserError()
     class IncorrectlyClosedComment : HtmlParserError()
     class EofInScriptHtmlCommentLikeText : HtmlParserError()
+    class NullCharacterReference : HtmlParserError()
+    class CharacterReferenceOutOfUnicodeRange : HtmlParserError()
+    class SurrogateCharacterReferenceError : HtmlParserError()
+    class NonCharacterReferenceError : HtmlParserError()
+    class ControlCharacterParseError : HtmlParserError()
 }

@@ -17,6 +17,8 @@ class HtmlTokenizer(val source: String) {
 
     var lastEmittedStartTag: HtmlToken.StartTag? = null
 
+    var characterReferenceCode = 0
+
     fun nextToken(): HtmlToken {
         if (emittedTokenQueue.isNotEmpty()) {
             return emittedTokenQueue.removeAt(0)
