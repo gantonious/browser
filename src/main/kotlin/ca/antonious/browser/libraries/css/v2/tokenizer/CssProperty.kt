@@ -14,4 +14,10 @@ sealed class CssProperty {
         val marginBottom: CssMargin,
         val marginLeft: CssMargin
     ) : CssProperty()
+
+    data class MarginTop(val margin: CssMargin) : CssProperty()
+    data class MarginBottom(val margin: CssMargin) : CssProperty()
+    data class MarginRight(val margin: CssMargin) : CssProperty()
+    data class MarginLeft(val margin: CssMargin) : CssProperty()
+
 }

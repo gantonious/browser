@@ -417,6 +417,26 @@ class CssParser {
             "margin" -> {
                 parseMarginProperty(value)?.safeResult() ?: return null
             }
+            "margin-top" -> {
+                val token = value.first().maybeAsA<ComponentValue.Token>()?.tokenType ?: return null
+                val margin = parseMargin(token)?.safeResult() ?: return null
+                CssProperty.MarginTop(margin)
+            }
+            "margin-right" -> {
+                val token = value.first().maybeAsA<ComponentValue.Token>()?.tokenType ?: return null
+                val margin = parseMargin(token)?.safeResult() ?: return null
+                CssProperty.MarginRight(margin)
+            }
+            "margin-bottom" -> {
+                val token = value.first().maybeAsA<ComponentValue.Token>()?.tokenType ?: return null
+                val margin = parseMargin(token)?.safeResult() ?: return null
+                CssProperty.MarginBottom(margin)
+            }
+            "margin-left" -> {
+                val token = value.first().maybeAsA<ComponentValue.Token>()?.tokenType ?: return null
+                val margin = parseMargin(token)?.safeResult() ?: return null
+                CssProperty.MarginLeft(margin)
+            }
             else -> return null
         }
 
