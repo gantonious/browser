@@ -22,7 +22,11 @@ data class CssFunction(
 )
 
 data class StyleDeclaration(
-    val name: CssTokenType.Ident,
-    val value: MutableList<ComponentValue>,
+    val property: CssProperty,
     var important: Boolean
 )
+
+inline fun <reified T : CssTokenType> ComponentValue.maybeAsToken(): T? {
+    return maybeAsA<ComponentValue.Token>()?.tokenType
+        ?.maybeAsA<T>()
+}

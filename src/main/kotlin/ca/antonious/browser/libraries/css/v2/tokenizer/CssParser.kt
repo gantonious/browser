@@ -1,5 +1,7 @@
 package ca.antonious.browser.libraries.css.v2.tokenizer
 
+import ca.antonious.browser.libraries.graphics.core.toColor
+import ca.antonious.browser.libraries.graphics.core.Color as GraphicsColor
 
 class CssParser {
     private var topLevel = false
@@ -17,11 +19,43 @@ class CssParser {
             }
         )
     }
+
     fun parseAStyleSheet(inputStream: CssTokenStream): Stylesheet {
         val stylesheet = Stylesheet(location = "null", rules = listOf())
         topLevel = true
         stylesheet.rules = consumeAListOfRules(inputStream)
         return stylesheet
+    }
+
+    fun parseACommaSeparatedListOfComponentValues(inputStream: CssTokenStream): List<List<ComponentValue>> {
+        val componentValueList = mutableListOf<List<ComponentValue>>()
+        val currentList = mutableListOf<ComponentValue>()
+
+        while (true) {
+            when (val currentToken = inputStream.consumeNextInputToken()) {
+                is CssTokenType.Comma -> {
+                    componentValueList += currentList.toList()
+                    currentList.clear()
+                }
+                is CssTokenType.EndOfFile -> {
+                    componentValueList += currentList.toList()
+                    currentList.clear()
+                    break
+                }
+                is CssTokenType.Whitespace -> {
+                    continue
+                }
+                is ComponentValue -> {
+                    currentList += currentToken
+                }
+                is CssTokenType -> {
+                    currentList += ComponentValue.Token(currentToken)
+                }
+                else -> error("Should not be able to get here.")
+            }
+        }
+
+        return componentValueList
     }
 
     private fun consumeAListOfRules(inputStream: CssTokenStream): List<CssRule> {
@@ -316,11 +350,9 @@ class CssParser {
     private fun consumeADeclaration(inputStream: CssTokenStream): StyleDeclaration? {
         var indexOfLastNonWhitespaceToken = -1
 
-        val declaration = StyleDeclaration(
-            name = inputStream.consumeNextInputToken() as CssTokenType.Ident,
-            value = mutableListOf(),
-            important = false
-        )
+        val name = (inputStream.consumeNextInputToken() as CssTokenType.Ident).value
+        val value = mutableListOf<ComponentValue>()
+        var important = false
 
         while (inputStream.nextInputToken() is CssTokenType.Whitespace) {
             inputStream.consumeNextInputToken()
@@ -341,27 +373,196 @@ class CssParser {
             val componentValue = consumeAComponentValue(inputStream)
 
             if (componentValue.maybeAsA<ComponentValue.Token>()?.tokenType !is CssTokenType.Whitespace) {
-                indexOfLastNonWhitespaceToken = declaration.value.size
+                indexOfLastNonWhitespaceToken = value.size
             }
 
-            declaration.value += componentValue
+            value += componentValue
         }
 
         if (
             indexOfLastNonWhitespaceToken - 1 >= 0 &&
-            declaration.value.getOrNull(indexOfLastNonWhitespaceToken - 1)?.maybeAsA<ComponentValue.Token>()?.tokenType?.maybeAsA<CssTokenType.Delim>()?.value == '!' &&
-            declaration.value.getOrNull(indexOfLastNonWhitespaceToken)?.maybeAsA<ComponentValue.Token>()?.tokenType?.maybeAsA<CssTokenType.Ident>()?.value?.lowercase() == "important"
+            value.getOrNull(indexOfLastNonWhitespaceToken - 1)?.maybeAsA<ComponentValue.Token>()?.tokenType?.maybeAsA<CssTokenType.Delim>()?.value == '!' &&
+            value.getOrNull(indexOfLastNonWhitespaceToken)?.maybeAsA<ComponentValue.Token>()?.tokenType?.maybeAsA<CssTokenType.Ident>()?.value?.lowercase() == "important"
         ) {
-            declaration.important = true
-            declaration.value.removeAt(indexOfLastNonWhitespaceToken - 1)
-            declaration.value.removeAt(indexOfLastNonWhitespaceToken - 1)
+            important = true
+            value.removeAt(indexOfLastNonWhitespaceToken - 1)
+            value.removeAt(indexOfLastNonWhitespaceToken - 1)
         }
 
-        if (declaration.value.lastOrNull()?.maybeAsA<ComponentValue.Token>()?.tokenType is CssTokenType.Whitespace) {
-            declaration.value.removeLast()
+        if (value.lastOrNull()?.maybeAsA<ComponentValue.Token>()?.tokenType is CssTokenType.Whitespace) {
+            value.removeLast()
         }
 
-        return declaration
+        if (value.isEmpty()) {
+            return null
+        }
+
+        val property = when (name) {
+            "color" -> {
+                val color = parseColor(value.first()).safeResult() ?: return null
+                CssProperty.Color(color)
+            }
+            "background-color" -> {
+                val color = parseColor(value.first()).safeResult() ?: return null
+                CssProperty.BackgroundColor(color)
+            }
+            "width" -> {
+                val size = parseSize(value.first()).safeResult() ?: return null
+                CssProperty.Width(size)
+            }
+            "height" -> {
+                val size = parseSize(value.first()).safeResult() ?: return null
+                CssProperty.Height(size)
+            }
+            "margin" -> {
+                parseMarginProperty(value)?.safeResult() ?: return null
+            }
+            else -> return null
+        }
+
+        return StyleDeclaration(
+            property = property,
+            important = important
+        )
+    }
+
+    private fun parseSize(value: ComponentValue): ResultOrFailure<CssSize> {
+        return when (value) {
+            is ComponentValue.Token -> {
+                when (val token = value.tokenType) {
+                    is CssTokenType.Dimension -> parseLength(token).mapResult {
+                        CssSize.Length(it)
+                    }
+                    is CssTokenType.IdentOrString -> {
+                        val size = when (token.value.lowercase()) {
+                            "auto" -> CssSize.Auto
+                            "min-content" -> CssSize.MinContent
+                            "max-content" -> CssSize.MaxContent
+                            else -> return failure()
+                        }
+
+                        resultOf(size)
+                    }
+                    else -> failure()
+                }
+            }
+            else -> failure()
+        }
+    }
+
+    private fun parseMarginProperty(componentValues: List<ComponentValue>): ResultOrFailure<CssProperty.Margin> {
+        val commaSeparatedComponents = parseACommaSeparatedListOfComponentValues(componentValues.toTokenStream())
+
+        fun getMarginAt(index: Int): ResultOrFailure<CssMargin> {
+            val token = commaSeparatedComponents.getOrNull(index)?.firstOrNull()?.maybeAsA<ComponentValue.Token>()?.tokenType ?: return failure()
+            return parseMargin(token)
+        }
+
+        return when (commaSeparatedComponents.size) {
+            1 -> {
+                getMarginAt(0).mapResult {
+                    CssProperty.Margin(it, it, it, it)
+                }
+            }
+            2 -> {
+                getMarginAt(0).flatMapResult { verticalMargin ->
+                    getMarginAt(1).mapResult { horizontalMargin ->
+                        CssProperty.Margin(
+                            marginTop = verticalMargin,
+                            marginRight = horizontalMargin,
+                            marginBottom = verticalMargin,
+                            marginLeft = horizontalMargin
+                        )
+                    }
+                }
+            }
+            3 -> {
+                getMarginAt(0).flatMapResult { topMargin ->
+                    getMarginAt(1).flatMapResult { horizontalMargin ->
+                        getMarginAt(2).mapResult { bottomMargin ->
+                            CssProperty.Margin(
+                                marginTop = topMargin,
+                                marginRight = horizontalMargin,
+                                marginBottom = horizontalMargin,
+                                marginLeft = bottomMargin
+                            )
+                        }
+                    }
+                }
+            }
+            4 -> {
+                getMarginAt(0).flatMapResult { topMargin ->
+                    getMarginAt(1).flatMapResult { horizontalMargin ->
+                        getMarginAt(2).flatMapResult { bottomMargin ->
+                            getMarginAt(3).mapResult { leftMargin ->
+                                CssProperty.Margin(
+                                    marginTop = topMargin,
+                                    marginRight = horizontalMargin,
+                                    marginBottom = horizontalMargin,
+                                    marginLeft = leftMargin
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+            else -> failure()
+        }
+    }
+
+    private fun parseMargin(token: CssTokenType): ResultOrFailure<CssMargin> {
+        return when (token) {
+            is CssTokenType.Dimension -> parseLength(token).mapResult { CssMargin.Length(it) }
+            else -> failure()
+        }
+    }
+
+    private fun parseLength(dimensionToken: CssTokenType.Dimension): ResultOrFailure<CssLength> {
+        val unit = when (dimensionToken.unit.lowercase()) {
+            "px" -> CssLength.Unit.px
+            "em" -> CssLength.Unit.em
+            else -> return failure()
+        }
+
+        return resultOf(CssLength(quantity = dimensionToken.value, unit = unit))
+    }
+
+    private fun parseColor(value: ComponentValue): ResultOrFailure<GraphicsColor> {
+        return when (value) {
+            is ComponentValue.Function -> {
+                // TODO: Implement color functions
+                when (value.function.name) {
+                    else ->  ResultOrFailure.Failure()
+                }
+            }
+            is ComponentValue.Token -> {
+                return when (val token = value.tokenType) {
+                    is CssTokenType.String -> {
+                        val color = convertNamedColorToColor(token.value)
+
+                        if (color != null) {
+                            ResultOrFailure.Result(color)
+                        } else {
+                            ResultOrFailure.Failure()
+                        }
+                    }
+                    is CssTokenType.Ident -> {
+                        val color = convertNamedColorToColor(token.value)
+
+                        if (color != null) {
+                            ResultOrFailure.Result(color)
+                        } else {
+                            ResultOrFailure.Failure()
+                        }
+                    }
+                    is CssTokenType.HashToken -> {
+                        return ResultOrFailure.Result(token.value.toInt(16).toColor())
+                    }
+                    else -> ResultOrFailure.Failure()
+                }
+            }
+            else ->  ResultOrFailure.Failure()
+        }
     }
 
     private fun raiseParseError() {

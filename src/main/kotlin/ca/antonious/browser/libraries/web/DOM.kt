@@ -2,6 +2,8 @@ package ca.antonious.browser.libraries.web
 
 import ca.antonious.browser.libraries.css.CssAttributeParser
 import ca.antonious.browser.libraries.css.CssParser
+import ca.antonious.browser.libraries.css.v2.tokenizer.CssTokenStream
+import ca.antonious.browser.libraries.css.v2.tokenizer.RawCssInputStream
 import ca.antonious.browser.libraries.graphics.images.ImageLoader
 import ca.antonious.browser.libraries.html.HtmlElement
 import ca.antonious.browser.libraries.html.parser.HtmlParser
@@ -280,6 +282,14 @@ class DOM {
                                     continue
                                 }
                                 httpClient.execute(HttpRequest(styleSheetUrl, HttpMethod.Get)).onSuccess { response ->
+                                    try {
+                                        val tokenStream = CssTokenStream(input = RawCssInputStream(response.body))
+                                        val parser = ca.antonious.browser.libraries.css.v2.tokenizer.CssParser()
+                                        val styleSheet = parser.parseACssStyleSheet(tokenStream)
+                                        print("CSS: V2 parser ran ${styleSheet.styleRules}")
+                                    } catch (ex: Exception) {
+
+                                    }
                                     try {
                                         cssStyleResolver.addRules(
                                             cssParser.parse(

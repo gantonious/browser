@@ -83,3 +83,7 @@ class RawCssInputStream(
         return tokenizer.consumeToken()
     }
 }
+
+fun List<ComponentValue>.toTokenStream(): CssTokenStream {
+    return CssTokenStream(input = ComponentValueStreamInput(this))
+}

@@ -1,6 +1,6 @@
 package ca.antonious.browser.libraries.graphics.core
 
-data class Color(val r: Float, val g: Float, val b: Float, val a: Float) {
+data class Color(val r: Float, val g: Float, val b: Float, val a: Float = 1f) {
     companion object {
         val black = Color(0f, 0f, 0f, 1f)
         val white = Color(1f, 1f, 1f, 1f)
@@ -26,6 +26,14 @@ fun String.toColor(): Color {
             Color(r.toFloat() / 255f, g.toFloat() / 255f, b.toFloat() / 255f, 1f)
         }
     }
+}
+
+fun Int.toColor(): Color {
+    val r = (this and 0xFF0000) shr 16
+    val g = (this and 0x00FF00) shr 8
+    val b = this and 0x0000FF
+
+    return Color(r.toFloat() / 255f, g.toFloat() / 255f, b.toFloat() / 255f, 1f)
 }
 
 fun rgbColorOf(r: Int, g: Int, b: Int): Color {
